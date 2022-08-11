@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html>
+  <script src="https://momentjs.com/downloads/moment.js"></script>
+<script>
+    const mom1_3 = moment("08/11/2022 12:00 AM", "MM/DD/YYYY HH:mm A").format("MM/DD/YYYY HH:mm A");
+    const mom1_4 = moment("08/11/2022 12:00 AM", "MM/DD/YYYY HH:mm A").format("MM/DD/YYYY hh:mm A");
+
+
+    console.log("")
+    console.log("moment().format(\"MM/DD/YYYY HH:mm A\") - \n\t" + mom1_3.toString())
+    console.log("")
+    console.log("moment().format(\"MM/DD/YYYY hh:mm A\") - \n\t" + mom1_4.toString())
+</script>
 <body>
 <h2>Moment format:</h2>
-  <table>
-    <tr>
-        <th>input</th>
-        <th>format string</th>
-        <th>output</th>
-      </tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td></td>
-      </tr>
-    </table>
-
+  <p>Check the console for output!
+    
+    
 </body>
 </html> 
