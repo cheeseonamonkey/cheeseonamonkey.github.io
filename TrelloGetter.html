@@ -1,0 +1,367 @@
+<html>
+
+<head>
+    <style>
+        body {
+            font-size: 60%;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="box-shadow: inset 1px 1px 2px 3px rgba(0,0,0,0.3); width: 69%; margin-top: 10px; margin-bottom: 10px; padding: 10px;">
+
+    <div style="margin: 4px; margin-right: 4px; width: 25%; border: 1px solid black; padding: 3px; float:left;">
+        <h3>Within these dates:</h3>
+        <span>from date:  </span>
+        <input type="date" id="fromDate" title="pasta" />
+        <br><br>
+        <span>to date:  </span>
+        <input type="date" id="toDate" />
+        <br>
+        
+        
+    <br><br>
+</div>
+<br><br>
+
+
+<div id="divIncludeBoards" style="margin: 4px; margin-right: 4px; width: 33%; border: 1px solid black; padding: 3px; float:left;">
+    <h3>Include boards:</h3>
+</div>
+
+<br style="clear:both;">
+
+
+
+
+
+<form>  <!-- to save token to autocomplete -->
+
+    <u>Trello API token:</u> &nbsp; <input type="text" name="token" autocomplete="on" id="txtTokenInput" style="width: 50%;"/><br><br>
+<i></i><a href='https://trello.com/1/authorize?expiration=never&scope=read,write,account&response_type=token&name=Server%20Token&key=7ba562c87dee43f4596cd7047fdc3d92'>(generate a token)</a></i>
+<br><br>
+
+
+
+
+
+
+
+
+
+
+
+
+<br>
+<input type="submit" id="btnGo" style="margin: 3px; padding: 6px; width: 25%;" value="Filter trello activity" />
+<br>
+</form>
+</div>
+
+
+
+
+
+<div id="activityDiv">
+
+    <script>
+
+        
+
+        let boardsList = []
+        let olist = []
+
+        /*
+        let ddd = new Date(Date.now())
+        ddd.setDate(ddd - 30);
+        document.getElementById("fromDate").val = toUrlDate(ddd);
+        document.getElementById("fromDate").value = toUrlDate(ddd);
+*/
+        //populates boards list 
+        getMyActivity();
+
+        document.getElementById("btnGo").addEventListener("click", function() {
+            go();
+        });
+
+        
+        
+
+
+
+
+
+
+
+        async function go() {
+
+            document.getElementById("activityDiv").innerHTML = 0;
+
+            olist = await getMyActivity();
+            await drawMyActivity(olist);
+       
+        }
+
+        async function drawMyActivity(olist) {
+                
+            let boardCkbEls = document.getElementsByClassName("cdbBoard")
+            let boardsToDraw = []
+            let lastDate = ""
+            
+            for (let j = 0; j < boardCkbEls.length; j++) {
+                    let ckbElement = boardCkbEls[j];
+                    if(ckbElement.checked)
+                    boardsToDraw.push(ckbElement.id.replace("ckbBoard_", ""))
+            }
+            console.log("boards to draw: " + boardsToDraw.toString())
+
+
+
+            for (let i = 0; i < olist.length; i++) {
+                const el = olist[i];
+
+                let isWithinDates;
+
+                let fromdatecheck = new Date(document.getElementById("fromDate").value)
+                let todatecheck =  new Date(document.getElementById("toDate").value)
+                if(fromdatecheck <= el.dateObj   &&   todatecheck >= el.dateObj)
+                    isWithinDates = true;
+                else {
+                    isWithinDates = false;
+                    console.log("not within dates - " + el.prettyDate)
+                }
+                
+                
+
+                if(
+                    el.cardBoard.includes(boardsToDraw)   &&
+                    isWithinDates
+                ){
+                        if(el.prettyDate !== lastDate) {
+                            lastDate = el.prettyDate;
+                            document.getElementById("activityDiv").innerHTML += '<h2>' + el.prettyDate + '</h2>' + '<hr>';
+                        }
+
+                        
+                            
+                        document.getElementById("activityDiv").appendChild(el.getPrettyElement());
+                    }
+
+                    
+            }
+        }
+
+
+        async function getMyActivity(limit = 999, sinceDate = new Date(Date.now())) {
+            
+            
+
+            let objList = [];
+
+            if (sinceDate == null)
+                sinceDate = document.getElementById("fromDate").value;
+            else
+                document.getElementById("fromDate").val = sinceDate;
+
+                
+                let strToken = document.getElementById("txtTokenInput").value;
+
+
+
+            console.log()
+
+            let urltoget = "https://api.trello.com/1/members/me/actions?key=7ba562c87dee43f4596cd7047fdc3d92" +
+                "&token=" + strToken +
+                "&limit=" + limit +
+                "&since=" + toUrlDate(sinceDate);
+
+            console.log(urltoget);
+
+            await fetch(
+                    urltoget
+                )
+                .then((response) => {
+                    return response.json()
+                })
+                .then(
+                    (result) => {
+
+                        //console.log(result)
+
+
+
+                        for (let i = 0; i < result.length; i++) {
+
+                            let act = result[i]
+
+
+
+
+
+                            let dateSplit = ["(no date)", "(no time)"]
+                            dateSplit = act.date.toString().split("T")
+                            let date = new Date(dateSplit[0]);
+                            console.log("d " + date)
+                            let cardId = "(no id)"
+
+                            let cardLink = "#"
+                            let actType = act.type
+                            let cardDesc = "(no desc)"
+                            let cardBoard = "(no board)"
+
+                            if (act.data.card) {
+                                if (act.data.card.name)
+                                    cardDesc = act.data.card.name
+                                if (act.data.board)
+                                    cardBoard = act.data.board.name
+                                if (act.data.card.shortLink) {
+                                    cardId = act.data.card.shortLink
+                                    cardLink = "https://www.trello.com/c/" + cardId
+                                }
+                            }
+
+                            //for user ui
+                            if(! boardsList.includes(cardBoard)) {
+
+                                boardsList.push(cardBoard)
+
+                                let newEl = document.createElement("input")
+                                newEl.type = "checkbox"
+                                
+                                newEl.id = "ckbBoard_" + cardBoard
+                                newEl.className = "cdbBoard"
+                                
+                                
+                                
+                                document.getElementById("divIncludeBoards").appendChild(
+                                    newEl
+                                )
+                                document.getElementById("divIncludeBoards").innerHTML += '<label><b>' + cardBoard +'</b></label>'
+                                document.getElementById("divIncludeBoards").innerHTML += "<br>";
+                            }
+
+
+
+
+                            let objOut = {
+                                dateObj: date,
+                                prettyDate: toPrettyDate(date),
+                                urlDate: toUrlDate(date),
+                                actionType: actType,
+                                cardId: cardId,
+                                cardLink: cardLink,
+                                cardDesc: cardDesc,
+                                cardBoard: cardBoard,
+                                getPrettyElement: function() {
+                                    
+                                    let eout = document.createElement("div")
+
+                                    eout.style = "max-width: 40%; padding: 2px; margin: 2px;"
+
+                                    
+                                    eout.innerHTML += '<span><b style="float: left">' + cardBoard.replace("\n", "") + '</b>';
+                                    eout.innerHTML += '<i style="float: left; margin-left: 5px;"><a href="' + this.cardLink + '">' + shortenLongString(cardDesc).replace("\n", "") + '</a></i></span><br style="clear: both;"><br>';
+                                    eout.innerHTML += "<li>Trello action: " + eout.actionType + "</li>"
+                                    
+
+                                    return eout;
+
+                                }
+
+                            }
+
+                            
+
+
+                            objList.push(objOut)
+
+
+
+                        } //end for
+
+
+
+                        /*
+                        let a1
+                        let a2
+                        let a3;
+
+                        if (objList[(objList.length - 1)])
+                            a1 = new Date(objList[(objList.length - 1)].urlDate);
+
+                        a2 = new Date(sinceDate)
+                        a3 = new Date(Date.parse(((a1.getDate())) + 600));
+
+
+
+                        console.log(a1);
+                        console.log(a2);
+                        console.log(a3)
+
+                        if (a1 >= a2)
+                            console.log("pushed a1 el is AFTER parameter a2")
+                        else if (a1 < a2)
+                            console.log("pushed a1 is BEFORE parameter a2")
+                        if (a3 >= a2)
+                            console.log("test a3 el is AFTER parameter a2")
+                        else if (a3 < a2)
+                            console.log("pushed a3 is BEFORE parameter a2")
+
+
+*/
+
+
+                    })
+                .then(() => {
+
+                    setTimeout(() => {}, 1000);
+                })
+                .then(() => {
+
+                });
+
+
+
+            return objList;
+
+
+console.log(objList)
+
+
+
+
+        }
+
+
+
+        function shortenLongString(str) {
+            let strout = str;
+            if (str.length > 52)
+                strout = str.substr(0, 50) + "..."
+            return strout;
+        }
+
+        function toPrettyDate(ddd) {
+            let o = ddd.getMonth()+1 + "/" + ddd.getDate() + "/" + ddd.getFullYear().toString().replace("20", "");
+            return o;
+        }
+
+        function toUrlDate(ddd) {
+            let m = ddd.getMonth().toString()
+            if (m.length == 1)
+                m = "0" + m;
+            let d = ddd.getDate().toString()
+            if (d.length == 1)
+                d = "0" + d;
+
+
+            let o = ddd.getFullYear() + "-" + m + "-" + d;
+            return o;
+
+        }
+    </script>
+    </div>
+</body>
+
+</html>
