@@ -66,8 +66,9 @@
 <div id="activityDiv">
 
     <script>
+
 if(window.localStorage.getItem("prevToken"))
-    document.getElementById(txtTokenInput).val = window.localStorage.getItem("prevToken");
+    document.getElementById("txtTokenInput").value = window.localStorage.getItem("prevToken");
 
         let boardsList = []
         let olist = []
