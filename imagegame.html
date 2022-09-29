@@ -1,0 +1,118 @@
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.deepai.org/deepai.min.js"></script>
+</head>
+<body>
+    
+    <script>
+   
+   deepai.setApiKey("a1b69ce1-dd15-4fe1-aee0-d8cca14b67e3");
+
+/*
+let txtBox = document.createElement('textarea')
+txtBox.rows = 5;
+*/
+
+
+
+
+
+
+
+let btnGo = document.createElement('button')
+btnGo.innerHTML = "make random image"
+
+btnGo.addEventListener('click', async ()=>{
+
+    let adjective = await getAdjective();
+    let noun = await getNoun();
+
+    document.body.innerHTML += "<p></p><hr><br>" +
+    "<small>Here is an image of...</small><h1>" + adjective.toString() + ' ' + noun.toString() + "</h1>"
+
+    let gotImage = await getImage(adjective.toString() + ' ' + noun.toString());
+
+
+    document.body.innerHTML += "<br><img src=" + gotImage + "></img><br><br>"
+
+
+})
+
+
+//document.body.appendChild(txtBox)
+document.body.appendChild(btnGo)
+
+
+
+
+
+
+
+
+
+
+
+async function getImage(strInput) {
+
+    console.log("getting image of: " + strInput)
+    var resp = await deepai.callStandardApi("text2img", {
+            text: strInput
+    });
+
+    console.log(resp);
+
+    return resp.output_url
+}
+
+
+
+
+async function getAdjective() {
+    
+    let r = await $.get("https://api.api-ninjas.com/v1/randomword?type=adjective")
+
+    let w = r.word
+    console.log('got adjective: ' + w)
+
+    return w
+
+}
+
+
+async function getNoun() {
+    
+    let r = await $.get("https://api.api-ninjas.com/v1/randomword?type=noun")
+
+    let w = r.word
+    console.log('got noun: ' + w)
+
+    return w
+
+}
+
+
+
+
+
+
+/*
+    var result = await deepai.callStandardApi("text2img", {
+        text: strInput.toString()
+
+        
+    });
+
+return result;
+
+
+}
+*/
+
+
+    </script>
+
+</body>
+
+
+</html>
