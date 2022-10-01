@@ -210,7 +210,7 @@ if(window.localStorage.getItem("prevToken"))
 
                             let dateSplit = ["(no date)", "(no time)"]
                             dateSplit = act.date.toString().split("T")
-                            let date = new Date(dateSplit[0]);
+                            let date = (new Date(dateSplit[0]));
                             //console.log("d " + date)
                             let cardId = "(no id)"
 
@@ -332,7 +332,8 @@ if(window.localStorage.getItem("prevToken"))
         }
 
         function toPrettyDate(ddd) {
-            let o = ddd.getMonth()+1 + "/" + ddd.getDate() + "/" + ddd.getFullYear().toString().replace("20", "");
+            //???????
+            let o = ddd.getMonth()+1 + "/" + (ddd.getDate()+2) + "/" + ddd.getFullYear().toString().replace("20", "");
             return o;
         }
 
