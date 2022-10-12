@@ -48,19 +48,6 @@ p {
 }
 
 
-.wordBankDIV {
-
-    width:44.5%;
-    text-align: start;
-    padding: 0.8vw;
-    margin: auto;
-    border: 1px dotted rgba(10,10,10,0.7);
-    box-shadow: inset 1px 1px 2px 1px rgba(0,0,0,0.55);
-    background-color: rgba(10,15,20,0.17);
-    margin-top: 4vh;
-
-
-}
 
 .wordLI {
 
@@ -94,9 +81,17 @@ margin-bottom: 1.75vh;
     box-shadow: inset 1px 1px 1px 2px rgba(0,0,0,0.55);
 }
 .wordBankUL {
-    padding: 0.25vw;
-    margin-top: 0px;
+      width:44.5%;
+    text-align: start;
+    padding: 0.5vw;
+    margin: auto;
+    border: 1px dotted rgba(10,10,10,0.7);
+    box-shadow: inset 1px 1px 2px 1px rgba(0,0,0,0.55);
+    background-color: rgba(10,15,20,0.17);
+    
+    margin-top: 4vh;
     margin-bottom: 0px;
+   
     overflow: auto;
     padding-left: 1.5vw;
     padding-right: 3.5vw;
@@ -116,5 +111,5 @@ margin-bottom: 1.75vh;
     font-style: italic;
     font-size: 72%;
     line-height: 80%;
-    margin-left: -20vw;
+/*    margin-left: -20vw;    */
 }
