@@ -2,14 +2,14 @@
 <html>
 
 <head>
-    <title>Example of the Implicit Grant flow with Spotify</title>
+    <title>Authorize Spotify (implicit grant flow)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <style type="text/css">
         #login,
         #loggedin {
             display: none;
         }
-        
         .text-overflow {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -32,6 +32,16 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+<!-- 
+  --  
+    SCRIPTS
+  --
+  -->
 
     <script id="user-profile-template" type="text/x-handlebars-template">
         <h1>Logged in as {{display_name}}</h1>
@@ -69,7 +79,6 @@
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script>
         (function() {
 
@@ -142,9 +151,9 @@
 
                 document.getElementById('login-button').addEventListener('click', function() {
 
-                    var client_id = '2c49eca0a0054468bab6105825789601'; // Your client id
-                    var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
-
+                    var client_id = '2c49eca0a0054468bab6105825789601';
+                    var redirect_uri = `https://cheeseonamonkey.github.io/spotauth`;
+                    
                     var state = generateRandomString(16);
 
                     localStorage.setItem(stateKey, state);
@@ -154,10 +163,14 @@
                     url += '?response_type=token';
                     url += '&client_id=' + encodeURIComponent(client_id);
                     url += '&scope=' + encodeURIComponent(scope);
-                    url += '&redirect_uri=' + encodeURIComponent();
+                    url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
                     //url += '&state=' + encodeURIComponent(state);
 
+                    //go to url
                     window.location = url;
+                    
+                    //then: log in, get redirected back here; pull params from the url
+
                 }, false);
             }
         })();
