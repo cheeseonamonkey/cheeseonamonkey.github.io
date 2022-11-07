@@ -1,0 +1,127 @@
+<html>
+
+<head>
+    <title>Authorize Spotify (implicit grant flow)</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style type="text/css">
+        h1 {
+            font-weight: bold;
+        }
+        
+        h4 {
+            margin-top: none;
+            font-weight: lighter;
+        }
+        
+        #login {
+            border: 1px dotted black;
+            padding: 10px;
+            margin-left: 5%;
+            width: 46%;
+            box-shadow: 2px 2px 3px 4px rgba(51, 51, 51, 0.22);
+            background-color: rgba(123, 206, 123, 0.25);
+            padding-bottom: 20px;
+            padding-top: 0px;
+        }
+        
+        #login button#btnLogin {
+            padding: 11px;
+            border: 3px solid black;
+            font-size: 110%;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            margin-right: 5px;
+            background-color: #6ad38f;
+            color: rgb(4, 48, 4);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 1px 0px 1px 2px rgba(80, 80, 80, 0.35);
+        }
+        
+        #login button#btnLogin:hover,
+        #login button#btnLogin:active {
+            background-color: #7dc295;
+            text-decoration: underline;
+            box-shadow: inset 1px 1px 1px 1px rgba(10, 50, 10, 0.55);
+        }
+        
+        #loggedin {
+            display: none;
+        }
+        
+        #loggedin textarea:hover {
+            box-shadow: inset -1px 1px 2px 2px rgba(55, 55, 55, 0.5);
+        }
+        
+        #loggedin textarea:active {
+            box-shadow: inset -1px 1px 2px 2px rgba(55, 55, 55, 0.5);
+        }
+        
+        #loggedin textarea {
+            resize: none;
+            cursor: default;
+            border: 3px solid black;
+            border-radius: 9px;
+            box-shadow: 2px 2px 6px 2px lightskyblue;
+            font-size: 75%;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        #loggedin textarea:focus {
+            border: 3px solid black;
+        }
+        
+        .text-overflow {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <input type="text" style="float:left;" id="txtAuth" placeholder="Authorization code" />
+    <input type="button" style="float:left;" id="btnAuthGo" value="Get spotify profile" />
+    <br clear="both">
+
+    <script>
+        $('#btnAuthGo').click(authGo);
+
+
+        async function authGo() {
+            try {
+
+                let authCode = $("#txtAuth").text()
+
+                //if (authCode.length < 16)
+                //    throw "Error - Auth code is invalid."
+
+                let settings = {
+                    "url": "https://api.spotify.com/v1/me/",
+                    "method": "GET",
+                    "timeout": 0,
+                    "headers": {
+                        "Authorization": "Bearer " + authCode
+                    },
+                };
+
+                let rrr = await $.ajax(settings).done(function(response) {
+                    return response;
+                })
+
+                console.log(rrr)
+
+                let display_name = rrr.display_name
+                let spotifyId = rrr.id
+                let profilePic = rrr.images[0]
+                let spotifyUri = rrr.uri
+
+            } catch (e) {
+                console.log('error - ' + e.getMessage())
+            }
+        }
+    </script>
+</body>
+
+</html>
