@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <title>JS Client</title>
     <link type="text/css" rel="stylesheet" href="stylish.css">
+    <script src="confetti.js"></script>
 </head>
 <body>
+<canvas id="confetti-canvas" style="position:fixed;display:block;z-index:999999;pointer-events:none;width: 120vw;height: 85vh;"></canvas>
+
     <div id="base" class="base">
         <div class="imageBoxDIV">
 
@@ -15,6 +18,8 @@
                     <h3 class="selectedWordH" id="selectedWordAdj">...</h3>
                     <h3 class="selectedWordH" id="selectedWordNoun">...</h3>
                 </div>
+
+                <textarea rows="2" style="font-size: 30%;" type="text" id="txtConsole" readonly="true">hello!</textarea>
 
                 <button id="btnNewGame" hidden="true">New</button>
                 <!-- <button id="btnBlank"> - </button> -->

@@ -129,14 +129,16 @@ margin-right: 1vw;
 }
 
 
+#selectedWordAdj{
+    margin-right: 0.4vw;
+}
 
 .wordBanksDIV {
 
-    padding-left:4vw;
-    padding-right:4vw;
-    padding-top: 2vh;
-    box-shadow: inset 3px 3px 3px 4px rgba(25,25,25,0.4);
-
+    padding: 1.5vw;
+    margin: 0.8vw;
+    margin-top: 2vh;
+    box-shadow: 3px -2px 7px 6px rgba(25,25,25,0.2);
 }
 
 
@@ -157,8 +159,9 @@ margin-right: 1vw;
 
     text-align: start;
 
-    padding: 1%;
-    padding-right: 2.7%;
+    padding: 0.35%;
+    padding-right: 1.75%;
+    padding-left: 1.75%;
 
     margin: auto;
 
@@ -186,12 +189,12 @@ font-family: "Brush Script MT", cursive;
     scrollbar-width: thin;
 
     list-style-type: none;
-
+text-shadow: 1px 1px 1px 1px black;
     margin: auto;
-    margin-top: 6%;
-    margin-bottom: 6%;
+    margin-top: 4%;
+    margin-bottom: 4%;
 
-    padding: 10%;
+    padding: 11%;
 
     border: 1px solid rgb(0,0,55);
 
@@ -201,7 +204,8 @@ font-family: "Brush Script MT", cursive;
     line-height: 90%;
 
     cursor: pointer;
-
+font-weight: 900;
+font-size: 195%;
 
 }
         .wordLI:hover {
@@ -272,13 +276,34 @@ font-family: "Brush Script MT", cursive;
 
 
 
+#txtConsole {
+    padding-left: 2vw;
+    border: none;
+    disabled: true;
+    cursor: unset;
+    background-color: rgba(0,0,0,0.03);
+    font-size: 100%;
+    color: rgba(0,0,0,0.85)
+    font-weight: thin;
+    font-family: monospace;
+    border-radius: 10px;
+    width: 93%;
+    line-height: 90%;
+    break-after: always;
+    margin: 0;
+    margin-top: 0%;
+    margin-bottom: 0.5vh;
+    box-shadow: inset 2px 1px 4px 5px rgba(33,33,33,0.33);
+
+}
+#txtConsole:focused{ border: none; }
+#txtConsole:active{ border: none; }
 
 
 
 
 
-
-
+/*
 @media (min-width: 480px) {
   .selectedWordH {
     font-size: 4vh;
