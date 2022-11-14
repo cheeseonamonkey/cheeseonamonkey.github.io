@@ -194,9 +194,9 @@
                 recents.push({
                     "name": rrrRecent.items[i].track.name,
                     "artist": rrrRecent.items[i].track.artists.toString(),
-                    "popularity": rrrRecent.items[i].popularity,
-                    "href": rrrRecent.items[i].href,
-                    "spotifyId": rrrRecent.items[i].id
+                    "popularity": rrrRecent.items[i].track.popularity,
+                    "href": rrrRecent.items[i].track.href,
+                    "spotifyId": rrrRecent.items[i].track.id
 
                 })
             }
@@ -232,8 +232,10 @@
 
             for (let j = 0; j < profil.recentlyPlayed.length; j++) {
                 document.getElementById('ULRecentlyPlayed').innerHTML += `
-                <li>` + profil.recentlyPlayed[j].name + `</li>
-                `
+                <li>` + profil.recentlyPlayed[j].name + 
+                    `<u><i> . . . popularity: <b>` + profil.recentlyPlayed[j].popularity + `</b></i></u>` +
+                    `</li>`
+                
 
             }
 
