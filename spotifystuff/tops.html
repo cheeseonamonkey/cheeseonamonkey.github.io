@@ -105,33 +105,7 @@
 
 
         <h3>Recently played:</h3>
-        <ul>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-            <li class="liRecentlyPlayed">
-
-            </li>
-
-        </ul>
+        <ul id="ULRecentlyPlayed"></ul>
 
     </div>
     <div class="lft">
@@ -255,10 +229,11 @@
                 //profileDat.spotifyURI
                 //profileDat.spotifyURL
 
-            let lis = document.getElementsByClassName('liRecentlyPlayed')
-            for (let j = 0; j < lis.length; j++) {
-                const li = lis[j];
-                li.innerText = profil.recently[j].name
+
+            for (let j = 0; j < profil.recentlyPlayed.length; j++) {
+                document.getElementById('ULRecentlyPlayed').innerHTML += `
+                <li>` + profil.recentlyPlayed[j].name + `</li>
+                `
 
             }
 
