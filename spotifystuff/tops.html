@@ -106,21 +106,31 @@
 
         <h3>Recently played:</h3>
         <ul>
-            <li>
+            <li class="liRecentlyPlayed">
 
             </li>
-            <li>
+            <li class="liRecentlyPlayed">
 
             </li>
-            <li>
+            <li class="liRecentlyPlayed">
 
             </li>
-            <li>
+            <li class="liRecentlyPlayed">
 
             </li>
-            <li>
+            <li class="liRecentlyPlayed">
 
             </li>
+            <li class="liRecentlyPlayed">
+
+            </li>
+            <li class="liRecentlyPlayed">
+
+            </li>
+            <li class="liRecentlyPlayed">
+
+            </li>
+
         </ul>
 
     </div>
@@ -157,6 +167,8 @@
 
                 let profil = await spotify_getMe();
 
+                console.log(profil);
+
                 await setUi(profil);
 
             } catch (e) {
@@ -183,19 +195,45 @@
                     "Authorization": "Bearer " + authCode
                 },
             };
-
             let rrr = await $.ajax(settings).done(function(response) {
                 return response;
-            })
+            });
 
-            //console.log(rrr)
+
+            settings = {
+                "url": "https://api.spotify.com/v1/me/player/recently-played/",
+                "method": "GET",
+                "timeout": 0,
+                "headers": {
+                    "Authorization": "Bearer " + authCode
+                },
+            };
+            let rrrRecent = await $.ajax(settings).done(function(response) {
+                return response;
+            });
+
+
+            let recents = []
+
+            for (let i = 0; i < rrrRecent.items.length; i++) {
+                //console.log(i)
+                recents.push({
+                    "name": rrrRecent.items[i].track.name,
+                    "artist": rrrRecent.items[i].track.artists.toString(),
+                    "popularity": rrrRecent.items[i].popularity,
+                    "href": rrrRecent.items[i].href,
+                    "spotifyId": rrrRecent.items[i].id
+
+                })
+            }
 
             return {
                 "display_name": rrr.display_name,
                 "spotifyId": rrr.id,
                 "profilePicUrl": rrr.images[0].url,
                 "spotifyURI": rrr.uri,
-                "spotifyURL": rrr.external_urls.spotify
+                "spotifyURL": rrr.external_urls.spotify,
+                "recentlyPlayed": recents
             }
 
 
@@ -215,8 +253,14 @@
                 //profileDat.spotifyId
             $('#imgProfile').attr('src', profil.profilePicUrl)
                 //profileDat.spotifyURI
-            profileDat.spotifyURL
+                //profileDat.spotifyURL
 
+            let lis = document.getElementsByClassName('liRecentlyPlayed')
+            for (let j = 0; j < lis.length; j++) {
+                const li = lis[j];
+                li.innerText = profil.recently[j].name
+
+            }
 
         }
     </script>
