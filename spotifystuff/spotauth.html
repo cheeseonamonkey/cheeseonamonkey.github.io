@@ -6,71 +6,72 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <style type="text/css">
-
-h1 {
-	font-weight: bold;
-}
-h4 {
-	margin-top: none;
-	font-weight: lighter;
-}
-#login {
-	border: 1px dotted black;
-	padding: 10px;
-	margin-left: 5%;
-	width: 46%;
-	box-shadow: 2px 2px 3px 4px rgba(51, 51, 51, 0.22);
-	background-color:rgba(123, 206, 123, 0.25);
-	padding-bottom: 20px;
-	padding-top: 0px;
-
-	
-}
-#login button#btnLogin {
-	padding: 11px;
-	border: 3px solid black;
-	font-size: 110%;
-	font-family:Verdana, Geneva, Tahoma, sans-serif;
-	margin-right: 5px;
-	background-color:#6ad38f;
-	color: rgb(4, 48, 4);
-	font-weight: bold;
-	cursor: pointer;
-	box-shadow: 1px 0px 1px 2px rgba(80, 80, 80, 0.35);
-
-}
-#login button#btnLogin:hover,
-#login button#btnLogin:active{
-	background-color: #7dc295;
-	text-decoration: underline;
-	box-shadow: inset 1px 1px 1px 1px rgba(10, 50, 10, 0.55);
-}
-
-#loggedin {
-	display: none;
-}
-#loggedin textarea:hover {
-	box-shadow: inset -1px 1px 2px 2px rgba(55,55,55,0.5);
-}
-
-#loggedin textarea:active {
-	box-shadow: inset -1px 1px 2px 2px rgba(55,55,55,0.5);
-	
-}
-
-#loggedin textarea {
-	resize: none;
-	cursor:default;
-	border: 3px solid black;
-	border-radius: 9px;
-	box-shadow: 2px 2px 6px 2px lightskyblue;
-	font-size: 75%;
-	font-family:'Courier New', Courier, monospace;
-}
-#loggedin textarea:focus {
-	border: 3px solid black;
-}
-
+        h1 {
+            font-weight: bold;
+        }
+        
+        h4 {
+            margin-top: none;
+            font-weight: lighter;
+        }
+        
+        #login {
+            border: 1px dotted black;
+            padding: 10px;
+            margin-left: 5%;
+            width: 46%;
+            box-shadow: 2px 2px 3px 4px rgba(51, 51, 51, 0.22);
+            background-color: rgba(123, 206, 123, 0.25);
+            padding-bottom: 20px;
+            padding-top: 0px;
+        }
+        
+        #login button#btnLogin {
+            padding: 11px;
+            border: 3px solid black;
+            font-size: 110%;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            margin-right: 5px;
+            background-color: #6ad38f;
+            color: rgb(4, 48, 4);
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 1px 0px 1px 2px rgba(80, 80, 80, 0.35);
+        }
+        
+        #login button#btnLogin:hover,
+        #login button#btnLogin:active {
+            background-color: #7dc295;
+            text-decoration: underline;
+            box-shadow: inset 1px 1px 1px 1px rgba(10, 50, 10, 0.55);
+        }
+        
+        #loggedin {
+            display: none;
+        }
+        
+        #loggedin textarea:hover {
+            box-shadow: inset -1px 1px 2px 2px rgba(55, 55, 55, 0.5);
+        }
+        
+        #loggedin textarea:active {
+            box-shadow: inset -1px 1px 2px 2px rgba(55, 55, 55, 0.5);
+        }
+        
+        #loggedin textarea {
+            resize: none;
+            cursor: default;
+            border: 3px solid black;
+            border-radius: 9px;
+            box-shadow: 2px 2px 6px 2px lightskyblue;
+            font-size: 75%;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        #loggedin textarea:focus {
+            border: 3px solid black;
+        }
+        
         .text-overflow {
             overflow: hidden;
             text-overflow: ellipsis;
@@ -82,29 +83,39 @@ h4 {
 
 <body>
     <div class="container">
-		<h1>Spotify authentication</h1>
+        <h1>Spotify authentication</h1>
+        <small><a href="javascript:history.back()">&larr; Go Back</a></small>
+        <hr>
+
         <div id="login">
-            
-				<h3>Log into spotify</h3>
+
+            <h3>Log into spotify</h3>
             <button id="btnLogin" class="btn btn-primary">Login</button> <span><i><small>(redirects to spotify.com)</small></i></span>
         </div>
 
 
         <div id="loggedin">
-			<div id="oauth">
-				<small><a href="javascript:history.back()">&larr; Go Back</a></small>
-				<hr>
-			<h3>You are logged into Spotify!</h3>
-			<p>You may just need to copy this access token:<br><br><i><small>&nbsp;&nbsp;(click to copy it)</small></i><br>
-				<textarea readonly="true" rows="2" cols="100"></textarea>
-			</p>
+            <div id="oauth">
+
+
+                <h3>You are logged into Spotify!</h3>
+                <p>You may just need to copy this access token:<br><br><i><small>&nbsp;&nbsp;(click to copy it)</small></i><br>
+                    <textarea readonly="true" rows="2" cols="100"></textarea>
+                </p>
+                <p>Or:
+                    <ul>
+                        <li><a href="tops.html">See my stuff</a> ()</li>
+                        <li></li>
+                    </ul>
+
+                </p>
 
 
 
 
-				
-					
-				</div>
+
+
+            </div>
             <div id="user-profile">
             </div>
 
@@ -115,63 +126,62 @@ h4 {
 
 
 
-<!-- 
+    <!-- 
   --  
     SCRIPTS
   --
   -->
 
-   
+
     <script>
+        var STATE_KEY = 'spotify_auth_state';
 
-		var STATE_KEY = 'spotify_auth_state';
-
-		var accessToken = getAccessToken()
-		console.debug('accesstoken: ' + accessToken)
-		if(accessToken) {
-			$('#login').hide();
-			$('#loggedin').show()
-			$('#loggedin textarea').text(accessToken)
-		}
-		
+        var accessToken = getAccessToken()
+        console.debug('accesstoken: ' + accessToken)
+        if (accessToken) {
+            $('#login').hide();
+            $('#loggedin').show()
+            $('#loggedin textarea').text(accessToken)
+        }
 
 
-		/* Generates a random string containing numbers and letters */
-		function generateRandomString(length) {
-			var text = '';
-			var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-			for (var i = 0; i < length; i++) {
-				text += possible.charAt(Math.floor(Math.random() * possible.length));
-			}
-			return text;
-		}
+        /* Generates a random string containing numbers and letters */
+        function generateRandomString(length) {
+            var text = '';
+            var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789asdflolwtfomgroflmao';
 
-
-		// access token or null
-    function getAccessToken() {
-                const urlParams = new URLSearchParams(window.location.hash.replace("#", ""));
-
-                console.log(urlParams)
-                var access_token = urlParams.get('access_token');
-                console.log('access_token: ' + access_token)
-                var state = urlParams.get('state');
-                var storedState = localStorage.getItem(STATE_KEY);
-
-                // check StateKey against the stored one
-                /*     - prevents malice by verifying (devs must implement) the StateKey
-                 *     - we first created the StateKey ourselves, and included it in the inital Spotify.com/Authorize url      
-                 *     = idk if I did it wrong, or just am mistakenly logging the error, lol         */
-                if (access_token && (state == null || state !== storedState)) {
-                    console.error('state key error ???\n---------------');
-                    localStorage.removeItem(STATE_KEY);
-                }	
-					 
-						if(access_token)
-							return access_token
-						else
-							return null
+            for (var i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
             }
+            return text;
+        }
+
+
+        // access token or null
+        function getAccessToken() {
+            const urlParams = new URLSearchParams(window.location.hash.replace("#", ""));
+
+            console.log(urlParams)
+            var access_token = urlParams.get('access_token');
+            console.log('access_token: ' + access_token)
+            var state = urlParams.get('state');
+            var storedState = localStorage.getItem(STATE_KEY);
+
+            // check StateKey against the stored one
+            /*     - prevents malice by verifying (devs must implement) the StateKey
+             *     - we first created the StateKey ourselves, and included it in the inital Spotify.com/Authorize url      
+             *     = idk if I did it wrong, or just am mistakenly logging the error, lol         */
+            if (access_token && (state == null || state !== storedState)) {
+                console.error('state key error ???\n---------------');
+                localStorage.removeItem(STATE_KEY);
+            }
+
+            if (access_token)
+                return access_token
+            else
+                return null
+        }
 
         /*
          *     Main
@@ -181,64 +191,60 @@ h4 {
 
             console.log('init')
 
-  
-           
 
 
-				$('#loggedin textarea').on( 'click', 
-					(e) => {
-						let targ = e.target
-						
-						
 
-						alert('Copied access token to clipboard!\n\n(' + accessToken + ')')
 
-						navigator.clipboard.writeText(accessToken.toString())
+            $('#loggedin textarea').on('click',
+                (e) => {
+                    let targ = e.target
 
-						
 
-					}
-				);
-           
 
-            
-                
-               
-                
-				$('#btnLogin').on( 'click', () => {
+                    alert('Copied access token to clipboard!\n\n(' + accessToken + ')')
 
-                    var client_id = '2c49eca0a0054468bab6105825789601';
-                    
-                    var redirect_uri = window.location
-                    if(redirect_uri.toString().includes('#access_token'))
-                        redirect_uri = redirect_uri.toString().split("#")[0]
+                    navigator.clipboard.writeText(accessToken.toString())
+
+
+
+                }
+            );
+
+
+
+
+
+
+            $('#btnLogin').on('click', () => {
+
+                var client_id = '2c49eca0a0054468bab6105825789601';
+
+                var redirect_uri = window.location
+                if (redirect_uri.toString().includes('#access_token'))
+                    redirect_uri = redirect_uri.toString().split("#")[0]
                     //var redirect_uri = `http://localhost//spotAuth/spotAuth.html`;
                     //var redirect_uri = `https://cheeseonamonkey.github.io/spotauth`;
-                    
-                    var state = generateRandomString(16);
 
-                    localStorage.setItem(STATE_KEY, state);
-                    var scope = 'user-read-private user-read-email user-top-read';
+                var state = generateRandomString(16);
 
-                    var url = 'https://accounts.spotify.com/authorize';
-                    url += '?response_type=token';
-                    url += '&client_id=' + encodeURIComponent(client_id);
-                    url += '&scope=' + encodeURIComponent(scope);
-                    url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-                    //url += '&state=' + encodeURIComponent(state);
+                localStorage.setItem(STATE_KEY, state);
+                var scope = 'user-read-private user-read-email user-top-read user-read-recently-played';
 
-                    //go to url
-                    window.location = url;
-                    
-                    //then: log in, get redirected back here; pull params from the url
-				});
+                var url = 'https://accounts.spotify.com/authorize';
+                url += '?response_type=token';
+                url += '&client_id=' + encodeURIComponent(client_id);
+                url += '&scope=' + encodeURIComponent(scope);
+                url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+                //url += '&state=' + encodeURIComponent(state);
 
+                //go to url
+                window.location = url;
 
-            })();
+                //then: log in, get redirected back here; pull params from the url
+            });
 
 
-
-
+        })();
     </script>
 
 </html>
