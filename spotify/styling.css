@@ -1,0 +1,155 @@
+
+html {
+
+font-size: 1.2rem;
+line-height: 1.0;
+
+/*  font-size:clamp( 20px, calc(2vw + 8px), 30px )  */
+
+}
+
+
+
+h1 {
+    font-size: clamp( 36px, calc(2vw + 1em), 64px );
+}
+h2 {
+    font-size: clamp( 24px, calc(1.66vw + 1em), 50px );
+}
+h3 {
+    font-size: clamp( 20px, calc(0.8vw + 1em), 42px );
+}
+h4 {
+    font-size: clamp( 18px, calc(0.8vw + 1em), 36px );
+}
+h5 {
+    font-size: clamp( 17px, calc(0.5vw + 1em), 24px );
+}
+h6 {
+    font-size: clamp( 16px, calc(0.4vw + 1em), 20px );
+}
+
+button {
+    font-size: 1.33rem;
+    padding: 1.33vw;
+    margin: 0.33vw;
+
+}
+
+
+
+body {
+    margin: 0;
+    max-width: 700px;
+    padding: 0.66vw;
+}
+
+h2, h3 {
+
+    margin-block-start: 0.35em;
+    margin-block-end: 0.2em;
+
+    margin-left:    0.8vw;
+}
+h5, h6, h4 {
+
+    margin-block-start: 0.1em;
+    margin-block-end: 0;
+
+    margin-left:    0.6vw;
+}
+
+figure {
+  float: left;
+  width: 35%;
+  text-align: center;
+  font-style: italic;
+  border: thin black solid;
+  margin: 0;
+  padding: 0;
+}
+.errorMessage {
+    color: red;
+    font-weight: bold;
+    font-size: 1.15em;
+}
+
+div{
+    margin: 0.8vw;
+    padding: 0.5vw;
+}
+
+.loginDiv  {
+    border: 1px solid black;
+}
+
+small {
+    font-family: Times;
+    font-size: 55%;
+    font-style: italic;
+
+    margin-left: 1em;
+}
+
+button {
+
+}
+
+li {
+    float: right;
+    font-size: smaller;
+}
+
+.profileImage {
+
+    width: 7.5em;
+
+    min-width: 5vw;
+    max-width: 33vw;
+
+    height: auto;
+
+    margin: -1vw;
+    margin-left:    1vw; /* to match the display name */
+    margin-b: -1vw;
+
+    padding: 0;
+    margin-bottom: inherit;
+
+
+}
+
+.playlistPropertyLabel {
+    font-size: 0.8em;
+}
+.playlistPropertyContent {
+        font-size: 0.83em;
+        margin-left: 1em;
+}
+.playlistnamespan {
+    white-space: nowrap; font-weight:bold; display: inline-block;     text-overflow: ellipsis;  overflow-x: scroll;
+    width: 83%;
+}
+
+
+
+/*
+body {
+  background: linear-gradient(-46deg, #96dd7d, #a5e38f );
+  background-size: 400% 400%;
+  animation: gradient 5s ease infinite;
+  height: 100vh;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+*/
