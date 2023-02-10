@@ -75,8 +75,8 @@ figure {
 }
 
 div{
-    margin: 0.8vw;
-    padding: 0.5vw;
+    margin: 0.5vw;
+    padding: 0.3vw;
 }
 
 .loginDiv  {
@@ -115,16 +115,32 @@ li {
 
     padding: 0;
     margin-bottom: inherit;
+}
 
+.playlistCard span,
+playlistCard i {
+    pointer-events: none;
+}
+
+.playlistCard {
+    margin: 0;  margin-top: 0.11em; margin-bottom: 0.11em; padding: 0.3em; border: 0.15em solid rgba(25,10,15,0.6);
+}
+
+.playlistCard:hover,
+.playlistCard:focus,
+.playlistCard:active {
+    background-color: rgba(44,55,88, 0.05);
 
 }
+
 
 .playlistPropertyLabel {
     font-size: 0.8em;
 }
 .playlistPropertyContent {
-        font-size: 0.83em;
+        font-size: 0.8em;
         margin-left: 1em;
+        font-family:  "Lucida Grande", serif ;
 }
 .playlistnamespan {
     white-space: nowrap; font-weight:bold; display: inline-block;     text-overflow: ellipsis;  overflow-x: scroll;
