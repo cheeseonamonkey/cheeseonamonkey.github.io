@@ -12,6 +12,7 @@ line-height: 1.0;
 /*  font-size:clamp( 20px, calc(2vw + 8px), 30px )  */
 
 }
+
 .slickPage {
     width: 100%;
 }
@@ -32,8 +33,8 @@ ul.slickDots li .slick-active{
 .dataviewlist {
  box-shadow:
     inset 2px 2px 0.45em 0.15em rgb(25 60 90 / 70% ),
-    inset 4px 5px 0.8em 2.5em rgb(25 50 60 / 6% );
- padding: 0.22em; margin: 0.5em; margin-top: 0.05em;
+    inset 4px 5px 0.8em 2.5em rgb(25 50 60 / 8% );
+ padding: 0.22em; padding-left: 10px; padding-right: 10px; margin: 0.5em; margin-top: 0.05em;
  background-color: rgb(50 45 65 / 8%);
  max-height: 66vh; overflow-y: auto;
 }
