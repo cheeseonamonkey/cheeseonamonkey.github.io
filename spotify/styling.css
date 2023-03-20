@@ -141,9 +141,7 @@ div{
 div.loginDiv button {
     cursor: pointer;
 }
-div.loginDiv button:hover{
-    background-color: red;
-}
+
 
 div.loginDiv h3, div.loginDiv h2 {
     color: #010;
