@@ -1,12 +1,30 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bona+Nova&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap');
 
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@700&display=swap');
+/* font-family: 'Rubik', sans-serif; */
 
+input.searchOptionsChecks {
+    font-family: 'Bona Nova', serif;
 
+}
+
+button {
+
+    font-family: 'Rubik', sans-serif;
+    font-size: 90%;
+}
+.searchOptionsChecks + label {
+    margin-top: 2px;
+    margin-left: 2px;
+    font-size: 0.73em;
+}
 html {
 
-font-size: 1.2rem;
+font-size: 1.19rem;
 line-height: 1.0;
 
 /*  font-size:clamp( 20px, calc(2vw + 8px), 30px )  */
@@ -38,14 +56,17 @@ ul.slickDots li .slick-active{
  background-color: rgb(50 45 65 / 8%);
  max-height: 66vh; overflow-y: auto;
 }
+input {
+    font-family: 'Barlow', sans-serif;
+}
 h1 {
-    font-size: clamp( 36px, calc(2vw + 1em), 64px );
+    font-size: clamp( 36px, calc(2vw + 1.23em), 69px );
 }
 h2 {
-    font-size: clamp( 24px, calc(1.66vw + 1em), 50px );
+    font-size: clamp( 28px, calc(2vw + 1.2em), 64px );
 }
 h3 {
-    font-size: clamp( 20px, calc(0.8vw + 1em), 42px );
+    font-size: clamp( 26px, calc(1.15vw + 1.2em), 60px );
 }
 h4 {
     font-size: clamp( 18px, calc(0.8vw + 1em), 36px );
@@ -58,8 +79,8 @@ h6 {
 }
 
 button {
-    font-size: 1.33rem;
-    padding: 1.33vw;
+    font-size: 1.23rem;
+    padding: 1.18vw;
     margin: 0.33vw;
 
 }
@@ -72,7 +93,11 @@ body {
     padding: 0.66vw;
 }
 
-h2, h3 {
+h1, h2, h3, h4 {
+
+font-family: 'Inter', sans-serif;
+
+ text-shadow: 1px 1px 3px rgba(11,55,9,0.25);
 
     margin-block-start: 0.35em;
     margin-block-end: 0.2em;
@@ -107,24 +132,70 @@ div{
     padding: 0.1vw;
 }
 
-.loginDiv  {
-    border: 1px solid black;
+.flexRowHolder {
+
+    display: flex;
+    flex-wrap: wrap-reverse;
+
+}
+div.loginDiv button {
+    cursor: pointer;
+}
+div.loginDiv button:hover{
+    background-color: red;
+}
+
+div.loginDiv h3, div.loginDiv h2 {
+    color: #010;
+    text-shadow: 3px 3px 5px rgba(1,55,2,0.7);
+}
+div.loginDiv small { width: 100%; letter-spacing: -0.55px; text-align: right;float:right;}
+div.loginDiv button {
+
+    float: right;
+}
+
+div.loginDiv h1, div.loginDiv h2, div.loginDiv h3 {
+    float: right;
+    text-align: right;
+}
+div.loginDiv.searchDiv h3 { margin-right: 0.2em; }
+
+div.loginDiv.searchDiv {
+flex: 1;
+    flex-grow: 2.1;
+    padding-right: 0.3em;
+    padding-left: 0.1em;
+}
+div.loginDiv  {
+min-width: 210px;
+    box-shadow:
+        1px 1px 1px 1px rgba(1,22,1,0.25),
+        inset 2px 2px 1px 3px rgba(5,36,5,0.22),
+        inset 5px 5px 5px 13px rgba(27,66,30,0.14);
+
+padding-bottom: 30px;
+flex: 1;
+flex-shrink: 1.1;
+display: inline;
+background-color: rgba(0,55,0,0.15);
+    border: 1px solid rgba(11,11,11,0.8);
+    float: left;
+    padding: 2px;
+    padding-top: 0.4em;
+    padding-bottom: 2.35em;
+    margin: 2px;
+
 }
 
 small {
     font-family: Times;
     font-size: 55%;
     font-style: italic;
-
     margin-left: 1em;
 }
 
-button {
-
-}
-
 li {
-    float: right;
     font-size: smaller;
 }
 
