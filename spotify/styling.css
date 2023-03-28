@@ -48,14 +48,7 @@ ul.slickDots li .slick-active{
     color: blue;
 }
 
-.dataviewlist {
- box-shadow:
-    inset 2px 2px 0.45em 0.15em rgb(25 60 90 / 70% ),
-    inset 4px 5px 0.8em 2.5em rgb(25 50 60 / 8% );
- padding: 0.22em; padding-left: 10px; padding-right: 10px; margin: 0.5em; margin-top: 0.05em;
- background-color: rgb(50 45 65 / 8%);
- max-height: 66vh; overflow-y: auto;
-}
+
 input {
     font-family: 'Barlow', sans-serif;
 }
@@ -145,10 +138,12 @@ div.loginDiv button {
 div.card ul {
     pointer-events: none;
 }
+div.card ul.features li span {
+    line-height: 0.7;
+}
 div.card ul.features li {
-    font-size: 0.72em; padding: unset;margin: unset; display: block; border-bottom: 1px solid rgba(51,38,51,0.35); border-right: 1px solid rgba(44,33,40,0.12);
-    box-shadow: inset 1px 1px 1px 0 rgba(1,1,1,0.1);
-
+    font-size: 0.55em; padding: 1px 0 0 0; margin: unset; display: block; border-bottom: 0.05em solid rgba(60,66,60,0.3); border-right: 1px solid rgba(88,99,88,0.2);
+    box-shadow: inset 1px 1px 0 5px rgba(1,44,1,0.035);
 }
 
 div.loginDiv h3, div.loginDiv h2 {
@@ -233,11 +228,11 @@ card i {
 .card {
     margin: 0;  margin-top: 0.15em; margin-bottom: 0.15em; padding: 0.2em; border: 0.1em solid rgba(11,11,22,0.8);
     overflow: clip;
-    background-color: rgba(255,255,251,0.2s);
+    background-color: rgba(255,255,251,0.2);
     box-shadow:
-        2px 2px 1px 1px rgba(11,11,11,0.25),
-        inset 3px 2px 0 3px rgba(254,255,251,0.1),
-        inset 8px 7px 1px 9px rgba(254,255,251,0.3);
+        1px 1px 1px 1px rgba(11,11,11,0.3),
+        inset 3px 3px 0 3px rgba(254,255,251,0.1);
+
 }
 .card .cardTitle {
 
@@ -257,10 +252,33 @@ card i {
 }
 
 
+
 .card .cardSubTitle {
     float:right; text-align: right; font-size: 0.7em; white-space: nowrap;
 }
 
+.imgToolsMenuIcon {
+    box-shadow: 1px 1px 1px 0 rgba(33,33,33,0.15);
+    cursor: pointer;
+}
+
+.divToolsMenuPopup li{
+    box-shadow: inset -1px -1px 0 1px rgba(4,5,8,0.1);
+    cursor: pointer;
+}
+
+.divToolsMenuPopup li:hover,
+.divToolsMenuPopup li:focus,
+.divToolsMenuPopup li:active{
+    box-shadow: inset 1px 1px 1px 2px rgba(4,5,8,0.25);
+
+}
+
+.imgToolsMenuIcon:hover,
+.imgToolsMenuIcon:focus,
+.imgToolsMenuIcon:active {
+    box-shadow: inset 1px 1px 1px 2px rgba(4,5,8,0.15);
+}
 
 .card .cardDetail b {
     color: #262226;
