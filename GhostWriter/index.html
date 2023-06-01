@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JS Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Merriweather&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Azeret+Mono&display=swap');
+
+ .chatDisplay table tr td {
+     font-family: 'Azeret Mono', monospace;
+	 font-size: 0.7em;
+	 font-weight: bold;
+	 box-shadow: inset 2px 2px 2px 2px rgba(1,1,1,0.2);
+	 padding: 2px;
+}
+ .chatDisplay table tr .assistant {
+	 text-align: left;
+	 background-color: #a5d6ba;
+	 padding-right: 9px;
+}
+ .chatDisplay table tr .user,
+ .chatDisplay table tr .system {
+	 text-align: right;
+	 padding-left: 9px;
+}
+ .chatDisplay table tr .user {
+	 background-color: #8cabed;
+}
+ .chatDisplay table tr .system {
+	 background-color: #d1d4c7;
+}
+
+</style>
+</head>
+<body>
+<div class="main">
+
+    <code
+        class="chatDisplay"
+        style="letter-spacing: -0.1em; font-weight: bold; width: 98%; display: inline-block; border: 1px solid black; border-radius: .3em; font-family: monospace; box-shadow: inset .7px .7px .4px 1.35px rgba(1,1,1,0.3); padding: .35em; transform: scale(0.95, 0.7);"
+    >
+
+    </code>
+
+</div>
+<script src="./GhostWrider.js"></script>
+
+</body>
+</html>

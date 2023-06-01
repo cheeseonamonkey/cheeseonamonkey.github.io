@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather&display=swap');
+
+.chatDisplay {
+    table {
+        tr {
+
+            td {
+                font-family: 'Merriweather', serif;
+                font-weight: bold;
+                font-size: 1.2em;
+            }
+            .assistant {
+                text-align: left;
+                background-color: #a5d6ba;
+            }
+            .user, .system {
+                text-align: right;
+            }
+
+
+            .user   { background-color: #8cabed; }
+            .system { background-color: #8abbbf; }
+
+        }
+    }
+}
