@@ -47,49 +47,11 @@
 
          lnkAuth.href = `https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?client_id=${clientId}&redirect_uri=${redUrl}&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&service=lso&o2v=1&flowName=GeneralOAuthFlow`;
 
-         if (location.href.includes('?code')) {
-
-
-
-
-
-            try {
-               (async () => {
-
-                  // Extract the authorization code from the URL
-                  const urlParams = new URLSearchParams(window.location.search);
-                  const code = urlParams.get("code");
-
-                  const response = await $.post(
-                     "https://oauth2.googleapis.com/token",
-
-                     console.log(JSON.stringify({
-                        code: code,
-                        client_id: clientId,
-                        client_secret: clientSecret,
-                        redirect_uri: redirectUri,
-                        grant_type: "authorization_code"
-                     }))
-                  );
-
-                  const accessToken = response.access_token;
-                  console.log("Access token:", accessToken);
-
-                  // Use the access token to create the playlist
-                  const playlistTitle = "My Playlist";
-                  createPlaylist(accessToken, playlistTitle);
-
-               })();
-            } catch (error) {
-               console.error("Error exchanging code for token:", error);
-            }
-         }
-
 
          async function createPlaylist(accessToken, playlistTitle) {
             try {
                const response = await $.post(
-                  "https://www.googleapis.com/youtube/v3/playlists?access_token=0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
+                  "https://www.googleapis.com/youtube/v3/playlists",
                   {
                      part: "snippet",
                      access_token: "0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
@@ -105,10 +67,50 @@
                console.error("Error creating playlist:", error);
             }
          }
+         async function getToken() {
+
+            try {
+
+
+               // Extract the authorization code from the URL
+               const urlParams = new URLSearchParams(window.location.search);
+               const code = urlParams.get("code");
+
+               const response = await $.post(
+                  "https://oauth2.googleapis.com/token",
+
+                  console.log(JSON.stringify({
+                     code: code,
+                     client_id: clientId,
+                     client_secret: clientSecret,
+                     redirect_uri: redirectUri,
+                     grant_type: "authorization_code"
+                  }))
+               );
+
+               const accessToken = response.access_token;
+               console.log("Access token:", accessToken);
+
+               // Use the access token to create the playlist
+               //createPlaylist(accessToken, "My Playlist");
+
+
+            } catch (error) {
+               console.error("Error exchanging code for token:", error);
+            }
+         }
+
+
+
+         if (location.href.includes('?'))
+            getToken()
+
+
+
 
 
          // Call the function to create the playlist
-         createPlaylist();
+         //createPlaylist();
 
 
       </script>
