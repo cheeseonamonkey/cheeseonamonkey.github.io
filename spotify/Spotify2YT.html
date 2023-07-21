@@ -53,80 +53,61 @@
 
 
 
+            try {
 
+               // Extract the authorization code from the URL
+               const urlParams = new URLSearchParams(window.location.search);
+               const code = urlParams.get("code");
 
+               const response = await $.post(
+                  "https://oauth2.googleapis.com/token",
 
-            async function exchangeCodeForToken(code, clientId, clientSecret, redirectUri) {
+                  console.log(JSON.stringify({
+                     code: code,
+                     client_id: clientId,
+                     client_secret: clientSecret,
+                     redirect_uri: redirectUri,
+                     grant_type: "authorization_code"
+                  }))
+               );
 
-               console.log(JSON.stringify({
-                  code: code,
-                  client_id: clientId,
-                  client_secret: clientSecret,
-                  redirect_uri: redirectUri,
-                  grant_type: "authorization_code"
-               }))
+               const accessToken = response.access_token;
+               console.log("Access token:", accessToken);
 
-
-               try {
-                  const response = await $.post(
-                     "https://oauth2.googleapis.com/token",
-                     {
-                        code: code,
-                        client_id: "246353708152-l14fpf3fiecks6f4pojutcchbbg40m7b.apps.googleusercontent.com",
-                        client_secret: `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`,
-                        redirect_uri: "http://www.example.com",
-                        grant_type: "authorization_code"
-                     }
-                  );
-
-                  const accessToken = response.access_token;
-                  console.log("Access token:", accessToken);
-
-                  // Use the access token to create the playlist
-                  const playlistTitle = "My Playlist";
-                  createPlaylist(accessToken, playlistTitle);
-               } catch (error) {
-                  console.error("Error exchanging code for token:", error);
-               }
+               // Use the access token to create the playlist
+               const playlistTitle = "My Playlist";
+               createPlaylist(accessToken, playlistTitle);
+            } catch (error) {
+               console.error("Error exchanging code for token:", error);
             }
-
-            // Extract the authorization code from the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get("code");
-
-            // Replace the following values with your actual client credentials and redirect URI
-            const clientId = "246353708152-5qverpr1q460mfeu01mh8ole6nrp9fs4.apps.googleusercontent.com";
-            const clientSecret = `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`;
-            const redirectUri = location.href;
-
-            exchangeCodeForToken(code, clientId, clientSecret, redirectUri);
-
-
-
-            async function createPlaylist(accessToken, playlistTitle) {
-               try {
-                  const response = await $.post(
-                     "https://www.googleapis.com/youtube/v3/playlists?access_token=0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
-                     {
-                        part: "snippet",
-                        access_token: "0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
-                        snippet: {
-                           title: "A titular title",
-                           description: "api test playlist"
-                        }
-                     }
-                  );
-
-                  console.log("Playlist created:", response);
-               } catch (error) {
-                  console.error("Error creating playlist:", error);
-               }
-            }
-
-
-            // Call the function to create the playlist
-            createPlaylist();
          }
+
+
+
+         async function createPlaylist(accessToken, playlistTitle) {
+            try {
+               const response = await $.post(
+                  "https://www.googleapis.com/youtube/v3/playlists?access_token=0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
+                  {
+                     part: "snippet",
+                     access_token: "0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
+                     snippet: {
+                        title: "A titular title",
+                        description: "api test playlist"
+                     }
+                  }
+               );
+
+               console.log("Playlist created:", response);
+            } catch (error) {
+               console.error("Error creating playlist:", error);
+            }
+         }
+
+
+         // Call the function to create the playlist
+         createPlaylist();
+
 
       </script>
    </div>
