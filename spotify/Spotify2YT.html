@@ -48,68 +48,40 @@
          lnkAuth.href = `https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?client_id=${clientId}&redirect_uri=${redUrl}&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&service=lso&o2v=1&flowName=GeneralOAuthFlow`;
 
 
-         async function createPlaylist(accessToken, playlistTitle) {
-            try {
-               const response = await $.post(
-                  "https://www.googleapis.com/youtube/v3/playlists",
-                  {
-                     part: "snippet",
-                     access_token: "0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
-                     snippet: {
-                        title: "A titular title",
-                        description: "api test playlist"
-                     }
-                  }
-               );
 
-               console.log("Playlist created:", response);
-            } catch (error) {
-               console.error("Error creating playlist:", error);
-            }
+         if (location.href.includes('?')) {
+            // Get the authorization code from the URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            // Exchange the authorization code for an access token
+            $.ajax({
+               url: 'https://oauth2.googleapis.com/token',
+               method: 'POST',
+               data: {
+                  code: code,
+                  client_id: clientId,
+                  client_secret: secId,
+                  redirect_uri: redUrl,
+                  grant_type: 'authorization_code'
+               },
+               success: function (response) {
+                  const accessToken = response.access_token;
+                  // Use the access token to make API requests
+                  // For example, you can use the access token to create a playlist
+                  createPlaylist(accessToken);
+               },
+               error: function (error) {
+                  console.error('Error exchanging code for token:', error);
+               }
+            });
          }
-         async function getToken() {
-            try {
-               // get from URL params
-               const urlParams = new URLSearchParams(window.location.search);
-               const code = urlParams.get("code");
-
-               const response = await $.post(
-                  "https://oauth2.googleapis.com/token",
-                  {
-                     code: code,
-                     client_id: clientId,
-                     client_secret: secId,
-                     redirect_uri: redUrl,
-                     grant_type: "authorization_code"
-                  },
-                  (data, status, xhr) => {
-                     return data
-                  }
-               );
-
-               const accessToken = response.access_token;
-               console.log("Access token:", accessToken);
-
-               // Use the access token to create the playlist
-               //createPlaylist(accessToken, "My Playlist");
-            } catch (error) {
-               console.error("Error exchanging code for token:", error);
-            }
-
-
-         }
-
-
-
-         if (location.href.includes('?'))
-            getToken()
-
 
 
 
 
          // Call the function to create the playlist
-         //createPlaylist();
+         // createPlaylist();
 
 
       </script>
