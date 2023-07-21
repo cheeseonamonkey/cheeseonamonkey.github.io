@@ -36,14 +36,14 @@
    <div class="container">
       <h1>Spotify2YT</h1>
 
-      <a id="lnkAuth" href="#"> Log into </a>
+      <a id="lnkAuth" href="#"> Log into Google (youtube)</a>
 
 
 
       <script>
          const clientId = '246353708152-5qverpr1q460mfeu01mh8ole6nrp9fs4.apps.googleusercontent.com'
          const secId = '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'
-         const redUrl = encodeURIComponent(location.href)
+         const redUrl = location.href
 
          lnkAuth.href = `https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?client_id=${clientId}&redirect_uri=${redUrl}&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&service=lso&o2v=1&flowName=GeneralOAuthFlow`;
 
@@ -68,8 +68,8 @@
                success: function (response) {
                   const accessToken = response.access_token;
                   // Use the access token to make API requests
-                  // For example, you can use the access token to create a playlist
-                  createPlaylist(accessToken);
+
+
                },
                error: function (error) {
                   console.error('Error exchanging code for token:', error);
