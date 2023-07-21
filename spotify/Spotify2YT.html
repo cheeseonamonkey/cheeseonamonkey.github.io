@@ -4,7 +4,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Spotify2YT</title>
+   <title>Mobile Responsive Template</title>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <style>
       /* Add your custom styles here */
@@ -97,7 +97,7 @@
             // Replace the following values with your actual client credentials and redirect URI
             const clientId = "246353708152-5qverpr1q460mfeu01mh8ole6nrp9fs4.apps.googleusercontent.com";
             const clientSecret = `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`;
-            const redirectUri = encodeURIComponent(location.href);
+            const redirectUri = location.href;
 
             exchangeCodeForToken(code, clientId, clientSecret, redirectUri);
 
