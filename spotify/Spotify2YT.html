@@ -78,14 +78,13 @@
 
                const response = await $.post(
                   "https://oauth2.googleapis.com/token",
-
-                  console.log(JSON.stringify({
+                  JSON.stringify({
                      code: code,
                      client_id: clientId,
                      client_secret: secId,
                      redirect_uri: redUrl,
                      grant_type: "authorization_code"
-                  }))
+                  })
                );
 
                const accessToken = response.access_token;
