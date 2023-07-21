@@ -95,9 +95,9 @@
             const code = urlParams.get("code");
 
             // Replace the following values with your actual client credentials and redirect URI
-            const clientId = "YOUR_CLIENT_ID";
-            const clientSecret = "YOUR_CLIENT_SECRET";
-            const redirectUri = "YOUR_REDIRECT_URI";
+            const clientId = "246353708152-5qverpr1q460mfeu01mh8ole6nrp9fs4.apps.googleusercontent.com";
+            const clientSecret = `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`;
+            const redirectUri = encodeURIComponent(location.href);
 
             exchangeCodeForToken(code, clientId, clientSecret, redirectUri);
 
