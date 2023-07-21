@@ -68,23 +68,23 @@
             }
          }
          async function getToken() {
-
             try {
-
-
-               // Extract the authorization code from the URL
+               // get from URL params
                const urlParams = new URLSearchParams(window.location.search);
                const code = urlParams.get("code");
 
                const response = await $.post(
                   "https://oauth2.googleapis.com/token",
-                  JSON.stringify({
+                  {
                      code: code,
                      client_id: clientId,
                      client_secret: secId,
                      redirect_uri: redUrl,
                      grant_type: "authorization_code"
-                  })
+                  },
+                  (data, status, xhr) => {
+                     return data
+                  }
                );
 
                const accessToken = response.access_token;
@@ -92,11 +92,11 @@
 
                // Use the access token to create the playlist
                //createPlaylist(accessToken, "My Playlist");
-
-
             } catch (error) {
                console.error("Error exchanging code for token:", error);
             }
+
+
          }
 
 
