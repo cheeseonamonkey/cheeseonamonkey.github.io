@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Mobile Responsive Template</title>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <style>
+      /* Add your custom styles here */
+      body {
+         margin: 0;
+         padding: 0;
+         font-family: Arial, sans-serif;
+      }
+
+      .container {
+         max-width: 100%;
+         padding: 20px;
+         box-sizing: border-box;
+         margin: 0 auto;
+      }
+
+      /* Add your responsive styles here */
+      @media (min-width: 768px) {
+
+         /* Styles for tablets and larger screens */
+         .container {
+            max-width: 768px;
+         }
+      }
+   </style>
+</head>
+
+<body>
+   <div class="container">
+      <h1>Spotify2YT</h1>
+
+      <a id="lnkAuth" href="#"> Log into </a>
+
+
+
+      <script>
+         const clientId = '246353708152-5qverpr1q460mfeu01mh8ole6nrp9fs4.apps.googleusercontent.com'
+         const secId = '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'
+         const redUrl = 'http://www.example.com/' // encodeURIComponent(location.href)
+
+         lnkAuth.href = `https://accounts.google.com/o/oauth2/auth/oauthchooseaccount?client_id=${clientId}&redirect_uri=${redUrl}&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube&service=lso&o2v=1&flowName=GeneralOAuthFlow`;
+
+         if (location.href.includes('?code')) {
+
+
+
+
+
+
+
+
+            async function exchangeCodeForToken(code, clientId, clientSecret, redirectUri) {
+
+               console.log(JSON.stringify({
+                  code: code,
+                  client_id: clientId,
+                  client_secret: clientSecret,
+                  redirect_uri: redirectUri,
+                  grant_type: "authorization_code"
+               }))
+
+
+               try {
+                  const response = await $.post(
+                     "https://oauth2.googleapis.com/token",
+                     {
+                        code: code,
+                        client_id: "246353708152-l14fpf3fiecks6f4pojutcchbbg40m7b.apps.googleusercontent.com",
+                        client_secret: `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`,
+                        redirect_uri: "http://www.example.com",
+                        grant_type: "authorization_code"
+                     }
+                  );
+
+                  const accessToken = response.access_token;
+                  console.log("Access token:", accessToken);
+
+                  // Use the access token to create the playlist
+                  const playlistTitle = "My Playlist";
+                  createPlaylist(accessToken, playlistTitle);
+               } catch (error) {
+                  console.error("Error exchanging code for token:", error);
+               }
+            }
+
+            // Extract the authorization code from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get("code");
+
+            // Replace the following values with your actual client credentials and redirect URI
+            const clientId = "YOUR_CLIENT_ID";
+            const clientSecret = "YOUR_CLIENT_SECRET";
+            const redirectUri = "YOUR_REDIRECT_URI";
+
+            exchangeCodeForToken(code, clientId, clientSecret, redirectUri);
+
+
+
+            async function createPlaylist(accessToken, playlistTitle) {
+               try {
+                  const response = await $.post(
+                     "https://www.googleapis.com/youtube/v3/playlists?access_token=0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
+                     {
+                        part: "snippet",
+                        access_token: "0AZEOvhWUI_XcdPd2ZBIZ3x0rHDkdTYRELvrlMQdlWE9d9Px5_YW_o7hpuRm8zDwYP-aVOA",
+                        snippet: {
+                           title: "A titular title",
+                           description: "api test playlist"
+                        }
+                     }
+                  );
+
+                  console.log("Playlist created:", response);
+               } catch (error) {
+                  console.error("Error creating playlist:", error);
+               }
+            }
+
+
+            // Call the function to create the playlist
+            createPlaylist();
+         }
+
+      </script>
+   </div>
+</body>
+
+</html>
