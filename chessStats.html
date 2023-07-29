@@ -26,8 +26,8 @@
       }
 
       h3 {
-         margin: 0;
-         font-size: 18px;
+         padding: 2px;
+
          margin-bottom: 10px;
       }
 
@@ -47,9 +47,34 @@
          border: 1px solid #ccc;
          border-radius: 5px;
          white-space: pre-wrap;
-         font-size: 14px;
-         line-height: 1.5;
          overflow: auto;
+      }
+
+      .fen-image {
+         float: right;
+         max-width: 40%;
+         height: auto;
+         margin: 10px 0;
+      }
+
+      .copy-button {
+         background-color: #333;
+         color: #fff;
+         border: none;
+         padding: 5px 10px;
+         border-radius: 5px;
+         cursor: pointer;
+         margin-top: 10px;
+      }
+
+      .copy-button:hover {
+         background-color: #555;
+      }
+
+      .divChessGame {
+         margin: 6px;
+         padding: 8px;
+         border: .4px solid rgba(0, 0, 0, 0.25);
       }
    </style>
 </head>
@@ -91,17 +116,33 @@
          games.forEach(function (game) {
             var gameUrl = game.url;
             var pgn = game.pgn;
-            var result = game.white.result === 'win' ? 'White won' : 'Black won';
+            var result = pgn.Termination
+            var fen = game.fen;
 
-            var gameHtml = '<div>';
-            gameHtml += '<h3>Game: <a href="' + gameUrl + '">' + gameUrl + '</a></h3>';
-            gameHtml += '<p>Result: ' + result + '</p>';
+
+            var gameHtml = '<div class="divChessGame">';
+            gameHtml += '<h3>Game: <a href="' + gameUrl + '">' + game.white.username + `<i> (${game.white.rating})</i>` + '<small> vs. </small>' + game.black.username + `<i> (${game.black.rating})</i>` + '</a></h3>';
+            gameHtml += '<img class="fen-image" src="' + 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + "&raw=true" + '" alt="' + fen + '"><br/>';
+
+            gameHtml += '<p >Result: ' + result + '</p>';
             gameHtml += '<pre>' + pgn + '</pre>';
-            gameHtml += '</div>';
+            gameHtml += '<button class="copy-button" onclick="copyMoves(\'' + pgn + '\')">Copy Moves</button><br/>';
+            gameHtml += '</div><br/><br/>';
 
             gamesContainer.append(gameHtml);
          });
       }
+
+      function copyMoves(pgn) {
+         var textarea = document.createElement('textarea');
+         textarea.value = pgn;
+         document.body.appendChild(textarea);
+         textarea.select();
+         document.execCommand('copy');
+         document.body.removeChild(textarea);
+         alert('Moves copied to clipboard!');
+      }
+
    </script>
 </body>
 
