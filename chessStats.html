@@ -52,7 +52,7 @@
 
       .fen-image {
          float: right;
-         max-width: 40%;
+         max-width: 22%;
          height: auto;
          margin: 10px 0;
       }
@@ -108,6 +108,24 @@
             });
          });
       }
+      async function getCompletion(textToSend) {
+         const authkey = atob('c2stWXpWa2xiOTVGdHYwVW54ZDNUbDZUM0JsYmtGSjRYT2Zibk1vVHEzOFFFc0VQV0tJ')
+         const response = await $.post({
+            url: 'https://api.openai.com/v1/chat/completions',
+            headers: {
+               'Content-Type': 'application/json',
+               'Authorization': 'Bearer ' + authkey
+            },
+            data: JSON.stringify({
+               model: 'gpt-3.5-turbo',
+               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Try not to reference too many specific moves and prefer to speak in terms of general strategy and tactics (but do reference some).' }, { role: 'user', content: textToSend }],
+               temperature: 0.4
+            }),
+            dataType: 'json'
+         });
+
+         return response.choices[0].message.content;
+      }
 
       function displayGames(games) {
          var gamesContainer = $('#gamesContainer');
@@ -116,31 +134,47 @@
          games.forEach(function (game) {
             var gameUrl = game.url;
             var pgn = game.pgn;
-            var result = pgn.Termination
+            var result = pgn.Termination;
             var fen = game.fen;
 
+            var gameDiv = document.createElement('div');
+            gameDiv.classList.add('divChessGame');
 
-            var gameHtml = '<div class="divChessGame">';
-            gameHtml += '<h3>Game: <a href="' + gameUrl + '">' + game.white.username + `<i> (${game.white.rating})</i>` + '<small> vs. </small>' + game.black.username + `<i> (${game.black.rating})</i>` + '</a></h3>';
-            gameHtml += '<img class="fen-image" src="' + 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + "&raw=true" + '" alt="' + fen + '"><br/>';
+            var gameHeading = document.createElement('h3');
+            var gameLink = document.createElement('a');
+            gameLink.href = gameUrl;
+            gameLink.textContent = 'Game: ' + game.white.username + ' (' + game.white.rating + ')' + ' vs. ' + game.black.username + ' (' + game.black.rating + ')';
+            gameHeading.appendChild(gameLink);
+            gameDiv.appendChild(gameHeading);
 
-            gameHtml += '<p >Result: ' + result + '</p>';
-            gameHtml += '<pre>' + pgn + '</pre>';
-            gameHtml += '<button class="copy-button" onclick="copyMoves(\'' + pgn + '\')">Copy Moves</button><br/>';
-            gameHtml += '</div><br/><br/>';
+            var fenImage = document.createElement('img');
+            fenImage.classList.add('fen-image');
+            fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
+            fenImage.alt = fen;
+            gameDiv.appendChild(fenImage);
 
-            gamesContainer.append(gameHtml);
+            var resultParagraph = document.createElement('p');
+            resultParagraph.textContent = 'Result: ' + result;
+            gameDiv.appendChild(resultParagraph);
+
+            var pgnPre = document.createElement('pre');
+            pgnPre.textContent = pgn;
+            gameDiv.appendChild(pgnPre);
+
+            var copyButton = document.createElement('button');
+            copyButton.classList.add('copy-button');
+            copyButton.textContent = 'Copy Game';
+            gameDiv.addEventListener('click', () => { copyMoves(game.pgn.toString()) })
+            gameDiv.appendChild(copyButton);
+
+            var gamesContainer = document.getElementById('gamesContainer');
+            gamesContainer.prepend(gameDiv);
          });
+
       }
 
-      function copyMoves(pgn) {
-         var textarea = document.createElement('textarea');
-         textarea.value = pgn;
-         document.body.appendChild(textarea);
-         textarea.select();
-         document.execCommand('copy');
-         document.body.removeChild(textarea);
-         alert('Moves copied to clipboard!');
+      async function copyMoves(pgn) {
+         await navigator.clipboard.writeText(pgn.toString())
       }
 
    </script>
