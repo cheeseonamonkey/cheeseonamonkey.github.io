@@ -44,36 +44,38 @@
 
       pre {
          background-color: #ac9d9d6e;
-         padding: 7px;
+         padding: 10px;
          border: 1px solid #ccc;
          border-radius: 5px;
          white-space: pre-wrap;
          overflow: auto;
-         font-size: 0.65em;
+         font-size: 0.75em;
       }
 
       .fen-image {
          float: right;
-         max-width: 39%;
+         max-width: 35%;
          height: auto;
          margin: 10px 0;
       }
 
       .copy-button,
       button {
+         font-weight: bold;
          font-size: 1.2em;
          background-color: #333;
          color: #fff;
          border: none;
 
-         padding: 10px 16px;
-         border-radius: 5px;
+         padding: 12px 19px;
+         border-radius: 6px;
          cursor: pointer;
          margin: 10px;
          margin-right: 20px;
       }
 
-      .copy-button:hover {
+      .copy-button:hover,
+      button:hover {
          background-color: #555;
       }
 
@@ -154,19 +156,22 @@
             gameHeading.appendChild(gameLink);
             gameDiv.appendChild(gameHeading);
 
-            var fenImage = document.createElement('img');
-            fenImage.classList.add('fen-image');
-            fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
-            fenImage.alt = fen;
-            gameDiv.appendChild(fenImage);
+            gameDiv.style.marginBottom = "29px";
+            gameDiv.style.boxShadow = "1.5px 1.5px 1.3px 2.3px rgba(0,0,0,0.2)"
 
             var resultParagraph = document.createElement('p');
             resultParagraph.textContent = 'Result: ' + result;
             gameDiv.appendChild(resultParagraph);
 
             var pgnPre = document.createElement('pre');
-            pgnPre.textContent = pgn;
+            pgnPre.innerHTML = '<div style="display: inline; max-width: 70%; float:left;">' + pgn + '</div>';
             gameDiv.appendChild(pgnPre);
+
+            var fenImage = document.createElement('img');
+            fenImage.classList.add('fen-image');
+            fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
+            fenImage.alt = fen;
+            pgnPre.appendChild(fenImage);
 
             var copyButton = document.createElement('button');
             copyButton.classList.add('copy-button');
@@ -179,6 +184,7 @@
             btnChat = document.createElement('button')
             btnChat.innerText = 'ai tutor'
             btnChat.addEventListener('click', async (ev) => {
+               ev.target.disabled = true;
                let tempEl = document.createElement('p')
                tempEl.innerText = "getting chat...."
                gameDiv.appendChild(tempEl)
@@ -201,6 +207,7 @@
 
       async function copyMoves(pgn) {
          await navigator.clipboard.writeText(pgn.toString())
+
       }
 
    </script>
