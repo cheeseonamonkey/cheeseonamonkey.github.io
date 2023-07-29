@@ -168,6 +168,7 @@
             gameDiv.appendChild(pgnPre);
 
             var fenImage = document.createElement('img');
+            fenImage.style.maxWidth = '25%'
             fenImage.classList.add('fen-image');
             fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
             fenImage.alt = fen;
