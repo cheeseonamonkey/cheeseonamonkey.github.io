@@ -18,35 +18,6 @@
          text-align: center;
       }
 
-      form {
-         margin-bottom: 20px;
-      }
-
-      label {
-         display: block;
-         margin-bottom: 10px;
-         font-weight: bold;
-      }
-
-      input[type="text"] {
-         padding: 5px;
-         font-size: 16px;
-         width: 200px;
-      }
-
-      button[type="submit"] {
-         padding: 5px 10px;
-         font-size: 16px;
-         background-color: #333;
-         color: #fff;
-         border: none;
-         cursor: pointer;
-      }
-
-      button[type="submit"]:hover {
-         background-color: #555;
-      }
-
       #gamesContainer {
          background-color: #fff;
          padding: 20px;
@@ -85,27 +56,19 @@
 
 <body>
    <h1>Chess Games</h1>
-   <form id="usernameForm">
-      <label for="username">Enter your username:</label>
-      <input type="text" id="username" name="username">
-      <button type="submit">Get Games</button>
-   </form>
    <div id="gamesContainer"></div>
 
    <script>
-
       const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
 
+      // Retrieve the username from the URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const username = urlParams.get('username');
 
-
-      $('#usernameForm').submit(function (event) {
-         event.preventDefault();
-         var username = $('#username').val();
-         getGames(username);
-      });
+      // Call the getGames function with the username
+      getGames(username);
 
       async function getGames(username) {
-
          var apiUrl = proxyUrl + 'https://api.chess.com/pub/player/' + username + '/games/archives';
 
          $.getJSON(apiUrl, function (data) {
@@ -114,16 +77,14 @@
 
             archives.forEach(async function (archiveUrl) {
                await $.getJSON(proxyUrl + archiveUrl, function (archiveData) {
-
                   games = games.concat(archiveData.games);
-
                   displayGames(games);
                });
             });
          });
       }
 
-      async function displayGames(games) {
+      function displayGames(games) {
          var gamesContainer = $('#gamesContainer');
          gamesContainer.empty();
 
