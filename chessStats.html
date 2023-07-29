@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta name="viewport" content="width=500, initial-scale=1.0, maximum-scale=2.0, minimum-scale=0.5, user-scalable=no">
+   <title>Chess Games</title>
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+   <style>
+      body {
+         font-family: Arial, sans-serif;
+         background-color: #f2f2f2;
+         margin: 0;
+         padding: 20px;
+      }
+
+      h1 {
+         color: #333;
+         text-align: center;
+      }
+
+      form {
+         margin-bottom: 20px;
+      }
+
+      label {
+         display: block;
+         margin-bottom: 10px;
+         font-weight: bold;
+      }
+
+      input[type="text"] {
+         padding: 5px;
+         font-size: 16px;
+         width: 200px;
+      }
+
+      button[type="submit"] {
+         padding: 5px 10px;
+         font-size: 16px;
+         background-color: #333;
+         color: #fff;
+         border: none;
+         cursor: pointer;
+      }
+
+      button[type="submit"]:hover {
+         background-color: #555;
+      }
+
+      #gamesContainer {
+         background-color: #fff;
+         padding: 20px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+      }
+
+      h3 {
+         margin: 0;
+         font-size: 18px;
+         margin-bottom: 10px;
+      }
+
+      a {
+         color: #333;
+         text-decoration: none;
+      }
+
+      p {
+         margin: 0;
+         margin-bottom: 10px;
+      }
+
+      pre {
+         background-color: #f9f9f9;
+         padding: 10px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+         white-space: pre-wrap;
+         font-size: 14px;
+         line-height: 1.5;
+         overflow: auto;
+      }
+   </style>
+</head>
+
+<body>
+   <h1>Chess Games</h1>
+   <form id="usernameForm">
+      <label for="username">Enter your username:</label>
+      <input type="text" id="username" name="username">
+      <button type="submit">Get Games</button>
+   </form>
+   <div id="gamesContainer"></div>
+
+   <script>
+
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+
+
+
+      $('#usernameForm').submit(function (event) {
+         event.preventDefault();
+         var username = $('#username').val();
+         getGames(username);
+      });
+
+      async function getGames(username) {
+
+         var apiUrl = proxyUrl + 'https://api.chess.com/pub/player/' + username + '/games/archives';
+
+         $.getJSON(apiUrl, function (data) {
+            var archives = data.archives;
+            var games = [];
+
+            archives.forEach(async function (archiveUrl) {
+               await $.getJSON(proxyUrl + archiveUrl, function (archiveData) {
+
+                  games = games.concat(archiveData.games);
+
+                  displayGames(games);
+               });
+            });
+         });
+      }
+
+      async function displayGames(games) {
+         var gamesContainer = $('#gamesContainer');
+         gamesContainer.empty();
+
+         games.forEach(function (game) {
+            var gameUrl = game.url;
+            var pgn = game.pgn;
+            var result = game.white.result === 'win' ? 'White won' : 'Black won';
+
+            var gameHtml = '<div>';
+            gameHtml += '<h3>Game: <a href="' + gameUrl + '">' + gameUrl + '</a></h3>';
+            gameHtml += '<p>Result: ' + result + '</p>';
+            gameHtml += '<pre>' + pgn + '</pre>';
+            gameHtml += '</div>';
+
+            gamesContainer.append(gameHtml);
+         });
+      }
+   </script>
+</body>
+
+</html>
