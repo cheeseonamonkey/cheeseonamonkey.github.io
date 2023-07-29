@@ -8,7 +8,7 @@
    <style>
       body {
          font-family: Arial, sans-serif;
-         background-color: #f2f2f2;
+         background-color: #d4cece;
          margin: 0;
          padding: 20px;
       }
@@ -52,12 +52,13 @@
 
       .fen-image {
          float: right;
-         max-width: 22%;
+         max-width: 35%;
          height: auto;
          margin: 10px 0;
       }
 
-      .copy-button {
+      .copy-button,
+      button {
          background-color: #333;
          color: #fff;
          border: none;
@@ -70,6 +71,7 @@
       .copy-button:hover {
          background-color: #555;
       }
+
 
       .divChessGame {
          margin: 6px;
@@ -118,7 +120,7 @@
             },
             data: JSON.stringify({
                model: 'gpt-3.5-turbo',
-               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Try not to reference too many specific moves and prefer to speak in terms of general strategy and tactics (but do reference some).' }, { role: 'user', content: textToSend }],
+               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Advise me on general strategy, tactics, openings, etc. Advise me what I might specifically try next. Tell me what my play style is. etc. Do not just summarize the game, but help me improve.' }, { role: 'user', content: textToSend }],
                temperature: 0.4
             }),
             dataType: 'json'
