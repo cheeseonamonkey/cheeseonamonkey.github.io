@@ -54,7 +54,7 @@
 
       .fen-image {
          float: right;
-         max-width: 35%;
+         max-width: 33%;
          height: auto;
          margin: 10px 0;
       }
@@ -164,11 +164,11 @@
             gameDiv.appendChild(resultParagraph);
 
             var pgnPre = document.createElement('pre');
-            pgnPre.innerHTML = '<div style="display: inline; max-width: 70%; float:left;">' + pgn + '</div>';
+            pgnPre.innerHTML = '<div style="display: inline; max-width: 60%; float:left;">' + pgn + '</div>';
             gameDiv.appendChild(pgnPre);
 
             var fenImage = document.createElement('img');
-            fenImage.style.maxWidth = '25%'
+            fenImage.style.maxWidth = '33%'
             fenImage.classList.add('fen-image');
             fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
             fenImage.alt = fen;
