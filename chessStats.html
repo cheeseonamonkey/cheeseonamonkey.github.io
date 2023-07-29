@@ -125,7 +125,7 @@
             },
             data: JSON.stringify({
                model: 'gpt-3.5-turbo',
-               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Advise me on general strategy, tactics, openings, etc. Advise me what I might specifically try next. Tell me what my play style is. etc. Do not just summarize the game, but help me improve.' }, { role: 'user', content: textToSend }],
+               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Advise me on general strategy, tactics, openings, etc. \n Perhaps advise me what opening I might like, what is my style, or something specifically try next. Tell me what my play style is and describe strengths and weaknesses. etc. \nDo not just summarize the game, but help me improve. Do not reference specific turns too much.\nMy chess username is: ' + username }, { role: 'user', content: textToSend }],
                temperature: 0.4
             }),
             dataType: 'json'
