@@ -167,8 +167,27 @@
             gameDiv.addEventListener('click', () => { copyMoves(game.pgn.toString()) })
             gameDiv.appendChild(copyButton);
 
+            //txtChat = document.createElement('textarea')
+            //gameDiv.appendChild(txtChat)
+            btnChat = document.createElement('button')
+            btnChat.innerText = 'ai tutor'
+            btnChat.addEventListener('click', async (ev) => {
+               let tempEl = document.createElement('p')
+               tempEl.innerText = "getting chat...."
+               gameDiv.appendChild(tempEl)
+
+               let completionResult = await getCompletion("My chess game:\n```\n" + pgn + "\n```\n")
+
+               tempEl.innerHTML = completionResult.toString();
+
+            });
+            gameDiv.appendChild(btnChat)
+
+
             var gamesContainer = document.getElementById('gamesContainer');
             gamesContainer.prepend(gameDiv);
+
+
          });
 
       }
