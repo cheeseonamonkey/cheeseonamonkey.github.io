@@ -1,357 +1,236 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-    <style>
-        body {
-            font-size: 60%;
-        }
-    </style>
+   <title>My Trello Activity</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+   <style>
+      #checkboxes {
+         transform: scaleY(0.8);
+      }
+
+      body {
+         font-family: 'Rubik', sans-serif;
+         margin: 0;
+         padding: 0;
+         background-color: #f2f2f2;
+      }
+
+      h1 {
+         text-align: center;
+         margin: 20px 0;
+      }
+
+      .board {
+         background-color: #fff;
+         padding: 20px;
+         margin: 20px auto;
+         max-width: 1000px;
+         box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+         border-radius: 5px;
+      }
+
+      .board h2 {
+         margin: 0 0 10px 0;
+         padding: 0;
+         font-size: 20px;
+         color: #333;
+      }
+
+      .board ul {
+         list-style: none;
+         padding: 0;
+         margin: 0;
+      }
+
+      .board ul li {
+         padding: 10px 0;
+         border-bottom: 1px solid #eee;
+      }
+
+      .board ul li:last-child {
+         border: 0;
+      }
+
+      .filter {
+         margin: 20px 0;
+         text-align: center;
+      }
+
+      .filter input {
+         padding: 5px;
+         margin: 0 5px;
+         border: 1px solid #ccc;
+         border-radius: 5px;
+      }
+
+      .table {
+         margin: 20px auto;
+         max-width: 1000px;
+         overflow-x: auto;
+      }
+
+      .table table {
+         width: 100%;
+         border-collapse: collapse;
+      }
+
+      .table th,
+      .table td {
+         padding: 10px;
+         border: 1px solid #ccc;
+      }
+
+      .table th {
+         background-color: #f2f2f2;
+         font-weight: bold;
+      }
+
+      .table td {
+         text-align: center;
+      }
+
+      @media only screen and (max-width: 600px) {
+         .board {
+            padding: 10px;
+         }
+
+         .board h2 {
+            font-size: 18px;
+         }
+
+         .board ul li {
+            padding: 5px 0;
+         }
+
+         .table {
+            max-width: 400px;
+         }
+      }
+   </style>
+   <script>
+      const API_KEY = '7ba562c87dee43f4596cd7047fdc3d92';
+      let TOKEN = '';
+
+      let boardsData = [];
+      let filteredData = [];
+
+      window.onload = function () {
+         document.getElementById('token-input').addEventListener('input', function (event) {
+            TOKEN = event.target.value;
+         });
+
+         document.getElementById('token-button').addEventListener('click', function () {
+            fetch(`https://api.trello.com/1/members/me/boards?key=${API_KEY}&token=${TOKEN}`)
+               .then(response => response.json())
+               .then(boards => {
+                  let promises = boards.map(board => {
+                     return fetch(`https://api.trello.com/1/boards/${board.id}/actions?key=${API_KEY}&token=${TOKEN}`)
+                        .then(response => response.json())
+                        .then(actions => {
+                           return {
+                              board: board.name,
+                              actions: actions.map(action => {
+                                 return {
+                                    card: action.data.card ? action.data.card.name : 'N/A',
+                                    type: action.type,
+                                    date: action.date
+                                 };
+                              })
+                           };
+                        });
+                  });
+
+                  Promise.all(promises).then(results => {
+                     boardsData = results;
+                     filteredData = results;
+                     renderCheckboxes();
+                     renderTable();
+                  });
+               });
+         });
+      };
+
+      function renderCheckboxes() {
+         let boards = [...new Set(boardsData.map(data => data.board))];
+         let types = [...new Set(boardsData.flatMap(data => data.actions.map(action => action.type)))];
+
+         let checkboxes = '';
+         ['boards', 'types'].forEach(category => {
+            checkboxes += `<div style="display: inline-block; margin-right: 10px;">${category}: `;
+            eval(category).forEach(value => {
+               checkboxes += `<div style="margin-top: 5px;"><input type="checkbox" id="${category}-${value}" onchange="filterData()" style="margin-right: 5px;">${value}</div>`;
+            });
+            checkboxes += '</div>';
+         });
+
+         document.getElementById('checkboxes').innerHTML = checkboxes;
+      }
+
+
+      function filterData() {
+         let checkedBoards = [...document.querySelectorAll('input[id^="boards-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedCards = [...document.querySelectorAll('input[id^="cards-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedTypes = [...document.querySelectorAll('input[id^="types-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedDates = [...document.querySelectorAll('input[id^="dates-"]:checked')].map(input => input.id.split('-')[1]);
+
+         filteredData = boardsData.filter(boardData => {
+            return (checkedBoards.length === 0 || checkedBoards.includes(boardData.board)) &&
+               boardData.actions.some(action => {
+                  return (checkedCards.length === 0 || checkedCards.includes(action.card)) &&
+                     (checkedTypes.length === 0 || checkedTypes.includes(action.type)) &&
+                     (checkedDates.length === 0 || checkedDates.includes(action.date));
+               });
+         });
+
+         renderTable();
+      }
+
+      function renderTable() {
+         let output = '<div class="table"><table>';
+         output += '<tr><th>Board</th><th>Card</th><th>Action Type</th><th>Date</th></tr>';
+
+         filteredData.forEach(boardData => {
+            boardData.actions.forEach(action => {
+               let d = new Date(action.date)
+               output += '<tr>';
+               output += `<td>${boardData.board}</td>`;
+               output += `<td>${action.card}</td>`;
+               output += `<td>${action.type}</td>`;
+               output += `<td>${d.toLocaleDateString()}\n<i>${d.toLocaleTimeString()}</i></td>`;
+               output += '</tr>';
+            });
+         });
+
+         output += '</table></div>';
+
+         document.getElementById('output').innerHTML = output;
+      }
+   </script>
+
 </head>
 
 <body>
-    <div style="box-shadow: inset 1px 1px 2px 3px rgba(0,0,0,0.3); width: 69%; margin-top: 10px; margin-bottom: 10px; padding: 10px;">
-
-    <div style="margin: 4px; margin-right: 4px; width: 25%; border: 1px solid black; padding: 3px; float:left;">
-        <h3>Within these dates:</h3>
-        <span>from date:  </span>
-        <input type="date" id="fromDate" title="pasta" />
-        <br><br>
-        <span>to date:  </span>
-        <input type="date" id="toDate" />
-        <br>
-        
-        
-    <br><br>
-</div>
-<br><br>
-
-
-<div id="divIncludeBoards" style="margin: 4px; margin-right: 4px; width: 33%; border: 1px solid black; padding: 3px; float:left;">
-    <h3>Include boards:</h3>
-</div>
-
-<br style="clear:both;">
-
-
-
-
-
-
-
-    <u>Trello API token:</u> &nbsp; <input type="text" name="token" autocomplete="on" id="txtTokenInput" style="width: 50%;"/><br><br>
-<i></i><a href='https://trello.com/1/authorize?expiration=1day&scope=read&response_type=token&name=Server%20Token&key=7ba562c87dee43f4596cd7047fdc3d92'>(generate a token)</a></i>
-<br><br>
-
-
-
-
-
-
-
-
-
-
-
-
-<br>
-<input id="btnGo" type ="button" style="margin: 3px; padding: 6px; width: 25%;" value="Get trello activity" />
-<br>
-
-</div>
-
-
-
-
-
-<div id="activityDiv">
-
-    <script>
-
-if(window.localStorage.getItem("prevToken"))
-    document.getElementById("txtTokenInput").value = window.localStorage.getItem("prevToken");
-
-        let boardsList = []
-        let olist = []
-
-        /*
-        let ddd = new Date(Date.now())
-        ddd.setDate(ddd - 30);
-        document.getElementById("fromDate").val = toUrlDate(ddd);
-        document.getElementById("fromDate").value = toUrlDate(ddd);
-*/
-        //populates boards list 
-        getMyActivity();
-
-        document.getElementById("btnGo").addEventListener("click", function() {
-            window.localStorage.setItem("prevToken", document.getElementById("txtTokenInput").value  ??  "");
-            go();
-            
-        });
-
-        
-        
-
-
-
-
-
-
-
-        async function go() {
-
-            document.getElementById("activityDiv").innerHTML = 0;
-
-            olist = await getMyActivity();
-            await drawMyActivity(olist);
-       
-        }
-
-        async function drawMyActivity(olist) {
-                
-            let boardCkbEls = document.getElementsByClassName("ckbBoard")
-            let boardsToDraw = ""
-            let lastDate = ""
-            
-            for (let j = 0; j < boardCkbEls.length; j++) {
-                    let ckbElement = boardCkbEls[j];
-                    if(ckbElement.checked)
-                        boardsToDraw += ckbElement.id.replace("ckbBoard_", "")
-            }
-            console.log("boards to draw: " + boardsToDraw)
-
-
-
-            for (let i = 0; i < olist.length; i++) {
-                const el = olist[i];
-
-                let isWithinDates;
-                let fromdatecheck = new Date(document.getElementById("fromDate").value)
-                let todatecheck =  new Date(document.getElementById("toDate").value)
-                if(fromdatecheck <= el.dateObj   &&   todatecheck >= el.dateObj)
-                    isWithinDates = true;
-                else {
-                    isWithinDates = false;
-                    //console.log("not within dates - " + el.prettyDate)
-                }
-                
-
-                    let isDrawingBoard = false;
-                    if(boardsToDraw.includes(el.cardBoard))
-                        isDrawingBoard = true
-                    
-                
-
-                
-
-                if(
-                    isDrawingBoard   &&
-                    isWithinDates
-                ){
-                        if(el.prettyDate !== lastDate) {
-                            lastDate = el.prettyDate;
-                            document.getElementById("activityDiv").innerHTML += '<h2>' + el.prettyDate + '</h2>' + '<hr>';
-                        }
-
-                        
-                            
-                        document.getElementById("activityDiv").appendChild(el.getPrettyElement());
-                    }
-
-                    
-            }
-        }
-
-
-        async function getMyActivity(limit = 999, sinceDate = new Date(Date.now())) {
-            
-            
-
-            let objList = [];
-
-            if (sinceDate == null)
-                sinceDate = document.getElementById("fromDate").value;
-            else
-                document.getElementById("fromDate").val = sinceDate;
-
-                
-                let strToken = document.getElementById("txtTokenInput").value;
-
-
-
-            console.log()
-
-            let urltoget = "https://api.trello.com/1/members/me/actions?key=7ba562c87dee43f4596cd7047fdc3d92" +
-                "&token=" + strToken +
-                "&limit=" + limit +
-                "&since=" + toUrlDate(sinceDate);
-
-            console.log(urltoget);
-
-            await fetch(
-                    urltoget
-                )
-                .then((response) => {
-                    return response.json()
-                })
-                .then(
-                    (result) => {
-
-                        //console.log(result)
-
-
-
-                        for (let i = 0; i < result.length; i++) {
-
-                            let act = result[i]
-
-
-
-
-
-                            let dateSplit = ["(no date)", "(no time)"]
-                            dateSplit = act.date.toString().split("T")
-                            let date = (new Date(dateSplit[0]));
-                            //console.log("d " + date)
-                            let cardId = "(no id)"
-
-                            let cardLink = "#"
-                            let actType = act.type
-                            let cardDesc = "(no desc)"
-                            let cardBoard = "(no board)"
-
-                            let actCheckedItem;
-
-                            if (act.data.card) {
-                                if (act.data.card.name)
-                                    cardDesc = act.data.card.name
-                                if (act.data.board)
-                                    cardBoard = act.data.board.name
-                                if (act.data.card.shortLink) {
-                                    cardId = act.data.card.shortLink
-                                    cardLink = "https://www.trello.com/c/" + cardId
-                                }
-                            }
-
-                            if(act.data.checkItem) {
-                                if(act.data.checkItem)
-                                    actCheckedItem = act.data.checkItem.name;
-                            }
-
-                            
-
-                            //for user ui checkboxes
-                            if(! boardsList.includes(cardBoard)) {
-
-                                boardsList.push(cardBoard)
-
-                                let newEl = document.createElement("input")
-                                newEl.type = "checkbox"
-                                
-                                newEl.id = "ckbBoard_" + cardBoard
-                                newEl.className = "ckbBoard"
-                                
-                                
-                                
-                                document.getElementById("divIncludeBoards").appendChild(
-                                    newEl
-                                )
-                                document.getElementById("divIncludeBoards").innerHTML += '<label><b>' + cardBoard +'</b></label>'
-                                document.getElementById("divIncludeBoards").innerHTML += "<br>";
-                            }
-
-
-
-
-                            let objOut = {
-                                dateObj: date,
-                                prettyDate: toPrettyDate(date),
-                                urlDate: toUrlDate(date),
-                                actionType: actType,
-                                cardId: cardId,
-                                cardLink: cardLink,
-                                cardDesc: cardDesc,
-                                cardBoard: cardBoard,
-                                actCheckedItem: actCheckedItem,
-                                getPrettyElement: function() {
-                                    
-                                    let eout = document.createElement("div")
-
-                                    eout.style = "max-width: 40%; padding: 2px; margin: 2px;"
-                                    
-                                    eout.innerHTML += '<span><b style="float: left">' + cardBoard.replace("\n", "") + '</b>';
-                                    eout.innerHTML += '<i style="float: left; margin-left: 5px;"><a href="' + this.cardLink + '">' + shortenLongString(cardDesc).replace("\n", "") + '</a></i></span><br style="clear: both;"><br>';
-                                    eout.innerHTML += "<li>Trello action: " + this.actionType + "</li>"
-                                    if(this.actCheckedItem)
-                                        eout.innerHTML += "<small>" + "&nbsp;&nbsp;(<u>checkbox item</u>: <i>" + this.actCheckedItem + "</i>)</small>"
-                                    
-
-                                    return eout;
-
-                                }
-
-                            }
-
-                            
-
-
-                            objList.push(objOut)
-
-
-
-                        } //end for
-
-
-
-                    })
-                .then(() => {
-
-                    
-                    
-                })
-
-
-                console.log(objList)
-                
-            return objList;
-
-
-
-
-
-
-
-        }
-
-
-
-        function shortenLongString(str) {
-            let strout = str;
-            //if (str.length > 52)
-            //    strout = str.substr(0, 50) + "..."
-            return strout;
-        }
-
-        function toPrettyDate(ddd) {
-            //???????
-            let o = ddd.getMonth()+1 + "/" + (ddd.getDate()+2) + "/" + ddd.getFullYear().toString().replace("20", "");
-            return o;
-        }
-
-        function toUrlDate(ddd) {
-            let m = ddd.getMonth().toString()
-            if (m.length == 1)
-                m = "0" + m;
-            let d = ddd.getDate().toString()
-            if (d.length == 1)
-                d = "0" + d;
-
-
-            let o = ddd.getFullYear() + "-" + m + "-" + d;
-            return o;
-
-        }
-    </script>
-    </div>
+   <h1>My Trello Activity</h1>
+   <div>
+      <label for="token-input">Token:</label>
+      <input type="text" id="token-input">
+
+      <button id="token-button">Submit</button>
+      <br>
+      <small><a
+            href="https://trello.com/1/authorize?expiration=never&scope=read,account&response_type=token&name=Server%20Token&key=7ba562c87dee43f4596cd7047fdc3d92">Generate
+            a token</a></small>
+      <br>
+
+   </div>
+   <br><br>
+   <h4>filtering:</h4>
+   <div id="checkboxes"></div>
+   <br><br>
+
+   <div id="output"></div>
 </body>
 
 </html>
