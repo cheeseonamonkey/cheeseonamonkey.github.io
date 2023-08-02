@@ -4,7 +4,7 @@
 <head>
    <script type="text/javascript"
       src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.16.0/js/md5.min.js"></script>
-   
+
    <meta name="viewport" content="width=500, initial-scale=1.0, maximum-scale=2.0, minimum-scale=0.5, user-scalable=no">
    <title>Chess Games</title>
    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -89,10 +89,57 @@
          border: .4px solid rgba(0, 0, 0, 0.25);
       }
    </style>
+   <style>
+      @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
+
+      .strategy-container {
+         font-family: 'Rubik', Arial, sans-serif;
+         color: #333;
+         box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+         padding: 10px;
+      }
+
+      .strategy-title,
+      .strategy-grades,
+      .strategy-takeaway {
+         font-size: 1.15em;
+         margin-top: 0.5em;
+         color: #333;
+      }
+
+      .strategy-table {
+         width: 100%;
+         border-collapse: collapse;
+      }
+
+      .strategy-row {
+         border-bottom: 1px solid #ccc;
+      }
+
+      .strategy-aspect {
+         padding: 10px;
+         width: 70%;
+      }
+
+      .strategy-rating {
+         padding: 10px;
+         width: 30%;
+         text-align: right;
+      }
+
+      .strategy-grades {
+         margin-top: 0.5em;
+      }
+   </style>
 </head>
 
 <body>
    <h1>Chess Games</h1>
+   <small
+      style="all: initial; margin-top: -5px; font-family:Georgia, 'Times New Roman', Times, serif; font-size: 0.85em; display: block; width: 100%; text-align: center;"><sup><a
+            href="https://cors-anywhere.herokuapp.com/corsdemo">not
+            working? try this.</a>
+      </sup></small>
    <div id="gamesContainer"></div>
 
    <script>
@@ -120,7 +167,7 @@
             });
          });
       }
-      async function getCompletion(textToSend) {
+      async function getCompletion(gameText) {
          const authkey = atob('c2stWXpWa2xiOTVGdHYwVW54ZDNUbDZUM0JsYmtGSjRYT2Zibk1vVHEzOFFFc0VQV0tJ')
          const response = await $.post({
             url: 'https://api.openai.com/v1/chat/completions',
@@ -130,8 +177,18 @@
             },
             data: JSON.stringify({
                model: 'gpt-3.5-turbo',
-               messages: [{ role: 'system', content: 'You are my expert AI chess tutor. Advise me on general strategy, tactics, openings, etc. \n Perhaps advise me what opening I might like, what is my style, or something specifically try next. Tell me what my play style is and describe strengths and weaknesses. etc. \nDo not just summarize the game, but help me improve. Do not reference specific turns too much.\nMy chess username is: ' + username }, { role: 'user', content: textToSend }],
-               temperature: 0.4
+               messages: [
+                  {
+                     role: 'system',
+                     content: "You are my brilliant Chess AI helper!\r\n\r\n### Using the PGN chess game supplied:\r\n\r\n\r\n\r\n- Name my chess style for this game (label \"Your style:\") (be mean if I lost)\r\n   - Rate aspects of my chess game style in these binary\/bipolar spectrums  (keep on previous label):\r\n      1. Aggressive vs Defensive\r\n      2. Tactical vs Positional\r\n      3. Dynamic vs Solid\r\n      4. Openings vs Endgames\r\n   Use `slightly`, `somewhat`, `very`, or `extremely`.\r\n- Grade me on these fundamental chess skills - use school grades like A+, C-, D, etc. (label \"Grades:\")(make the distribution a bit wider and exaggerate the extremes so I know what to work on):\r\n   1. Tactics\r\n   2. Calculation\r\n   3. Visualization\r\n   4. Strategy\r\n   5. Openings\r\n   6. Evaluation\r\n   7. Endgames\r\n\r\nGive me the one most important takeaway from this game (label \"Takeaway\")\r\n\r\n Do not echo the questions back in your responses - just make a report card. Use tables! Follow my example. In an HTML div please.\r\n\r\n---\r\n\r\nExample response html for a game:\r\n```\r\n<div class=\"strategy-container\"><p class=\"strategy-title\">Your style: \"The Passive Strategist\"<\/p><table class=\"strategy-table\"><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Aspect<\/td><td class=\"strategy-rating\">Rating<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Aggressive vs Defensive<\/td><td class=\"strategy-rating\">20% aggressive<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Tactical vs Positional<\/td><td class=\"strategy-rating\">40% positional<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Dynamic vs Solid<\/td><td class=\"strategy-rating\">30% solid<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Openings vs Endgames<\/td><td class=\"strategy-rating\">60% focused on openings<\/td><\/tr><\/table><p class=\"strategy-grades\">Grades:<\/p><table class=\"strategy-table\"><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Fundamental Skill<\/td><td class=\"strategy-rating\">Rating<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Tactics<\/td><td class=\"strategy-rating\">D+<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Calculation<\/td><td class=\"strategy-rating\">C-<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Visualization<\/td><td class=\"strategy-rating\">C-<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Strategy<\/td><td class=\"strategy-rating\">B<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Openings<\/td><td class=\"strategy-rating\">C+<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Evaluation<\/td><td class=\"strategy-rating\">C<\/td><\/tr><tr class=\"strategy-row\"><td class=\"strategy-aspect\">Endgames<\/td><td class=\"strategy-rating\">D-<\/td><\/tr><\/table><p class=\"strategy-takeaway\">Takeaway: Focus on improving your tactical skills and endgame play.<\/p><\/div>\r\n\r\n```\r\n" + ' \nMy chess username is: ' + username
+                  },
+                  {
+                     role: 'user',
+                     content: gameText
+                  }
+               ],
+               temperature: 0.4,
+
             }),
             dataType: 'json'
          });
@@ -186,11 +243,11 @@
             //txtChat = document.createElement('textarea')
             //gameDiv.appendChild(txtChat)
             btnChat = document.createElement('button')
-            btnChat.innerText = 'ai tutor'
+            btnChat.innerText = 'ai style analysis'
             btnChat.addEventListener('click', async (ev) => {
                ev.target.disabled = true;
                let tempEl = document.createElement('p')
-               tempEl.innerText = "getting chat...."
+               tempEl.innerHTML = "getting chat....<sup> this may take a minute...</sup>"
                gameDiv.appendChild(tempEl)
 
                let completionResult = await getCompletion("My chess game:\n```\n" + pgn + "\n```\n")
