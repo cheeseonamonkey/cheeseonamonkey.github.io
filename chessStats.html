@@ -208,64 +208,44 @@
             var result = pgn.Termination;
             var fen = game.fen;
 
-            var gameDiv = document.createElement('div');
-            gameDiv.classList.add('divChessGame');
+            var gameDiv = $('<div>').addClass('divChessGame');
 
-            var gameHeading = document.createElement('h3');
-            var gameLink = document.createElement('a');
-            gameLink.href = gameUrl;
-            gameLink.textContent = 'Game: ' + game.white.username + ' (' + game.white.rating + ')' + ' vs. ' + game.black.username + ' (' + game.black.rating + ')';
-            gameHeading.appendChild(gameLink);
-            gameDiv.appendChild(gameHeading);
+            var gameHeading = $('<h3>');
+            var gameLink = $('<a>').attr('href', gameUrl).text('Game: ' + game.white.username + ' (' + game.white.rating + ')' + ' vs. ' + game.black.username + ' (' + game.black.rating + ')');
+            gameHeading.append(gameLink);
+            gameDiv.append(gameHeading);
 
-            gameDiv.style.marginBottom = "29px";
-            gameDiv.style.boxShadow = "1.5px 1.5px 1.3px 2.3px rgba(0,0,0,0.2)"
+            gameDiv.css('margin-bottom', '29px');
+            gameDiv.css('box-shadow', '1.5px 1.5px 1.3px 2.3px rgba(0,0,0,0.2)');
 
-            var resultParagraph = document.createElement('p');
-            resultParagraph.textContent = 'Result: ' + result;
-            gameDiv.appendChild(resultParagraph);
+            var resultParagraph = $('<p>').text('Result: ' + result);
+            gameDiv.append(resultParagraph);
 
-            var pgnPre = document.createElement('pre');
-            pgnPre.innerHTML = '<div style="display: inline; max-width: 60%; float:left;">' + pgn + '</div>';
-            gameDiv.appendChild(pgnPre);
+            var pgnPre = $('<pre>').html('<div style="display: inline; font-size: 0.85em; max-width: 60%; float:left;">' + pgn + '</div>');
+            gameDiv.append(pgnPre);
 
-            var fenImage = document.createElement('img');
-            fenImage.style.maxWidth = '33%'
-            fenImage.classList.add('fen-image');
-            fenImage.src = 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true';
-            fenImage.alt = fen;
-            pgnPre.appendChild(fenImage);
+            var fenImage = $('<img>').css('max-width', '33%').addClass('fen-image').attr('src', 'https://fen2png.com/api/?fen=' + fen.replace("_", " ") + '&raw=true').attr('alt', fen);
+            pgnPre.append(fenImage);
 
-            var copyButton = document.createElement('button');
-            copyButton.classList.add('copy-button');
-            copyButton.textContent = 'Copy Game';
-            gameDiv.addEventListener('click', () => { copyMoves(game.pgn.toString()) })
-            gameDiv.appendChild(copyButton);
+            var copyButton = $('<button>').addClass('copy-button').text('Copy Game');
+            gameDiv.on('click', function () { copyMoves(game.pgn.toString()) });
+            gameDiv.append(copyButton);
 
-            //txtChat = document.createElement('textarea')
-            //gameDiv.appendChild(txtChat)
-            btnChat = document.createElement('button')
-            btnChat.innerText = 'ai style analysis'
-            btnChat.addEventListener('click', async (ev) => {
+            var btnChat = $('<button>').text('ai style analysis');
+            btnChat.on('click', async function (ev) {
                ev.target.disabled = true;
-               let tempEl = document.createElement('p')
-               tempEl.innerHTML = "getting chat....<sup> this may take a minute...</sup>"
-               gameDiv.appendChild(tempEl)
+               var tempEl = $('<p>').html("getting chat....<sup> this may take a minute...</sup>");
+               gameDiv.append(tempEl);
 
-               let completionResult = await getCompletion("My chess game:\n```\n" + pgn + "\n```\n")
+               var completionResult = await getCompletion("My chess game:\n```\n" + pgn + "\n```\n");
 
-               tempEl.innerHTML = completionResult.toString();
+               tempEl.html(completionResult.toString());
 
             });
-            gameDiv.appendChild(btnChat)
+            gameDiv.append(btnChat);
 
-
-            var gamesContainer = document.getElementById('gamesContainer');
             gamesContainer.prepend(gameDiv);
-
-
          });
-
       }
 
       async function copyMoves(pgn) {
