@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,7 +5,77 @@
     body {
       max-width: 900px;
     }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .folder {
+      width: 30%;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .folder:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .folder h2 {
+      color: blue;
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .folder p {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .search-bar {
+      margin: 20px 0;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .pin {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 10px;
+      font-size: 14px;
+      color: blue;
+      text-decoration: none;
+      display: none;
+    }
+
+    .folder:hover .pin {
+      display: block;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .folder {
+        width: 100%;
+      }
+    }
   </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Drive OAuth</title>
   <script>
     const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
@@ -31,72 +100,101 @@
       const urlParams = new URLSearchParams(hash);
       return urlParams.get('access_token');
     }
-async function showFiles(accessToken) {
-  const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
-  });
-  const folderData = await folderResponse.json();
-  const folders = folderData.files;
-  const fileList = document.getElementById('fileList');
 
-  for (let folder of folders) {
-    const folderTitle = document.createElement('h2');
-    folderTitle.textContent = folder.name;
-    folderTitle.style.color = 'blue';
-    fileList.appendChild(folderTitle);
+    async function showFiles(accessToken) {
+      const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      const folderData = await folderResponse.json();
+      const folders = folderData.files;
+      const fileList = document.getElementById('fileList');
 
-    const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+      for (let folder of folders) {
+        const folderItem = document.createElement('div');
+        folderItem.classList.add('folder');
+        folderItem.setAttribute('data-folder-id', folder.id);
+        folderItem.addEventListener('click', () => {
+          showFilesInFolder(accessToken, folder.id);
+        });
+
+        const folderTitle = document.createElement('h2');
+        folderTitle.textContent = folder.name;
+        folderItem.appendChild(folderTitle);
+
+        const pinLink = document.createElement('a');
+        pinLink.classList.add('pin');
+        pinLink.href = '#';
+        pinLink.textContent = 'Pin';
+        folderItem.appendChild(pinLink);
+
+        fileList.appendChild(folderItem);
       }
-    });
-    const fileData = await fileResponse.json();
-    const files = fileData.files;
-
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.border = '1px solid black';
-    fileList.appendChild(table);
-
-    for (let file of files) {
-      const row = document.createElement('tr');
-
-      const nameCell = document.createElement('td');
-      nameCell.textContent = file.name;
-      row.appendChild(nameCell);
-
-      const dateCell = document.createElement('td');
-      const date = new Date(file.createdTime);
-      dateCell.textContent = date.toLocaleDateString();
-      row.appendChild(dateCell);
-
-      const linkCell = document.createElement('td');
-      const link = document.createElement('a');
-      link.href = file.webViewLink;
-      link.textContent = 'Download';
-      linkCell.appendChild(link);
-      row.appendChild(linkCell);
-
-      const sizeCell = document.createElement('td');
-      sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
-      row.appendChild(sizeCell);
-
-      table.appendChild(row);
     }
-  }
-}
 
+    async function showFilesInFolder(accessToken, folderId) {
+      const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      const fileData = await fileResponse.json();
+      const files = fileData.files;
 
+      const folderItem = document.querySelector(`[data-folder-id="${folderId}"]`);
+      folderItem.innerHTML = '';
 
+      const folderTitle = document.createElement('h2');
+      folderTitle.textContent = folderItem.textContent;
+      folderItem.appendChild(folderTitle);
 
+      const pinLink = document.createElement('a');
+      pinLink.classList.add('pin');
+      pinLink.href = '#';
+      pinLink.textContent = 'Pin';
+      folderItem.appendChild(pinLink);
+
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.border = '1px solid black';
+      folderItem.appendChild(table);
+
+      for (let file of files) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = file.name;
+        row.appendChild(nameCell);
+
+        const dateCell = document.createElement('td');
+        const date = new Date(file.createdTime);
+        dateCell.textContent = date.toLocaleDateString();
+        row.appendChild(dateCell);
+
+        const linkCell = document.createElement('td');
+        const link = document.createElement('a');
+        link.href = file.webViewLink;
+        link.textContent = 'Download';
+        linkCell.appendChild(link);
+        row.appendChild(linkCell);
+
+        const sizeCell = document.createElement('td');
+        sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
+        row.appendChild(sizeCell);
+
+        table.appendChild(row);
+      }
+    }
 
     window.onload = handleClientLoad;
   </script>
 </head>
 <body>
   <h1>Google Drive OAuth</h1>
-  <ul id="fileList"></ul>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by folder name" oninput="filterFolders()">
+  </div>
+  <div class="container" id="fileList"></div>
 </body>
 </html>
