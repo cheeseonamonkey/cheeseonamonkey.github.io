@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Drive OAuth</title>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script>
+    function handleClientLoad() {
+      gapi.load('auth2', initClient);
+    }
+
+    function initClient() {
+      gapi.auth2.init({
+        client_id: 'YOUR_CLIENT_ID',
+        redirect_uri: window.location.href,
+        scope: 'https://www.googleapis.com/auth/drive.readonly'
+      }).then(function(auth2) {
+        if (auth2.isSignedIn.get()) {
+          showFiles();
+        } else {
+          handleRedirect();
+        }
+      });
+    }
+
+    function handleRedirect() {
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('code')) {
+        var code = urlParams.get('code');
+        gapi.auth2.getAuthInstance().grantOfflineAccess({ 'code': code }).then(function(response) {
+          // Handle the authorization code and exchange it for an access token
+          // You can make an AJAX request to your server to exchange the code for an access token
+          // and then redirect the user to the desired page
+        });
+      }
+    }
+
+    function showFiles() {
+      gapi.client.load('drive', 'v3', function() {
+        gapi.client.drive.files.list({
+          'pageSize': 5,
+          'fields': 'files(name)'
+        }).then(function(response) {
+          var files = response.result.files;
+          var fileList = document.getElementById('fileList');
+          for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            var listItem = document.createElement('li');
+            listItem.appendChild(document.createTextNode(file.name));
+            fileList.appendChild(listItem);
+          }
+        });
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>Google Drive OAuth</h1>
+  <ul id="fileList"></ul>
+  <script src="https://apis.google.com/js/api.js?onload=handleClientLoad"></script>
+</body>
+</html>
