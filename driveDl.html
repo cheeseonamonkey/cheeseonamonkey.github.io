@@ -39,6 +39,10 @@
     .folder-item {
       display: flex;
       align-items: center;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
     }
 
     .pin-checkbox {
@@ -50,6 +54,11 @@
       margin-left: 10px;
       color: blue;
       font-family: 'Rubik', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      padding: 0;
+      margin-bottom: 10px;
     }
 
     .pinned {
@@ -60,19 +69,24 @@
     .file-table {
       width: 100%;
       border: 1px solid black;
+      margin: 0;
+      padding: 0;
+      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+
+    .file-table th,
+    .file-table td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
     }
 
     .file-table th {
       background: #f0f0f0;
-      padding: 10px;
-      text-align: left;
-      font-weight: 700;
-      border: 1px solid black;
     }
 
     .file-table td {
-      padding: 10px;
-      border: 1px solid black;
+      text-align: center;
     }
 
     .file-table a {
@@ -174,23 +188,19 @@
       folderItem.appendChild(table);
 
       const tableHeader = document.createElement('tr');
-      table.appendChild(tableHeader);
-
       const nameHeader = document.createElement('th');
       nameHeader.textContent = 'Name';
       tableHeader.appendChild(nameHeader);
-
       const dateHeader = document.createElement('th');
       dateHeader.textContent = 'Created Date';
       tableHeader.appendChild(dateHeader);
-
       const linkHeader = document.createElement('th');
       linkHeader.textContent = 'Download';
       tableHeader.appendChild(linkHeader);
-
       const sizeHeader = document.createElement('th');
       sizeHeader.textContent = 'Size';
       tableHeader.appendChild(sizeHeader);
+      table.appendChild(tableHeader);
 
       for (let file of files) {
         const row = document.createElement('tr');
