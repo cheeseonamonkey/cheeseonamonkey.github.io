@@ -6,7 +6,7 @@
       max-width: 800px;
       margin: 0 auto;
       padding: 20px;
-      font-family: Arial, sans-serif;
+      font-family: 'Rubik', sans-serif;
     }
 
     h1 {
@@ -36,33 +36,36 @@
       box-sizing: border-box;
     }
 
-    .pin-link {
-      color: blue;
-      text-decoration: none;
+    .folder-item {
+      display: flex;
+      align-items: center;
+    }
+
+    .pin-checkbox {
+      transform: scale(1.5);
+      margin-right: 10px;
+    }
+
+    .folder-title {
       margin-left: 10px;
+      color: blue;
+      font-family: 'Rubik', sans-serif;
     }
 
     .pinned {
       background: #f0f0f0;
+      order: -1;
     }
-.pin-checkbox {
-  transform: scale(1.5);
-  margin-right: 10px;
-}
-
-.pinned {
-  background: #f0f0f0;
-  order: -1;
-}
 
     @media only screen and (max-width: 600px) {
       body {
         padding: 10px;
       }
-    }  </style>
+    }
+  </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Drive OAuth</title>
- 
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1>Google Drive OAuth</h1>
@@ -70,7 +73,7 @@
     <input type="text" placeholder="Filter folders">
   </div>
   <ul id="fileList"></ul>
-   <script>
+  <script>
     const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
     const redirectUri = encodeURIComponent(window.location.href);
     const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
@@ -109,15 +112,15 @@
         folderItem.classList.add('folder-item');
         fileList.appendChild(folderItem);
 
-        const folderTitle = document.createElement('h2');
-        folderTitle.textContent = folder.name;
-        folderTitle.style.color = 'blue';
-        folderItem.appendChild(folderTitle);
-
         const pinCheckbox = document.createElement('input');
         pinCheckbox.type = 'checkbox';
         pinCheckbox.classList.add('pin-checkbox');
         folderItem.appendChild(pinCheckbox);
+
+        const folderTitle = document.createElement('h2');
+        folderTitle.textContent = folder.name;
+        folderTitle.classList.add('folder-title');
+        folderItem.appendChild(folderTitle);
 
         pinCheckbox.addEventListener('change', function(e) {
           if (pinCheckbox.checked) {
@@ -173,23 +176,20 @@
 
     window.onload = handleClientLoad;
 
-    // Add event listener to search input
-    // Add event listener to search input
-const searchInput = document.querySelector('.search-bar input');
-searchInput.addEventListener('input', function(e) {
-  const searchValue = e.target.value.toLowerCase();
-  const folderItems = document.querySelectorAll('.folder-item');
-  folderItems.forEach(function(folderItem) {
-    const folderTitle = folderItem.querySelector('h2');
-    const folderName = folderTitle.textContent.toLowerCase();
-    if (folderName.includes(searchValue)) {
-      folderItem.style.display = 'block';
-    } else {
-      folderItem.style.display = 'none';
-    }
-  });
-});
-
+    const searchInput = document.querySelector('.search-bar input');
+    searchInput.addEventListener('input', function(e) {
+      const searchValue = e.target.value.toLowerCase();
+      const folderItems = document.querySelectorAll('.folder-item');
+      folderItems.forEach(function(folderItem) {
+        const folderTitle = folderItem.querySelector('h2');
+        const folderName = folderTitle.textContent.toLowerCase();
+        if (folderName.includes(searchValue)) {
+          folderItem.style.display = 'block';
+        } else {
+          folderItem.style.display = 'none';
+        }
+      });
+    });
   </script>
 </body>
 </html>
