@@ -166,7 +166,7 @@
     window.onload = handleClientLoad;
 
     // Add event listener to search input
-    const searchInput = document.querySelector('input.search-bar');
+    const searchInput = document.querySelector('.search-bar input');
     searchInput.addEventListener('input', function(e) {
       const searchValue = e.target.value.toLowerCase();
       const folderItems = document.querySelectorAll('.folder-item');
@@ -185,7 +185,7 @@
 <body>
   <h1>Google Drive OAuth</h1>
   <div class="search-bar">
-    <input type="text" class="search-bar" placeholder="Filter folders">
+    <input type="text" placeholder="Filter folders">
   </div>
   <ul id="fileList"></ul>
 </body>
