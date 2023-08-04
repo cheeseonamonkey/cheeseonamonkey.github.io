@@ -56,10 +56,6 @@
       background: #f0f0f0;
       order: -1;
     }
-.folder-container {
-  display: flex;
-  flex-direction: column;
-}
 
     @media only screen and (max-width: 600px) {
       body {
@@ -112,13 +108,9 @@
       const fileList = document.getElementById('fileList');
 
       for (let folder of folders) {
-       const folderContainer = document.createElement('div');
-folderContainer.classList.add('folder-container');
-fileList.appendChild(folderContainer);
-
-const folderItem = document.createElement('li');
-folderItem.classList.add('folder-item');
-folderContainer.appendChild(folderItem);
+        const folderItem = document.createElement('li');
+        folderItem.classList.add('folder-item');
+        fileList.appendChild(folderItem);
 
         const pinCheckbox = document.createElement('input');
         pinCheckbox.type = 'checkbox';
@@ -153,7 +145,7 @@ folderContainer.appendChild(folderItem);
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.border = '1px solid black';
-folderContainer.appendChild(table);
+      folderItem.appendChild(table);
 
       for (let file of files) {
         const row = document.createElement('tr');
@@ -201,4 +193,6 @@ folderContainer.appendChild(table);
   </script>
 </body>
 </html>
+
+
 
