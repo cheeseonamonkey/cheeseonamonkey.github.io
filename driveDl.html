@@ -40,12 +40,12 @@
       color: blue;
       text-decoration: none;
       margin-left: 10px;
-      font-weight: bold;
     }
 
     .pinned {
-      font-weight: bold;
-      color: green;
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 10px;
     }
 
     @media only screen and (max-width: 600px) {
@@ -106,44 +106,63 @@
         pinLink.textContent = 'Pin';
         folderItem.appendChild(pinLink);
 
-        const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
+        folder.pinned = false; // Add pinned property to folder object
+
+        pinLink.addEventListener('click', () => {
+          folder.pinned = !folder.pinned;
+          folderItem.classList.toggle('pinned');
+          if (folder.pinned) {
+            loadRecentFiles(folder, accessToken);
+          } else {
+            folderItem.removeChild(folderItem.querySelector('table'));
           }
         });
-        const fileData = await fileResponse.json();
-        const files = fileData.files;
 
-        const table = document.createElement('table');
-        table.style.width = '100%';
-        table.style.border = '1px solid black';
-        folderItem.appendChild(table);
-
-        for (let file of files) {
-          const row = document.createElement('tr');
-
-          const nameCell = document.createElement('td');
-          nameCell.textContent = file.name;
-          row.appendChild(nameCell);
-
-          const dateCell = document.createElement('td');
-          const date = new Date(file.createdTime);
-          dateCell.textContent = date.toLocaleDateString();
-          row.appendChild(dateCell);
-
-          const linkCell = document.createElement('td');
-          const link = document.createElement('a');
-          link.href = file.webViewLink;
-          link.textContent = 'Download';
-          linkCell.appendChild(link);
-          row.appendChild(linkCell);
-
-          const sizeCell = document.createElement('td');
-          sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
-          row.appendChild(sizeCell);
-
-          table.appendChild(row);
+        if (folder.pinned) {
+          folderItem.classList.add('pinned');
+          loadRecentFiles(folder, accessToken);
         }
+      }
+    }
+
+    async function loadRecentFiles(folder, accessToken) {
+      const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      const fileData = await fileResponse.json();
+      const files = fileData.files;
+
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.border = '1px solid black';
+      folderItem.appendChild(table);
+
+      for (let file of files) {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = file.name;
+        row.appendChild(nameCell);
+
+        const dateCell = document.createElement('td');
+        const date = new Date(file.createdTime);
+        dateCell.textContent = date.toLocaleDateString();
+        row.appendChild(dateCell);
+
+        const linkCell = document.createElement('td');
+        const link = document.createElement('a');
+        link.href = file.webViewLink;
+        link.textContent = 'Download';
+        linkCell.appendChild(link);
+        row.appendChild(linkCell);
+
+        const sizeCell = document.createElement('td');
+        sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
+        row.appendChild(sizeCell);
+
+        table.appendChild(row);
       }
     }
 
