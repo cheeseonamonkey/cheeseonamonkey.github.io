@@ -26,59 +26,63 @@
       const urlParams = new URLSearchParams(hash);
       return urlParams.get('access_token');
     }
-
-async function showFolders(accessToken) {
-  const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
+async function showFiles(accessToken) {
+  const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
     headers: {
       'Authorization': `Bearer ${accessToken}`
     }
   });
-  const data = await response.json();
-  const folders = data.files;
-  const folderList = document.getElementById('folderList');
-  for (let i = 0; i < folders.length; i++) {
-    const folder = folders[i];
-    const listItem = document.createElement('li');
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.id = folder.id;
-    checkbox.onchange = function() {
-      if (this.checked) {
-        showFiles(accessToken, folder.id, i);
-      } else {
-        removeFiles(i);
-      }
-    }
-    listItem.appendChild(checkbox);
-    listItem.appendChild(document.createTextNode(folder.name));
-    folderList.appendChild(listItem);
-  }
-}
-
-async function showFiles(accessToken, folderId, row) {
-  const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=modifiedTime desc&pageSize=5&fields=files(id,name,modifiedTime)`, {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
-  });
-  const data = await response.json();
-  const files = data.files;
+  const folderData = await folderResponse.json();
+  const folders = folderData.files;
   const fileList = document.getElementById('fileList');
-  const folderFiles = document.createElement('ul');
-  folderFiles.id = `folderFiles${row}`;
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const listItem = document.createElement('li');
-    listItem.appendChild(document.createTextNode(file.name));
-    folderFiles.appendChild(listItem);
+
+  for (let folder of folders) {
+    const folderTitle = document.createElement('h2');
+    folderTitle.textContent = folder.name;
+    folderTitle.style.color = 'blue';
+    fileList.appendChild(folderTitle);
+
+    const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    const fileData = await fileResponse.json();
+    const files = fileData.files;
+
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.border = '1px solid black';
+    fileList.appendChild(table);
+
+    for (let file of files) {
+      const row = document.createElement('tr');
+
+      const nameCell = document.createElement('td');
+      nameCell.textContent = file.name;
+      row.appendChild(nameCell);
+
+      const dateCell = document.createElement('td');
+      const date = new Date(file.createdTime);
+      dateCell.textContent = date.toLocaleDateString();
+      row.appendChild(dateCell);
+
+      const linkCell = document.createElement('td');
+      const link = document.createElement('a');
+      link.href = file.webViewLink;
+      link.textContent = 'Download';
+      linkCell.appendChild(link);
+      row.appendChild(linkCell);
+
+      const sizeCell = document.createElement('td');
+      sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
+      row.appendChild(sizeCell);
+
+      table.appendChild(row);
+    }
   }
-  fileList.appendChild(folderFiles);
 }
 
-function removeFiles(row) {
-  const folderFiles = document.getElementById(`folderFiles${row}`);
-  folderFiles.parentNode.removeChild(folderFiles);
-}
 
 
 
