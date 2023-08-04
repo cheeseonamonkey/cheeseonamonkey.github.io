@@ -43,9 +43,7 @@
     }
 
     .pinned {
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-      padding: 10px;
+      background: #f0f0f0;
     }
 
     @media only screen and (max-width: 600px) {
@@ -65,7 +63,7 @@
     async function handleClientLoad() {
       const accessToken = getAccessTokenFromUrl();
       if (accessToken) {
-        showFiles(accessToken);
+        showFolders(accessToken);
       } else {
         document.body.innerHTML += 
         `<br>
@@ -80,7 +78,7 @@
       return urlParams.get('access_token');
     }
 
-    async function showFiles(accessToken) {
+    async function showFolders(accessToken) {
       const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
@@ -104,36 +102,23 @@
         pinLink.classList.add('pin-link');
         pinLink.href = '#';
         pinLink.textContent = 'Pin';
-        folderItem.appendChild(pinLink);
-
-        folder.pinned = false; // Add pinned property to folder object
-
-        pinLink.addEventListener('click', () => {
-          folder.pinned = !folder.pinned;
-          folderItem.classList.toggle('pinned');
-          if (folder.pinned) {
-            loadRecentFiles(folder, accessToken);
-          } else {
-            folderItem.removeChild(folderItem.querySelector('table'));
-          }
-        });
-
-        if (folder.pinned) {
+        pinLink.addEventListener('click', function(e) {
+          e.preventDefault();
           folderItem.classList.add('pinned');
-          loadRecentFiles(folder, accessToken);
-        }
+          showFiles(folder.id, folderItem, accessToken);
+        });
+        folderItem.appendChild(pinLink);
       }
     }
 
-    async function loadRecentFiles(folder, accessToken) {
-      const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
+    async function showFiles(folderId, folderItem, accessToken) {
+      const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
       });
       const fileData = await fileResponse.json();
       const files = fileData.files;
-
       const table = document.createElement('table');
       table.style.width = '100%';
       table.style.border = '1px solid black';
