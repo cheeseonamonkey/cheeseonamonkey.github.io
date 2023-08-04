@@ -87,7 +87,7 @@
       return urlParams.get('access_token');
     }
 
-   async function showFolders(accessToken) {
+async function showFolders(accessToken) {
   const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
     headers: {
       'Authorization': `Bearer ${accessToken}`
@@ -118,10 +118,12 @@
         showFiles(folder.id, folderItem, accessToken);
       } else {
         folderItem.classList.remove('pinned');
+        folderItem.removeChild(folderItem.querySelector('table'));
       }
     });
   }
 }
+
 
 
     async function showFiles(folderId, folderItem, accessToken) {
