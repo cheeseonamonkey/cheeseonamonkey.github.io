@@ -4,74 +4,47 @@
   <style>
     body {
       max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
     }
 
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-
-    .folder {
-      width: 30%;
+    h1 {
+      text-align: center;
       margin-bottom: 20px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s;
-      cursor: pointer;
     }
 
-    .folder:hover {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    ul {
+      list-style-type: none;
+      padding: 0;
     }
 
-    .folder h2 {
-      color: blue;
-      margin: 0;
-      font-size: 18px;
-      font-weight: 500;
-      margin-bottom: 5px;
-    }
-
-    .folder p {
-      margin: 0;
-      font-size: 14px;
-      color: #666;
+    li {
+      margin-bottom: 20px;
     }
 
     .search-bar {
-      margin: 20px 0;
+      margin-bottom: 20px;
     }
 
     .search-bar input {
       width: 100%;
       padding: 10px;
+      font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 14px;
-      outline: none;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
 
-    .pin {
-      position: absolute;
-      top: 0;
-      right: 0;
-      margin: 10px;
-      font-size: 14px;
+    .pin-link {
       color: blue;
       text-decoration: none;
-      display: none;
-    }
-
-    .folder:hover .pin {
-      display: block;
+      margin-left: 10px;
     }
 
     @media only screen and (max-width: 600px) {
-      .folder {
-        width: 100%;
+      body {
+        padding: 10px;
       }
     }
   </style>
@@ -112,78 +85,59 @@
       const fileList = document.getElementById('fileList');
 
       for (let folder of folders) {
-        const folderItem = document.createElement('div');
-        folderItem.classList.add('folder');
-        folderItem.setAttribute('data-folder-id', folder.id);
-        folderItem.addEventListener('click', () => {
-          showFilesInFolder(accessToken, folder.id);
-        });
+        const folderItem = document.createElement('li');
+        folderItem.classList.add('folder-item');
+        fileList.appendChild(folderItem);
 
         const folderTitle = document.createElement('h2');
         folderTitle.textContent = folder.name;
+        folderTitle.style.color = 'blue';
         folderItem.appendChild(folderTitle);
 
         const pinLink = document.createElement('a');
-        pinLink.classList.add('pin');
+        pinLink.classList.add('pin-link');
         pinLink.href = '#';
         pinLink.textContent = 'Pin';
         folderItem.appendChild(pinLink);
 
-        fileList.appendChild(folderItem);
-      }
-    }
+        const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folder.id}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        });
+        const fileData = await fileResponse.json();
+        const files = fileData.files;
 
-    async function showFilesInFolder(accessToken, folderId) {
-      const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.border = '1px solid black';
+        folderItem.appendChild(table);
+
+        for (let file of files) {
+          const row = document.createElement('tr');
+
+          const nameCell = document.createElement('td');
+          nameCell.textContent = file.name;
+          row.appendChild(nameCell);
+
+          const dateCell = document.createElement('td');
+          const date = new Date(file.createdTime);
+          dateCell.textContent = date.toLocaleDateString();
+          row.appendChild(dateCell);
+
+          const linkCell = document.createElement('td');
+          const link = document.createElement('a');
+          link.href = file.webViewLink;
+          link.textContent = 'Download';
+          linkCell.appendChild(link);
+          row.appendChild(linkCell);
+
+          const sizeCell = document.createElement('td');
+          sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
+          row.appendChild(sizeCell);
+
+          table.appendChild(row);
         }
-      });
-      const fileData = await fileResponse.json();
-      const files = fileData.files;
-
-      const folderItem = document.querySelector(`[data-folder-id="${folderId}"]`);
-      folderItem.innerHTML = '';
-
-      const folderTitle = document.createElement('h2');
-      folderTitle.textContent = folderItem.textContent;
-      folderItem.appendChild(folderTitle);
-
-      const pinLink = document.createElement('a');
-      pinLink.classList.add('pin');
-      pinLink.href = '#';
-      pinLink.textContent = 'Pin';
-      folderItem.appendChild(pinLink);
-
-      const table = document.createElement('table');
-      table.style.width = '100%';
-      table.style.border = '1px solid black';
-      folderItem.appendChild(table);
-
-      for (let file of files) {
-        const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = file.name;
-        row.appendChild(nameCell);
-
-        const dateCell = document.createElement('td');
-        const date = new Date(file.createdTime);
-        dateCell.textContent = date.toLocaleDateString();
-        row.appendChild(dateCell);
-
-        const linkCell = document.createElement('td');
-        const link = document.createElement('a');
-        link.href = file.webViewLink;
-        link.textContent = 'Download';
-        linkCell.appendChild(link);
-        row.appendChild(linkCell);
-
-        const sizeCell = document.createElement('td');
-        sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
-        row.appendChild(sizeCell);
-
-        table.appendChild(row);
       }
     }
 
@@ -193,8 +147,8 @@
 <body>
   <h1>Google Drive OAuth</h1>
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search by folder name" oninput="filterFolders()">
+    <input type="text" placeholder="Search by folder">
   </div>
-  <div class="container" id="fileList"></div>
+  <ul id="fileList"></ul>
 </body>
 </html>
