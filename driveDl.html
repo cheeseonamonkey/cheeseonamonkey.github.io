@@ -2,17 +2,23 @@
 <html>
 <head>
   <title>Google Drive OAuth</title>
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
   <script>
-    function handleClientLoad() {
-      gapi.load('auth2', initClient);
+    async function handleClientLoad() {
+      await initClient();
     }
 
-    function initClient() {
+    async function initClient() {
+      const response = await fetch('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
+      const discoveryDoc = await response.json();
+      const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
+      const redirectUri = window.location.href;
+      const scope = 'https://www.googleapis.com/auth/drive.readonly';
+
       gapi.auth2.init({
-        client_id: '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com',
-        redirect_uri: window.location.href,
-        scope: 'https://www.googleapis.com/auth/drive.readonly'
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: scope,
+        discoveryDocs: [discoveryDoc]
       }).then(function(auth2) {
         if (auth2.isSignedIn.get()) {
           showFiles();
@@ -23,9 +29,9 @@
     }
 
     function handleRedirect() {
-      var urlParams = new URLSearchParams(window.location.search);
+      const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.has('code')) {
-        var code = urlParams.get('code');
+        const code = urlParams.get('code');
         gapi.auth2.getAuthInstance().grantOfflineAccess({ 'code': code }).then(function(response) {
           // Handle the authorization code and exchange it for an access token
           // You can make an AJAX request to your server to exchange the code for an access token
@@ -34,22 +40,19 @@
       }
     }
 
-    function showFiles() {
-      gapi.client.load('drive', 'v3', function() {
-        gapi.client.drive.files.list({
-          'pageSize': 5,
-          'fields': 'files(name)'
-        }).then(function(response) {
-          var files = response.result.files;
-          var fileList = document.getElementById('fileList');
-          for (var i = 0; i < files.length; i++) {
-            var file = files[i];
-            var listItem = document.createElement('li');
-            listItem.appendChild(document.createTextNode(file.name));
-            fileList.appendChild(listItem);
-          }
-        });
+    async function showFiles() {
+      const response = await gapi.client.drive.files.list({
+        'pageSize': 5,
+        'fields': 'files(name)'
       });
+      const files = response.result.files;
+      const fileList = document.getElementById('fileList');
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const listItem = document.createElement('li');
+        listItem.appendChild(document.createTextNode(file.name));
+        fileList.appendChild(listItem);
+      }
     }
   </script>
 </head>
