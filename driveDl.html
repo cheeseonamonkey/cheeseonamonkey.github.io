@@ -97,42 +97,69 @@
       return urlParams.get('access_token');
     }
 
-    async function showFolders(accessToken) {
-      const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      const folderData = await folderResponse.json();
-      const folders = folderData.files;
-      const fileList = document.getElementById('fileList');
-
-      for (let folder of folders) {
-        const folderItem = document.createElement('li');
-        folderItem.classList.add('folder-item');
-        fileList.appendChild(folderItem);
-
-        const pinCheckbox = document.createElement('input');
-        pinCheckbox.type = 'checkbox';
-        pinCheckbox.classList.add('pin-checkbox');
-        folderItem.appendChild(pinCheckbox);
-
-        const folderTitle = document.createElement('h2');
-        folderTitle.textContent = folder.name;
-        folderTitle.classList.add('folder-title');
-        folderItem.appendChild(folderTitle);
-
-        pinCheckbox.addEventListener('change', function(e) {
-          if (pinCheckbox.checked) {
-            folderItem.classList.add('pinned');
-            showFiles(folder.id, folderItem, accessToken);
-          } else {
-            folderItem.classList.remove('pinned');
-            folderItem.removeChild(folderItem.querySelector('table'));
-          }
-        });
-      }
+  async function showFolders(accessToken) {
+  const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
     }
+  });
+  const folderData = await folderResponse.json();
+  const folders = folderData.files;
+  const fileList = document.getElementById('fileList');
+
+  // Separate pinned and unpinned folders
+  const pinnedFolders = [];
+  const unpinnedFolders = [];
+
+  for (let folder of folders) {
+    const folderItem = document.createElement('li');
+    folderItem.classList.add('folder-item');
+    fileList.appendChild(folderItem);
+
+    const pinCheckbox = document.createElement('input');
+    pinCheckbox.type = 'checkbox';
+    pinCheckbox.classList.add('pin-checkbox');
+    folderItem.appendChild(pinCheckbox);
+
+    const folderTitle = document.createElement('h2');
+    folderTitle.textContent = folder.name;
+    folderTitle.classList.add('folder-title');
+    folderItem.appendChild(folderTitle);
+
+    pinCheckbox.addEventListener('change', function(e) {
+      if (pinCheckbox.checked) {
+        folderItem.classList.add('pinned');
+        showFiles(folder.id, folderItem, accessToken);
+      } else {
+        folderItem.classList.remove('pinned');
+        folderItem.removeChild(folderItem.querySelector('table'));
+      }
+      // Reorder the folders
+      reorderFolders();
+    });
+
+    // Separate pinned and unpinned folders
+    if (folderItem.classList.contains('pinned')) {
+      pinnedFolders.push(folderItem);
+    } else {
+      unpinnedFolders.push(folderItem);
+    }
+  }
+
+  // Function to reorder the folders
+  function reorderFolders() {
+    fileList.innerHTML = '';
+    // Append pinned folders first
+    for (let folder of pinnedFolders) {
+      fileList.appendChild(folder);
+    }
+    // Append unpinned folders next
+    for (let folder of unpinnedFolders) {
+      fileList.appendChild(folder);
+    }
+  }
+}
+
 
     async function showFiles(folderId, folderItem, accessToken) {
       const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(id,name,createdTime,webViewLink,size)`, {
