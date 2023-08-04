@@ -2,8 +2,64 @@
 <html>
 <head>
   <style>
-    /* CSS styles omitted for brevity */
-  </style>
+  body {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 20px;
+    }
+
+    .search-bar {
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .pin-link {
+      color: blue;
+      text-decoration: none;
+      margin-left: 10px;
+    }
+
+    .pinned {
+      background: #f0f0f0;
+    }
+.pin-checkbox {
+  transform: scale(1.5);
+  margin-right: 10px;
+}
+
+.pinned {
+  background: #f0f0f0;
+  order: -1;
+}
+
+    @media only screen and (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+    }  </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Google Drive OAuth</title>
   <script>
