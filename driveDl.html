@@ -162,6 +162,7 @@
         folderTitle.textContent = folder.name;
         folderTitle.classList.add('folder-title');
         folderItem.appendChild(folderTitle);
+        folderItem.innerHTML += "<br>"
 
         pinCheckbox.addEventListener('change', function(e) {
           if (pinCheckbox.checked) {
