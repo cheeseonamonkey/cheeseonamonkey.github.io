@@ -24,22 +24,25 @@
       return urlParams.get('access_token');
     }
 
-    async function showFiles(accessToken) {
-      const response = await fetch('https://www.googleapis.com/drive/v3/files?pageSize=5&fields=files(name)', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      });
-      const data = await response.json();
-      const files = data.files;
-      const fileList = document.getElementById('fileList');
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const listItem = document.createElement('li');
-        listItem.appendChild(document.createTextNode(file.name));
-        fileList.appendChild(listItem);
-      }
+   async function showFiles(accessToken) {
+  const response = await fetch('https://www.googleapis.com/drive/v3/files?pageSize=5&fields=files(name,shared)', {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
     }
+  });
+  const data = await response.json();
+  const files = data.files;
+  const fileList = document.getElementById('fileList');
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file.shared) {
+      const listItem = document.createElement('li');
+      listItem.appendChild(document.createTextNode(file.name));
+      fileList.appendChild(listItem);
+    }
+  }
+}
+
 
     window.onload = handleClientLoad;
   </script>
