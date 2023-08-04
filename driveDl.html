@@ -25,22 +25,63 @@
       return urlParams.get('access_token');
     }
 
-async function showFiles(accessToken) {
-  const response = await fetch('https://www.googleapis.com/drive/v3/files?q=\'' + encodeURIComponent('me') + '\' in readers and mimeType = \'application/vnd.google-apps.folder\'&fields=files(id,name)', {
+async function showFolders(accessToken) {
+  const response = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name,createdTime)', {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  });
+  const data = await response.json();
+  const folders = data.files;
+  const folderTable = document.getElementById('folderTable');
+  for (let i = 0; i < folders.length; i++) {
+    const folder = folders[i];
+    const row = folderTable.insertRow();
+    const checkboxCell = row.insertCell();
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        showFiles(accessToken, folder.id, row);
+      } else {
+        const filesRow = document.getElementById(`files-${folder.id}`);
+        if (filesRow) {
+          filesRow.remove();
+        }
+      }
+    });
+    checkboxCell.appendChild(checkbox);
+    const nameCell = row.insertCell();
+    nameCell.appendChild(document.createTextNode(folder.name));
+    const idCell = row.insertCell();
+    idCell.appendChild(document.createTextNode(folder.id));
+    const createdCell = row.insertCell();
+    createdCell.appendChild(document.createTextNode(new Date(folder.createdTime).toLocaleString()));
+  }
+}
+
+async function showFiles(accessToken, folderId, row) {
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=5&fields=files(name,createdTime)`, {
     headers: {
       'Authorization': `Bearer ${accessToken}`
     }
   });
   const data = await response.json();
   const files = data.files;
-  const fileList = document.getElementById('fileList');
+  const filesRow = row.parentNode.insertRow(row.rowIndex + 1);
+  filesRow.id = `files-${folderId}`;
+  const cell = filesRow.insertCell();
+  const list = document.createElement('ul');
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const listItem = document.createElement('li');
-    listItem.appendChild(document.createTextNode(file.name));
-    fileList.appendChild(listItem);
+    listItem.appendChild(document.createTextNode(`${file.name} (created: ${new Date(file.createdTime).toLocaleString()})`));
+    list.appendChild(listItem);
   }
+  cell.appendChild(list);
+  cell.colSpan = 4;
 }
+
 
 
     window.onload = handleClientLoad;
