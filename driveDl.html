@@ -190,6 +190,49 @@
         }
       });
     });
+
+    
+function saveInputValues() {
+  const inputs = document.querySelectorAll('input');
+  const values = {};
+
+  inputs.forEach(input => {
+    const key = input.innerText.substring(0, 15);
+    const value = input.value;
+    values[key] = value;
+  });
+
+  localStorage.setItem('inputValues', JSON.stringify(values));
+}
+
+
+
+function loadInputValues() {
+  const values = JSON.parse(localStorage.getItem('inputValues'));
+
+  if (values) {
+    const inputs = document.querySelectorAll('input');
+
+    inputs.forEach(input => {
+      const key = input.innerText.substring(0, 15);
+
+      if (values.hasOwnProperty(key)) {
+        input.value = values[key];
+      }
+    });
+  }
+}
+
+function setupInputValues() {
+  loadInputValues();
+
+  const inputs = document.querySelectorAll('input');
+
+  inputs.forEach(input => {
+    input.addEventListener('input', saveInputValues);
+  });
+}
+setupInputValues();
   </script>
 </body>
 </html>
