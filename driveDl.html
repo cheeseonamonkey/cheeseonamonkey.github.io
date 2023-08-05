@@ -208,6 +208,8 @@
 
     
 function saveInputValues() {
+    console.log("save")
+
   const inputs = document.querySelectorAll('input');
   const values = {};
 
@@ -223,6 +225,7 @@ function saveInputValues() {
 
 
 function loadInputValues() {
+  console.log("load")
   const values = JSON.parse(localStorage.getItem('inputValues'));
 
   if (values) {
@@ -256,7 +259,7 @@ async function setupInputValues() {
 
 setupInputValues();
 
-   }, 1500)
+   }, 1800)
   }
   </script>
 
