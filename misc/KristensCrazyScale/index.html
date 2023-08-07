@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Kristen's Crazy Scale™</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+    h1 { font-family: Comic Sans MS; color: purple; text-align: center; text-decoration: underline; } h1 sup { font-family: Impact, Charcoal, sans-serif; font-size: 0.6em; color: red; } #resultdesc { margin-left: 1.25em; font-family: "Courier New", monospace; font-weight: bold; color: blue; } #result { font-family: "Times New Roman", serif; font-size: 24px; color: green; text-align: center; } body { font-size: 20px; background-color: yellow; } .input-group { margin: 2px 6px 2px 6px; transform: scaleY(1.25); padding: 2px; box-shadow: inset .1px .1px .2px .5px rgba(0,0,0,0.25); display: flex; align-items: center; margin-bottom: 10px; border-radius: 10px; background-color: pink; } .input-group label { margin-right: 10px; font-family: "Comic Sans MS", cursive; color: purple; } .input-group input[type="number"], .input-group input[type="range"] { flex: 1; padding: 5px; font-size: 20px; border-radius: 5px; border-color: purple; } 
+  </style>
+  <script>
+    function calculateSum() {
+      var num1 = parseFloat(document.getElementById("num1").value);
+      var num2 = parseFloat(document.getElementById("num2").value);
+            var num3 = parseFloat(document.getElementById("num3").value);
+
+      var sum = num1 + num2 + num3;
+      document.getElementById("result").innerHTML = "Crazy Score: " + sum;
+      
+      
+      options = [
+  "Not crazy at all! She's as sane as a cucumber, with a mind as calm as a sleeping sloth.",
+  "Slightly crazy. She's got a sprinkle of quirkiness, like a unicorn with a penchant for disco dancing.",
+  "A little bit crazy. She's a tad nutty, like a squirrel hoarding acorns for a winter that never comes.",
+  "Just a touch of craziness. She's a bit like a pineapple on a pizza, a controversial choice that sparks debates.",
+  "Mildly crazy. She's a unique blend of wackiness and charm, like a flamingo with a passion for breakdancing.",
+  "Not too crazy. She's a balanced mix of sanity and silliness, like a penguin wearing a top hat and a monocle.",
+  "Somewhat crazy. She's a bit like a roller coaster, with twists and turns that keep life exciting and a little dizzying.",
+  "Moderately crazy. She's a daredevil, like a squirrel tightrope walking between trees, defying gravity and logic.",
+  "Fairly crazy. She's a whirlwind of enthusiasm, like a disco ball at a party, spreading sparkles and a contagious energy.",
+  "Quite crazy. She's a bit like a mad scientist, with a lab coat and a crazy hairdo, concocting potions of laughter.",
+  "Getting crazier. She's a free spirit, like a unicorn galloping through a field of rainbows, a majestic and whimsical sight.",
+  "Pretty crazy. She's a bit like a jester, always ready to crack a joke and bring laughter to the court of life.",
+  "Quite a bit crazy. She's got a touch of eccentricity, like a flamingo wearing mismatched socks and a feathered hat.",
+  "Definitely crazy. She's a bit like a lightning bolt, striking with sudden bursts of laughter and electrifying humor.",
+  "Very crazy. She's a whirlwind of excitement, like a party piñata bursting with confetti and a contagious joy.",
+  "Seriously crazy. She's a bit like a tornado, a force of laughter that sweeps through a room and leaves everyone in stitches.",
+  "Insanely crazy. She's a bit like a firework, exploding with laughter and lighting up the sky with a dazzling display.",
+  "Utterly crazy. She's a firecracker, a bundle of energy and humor that ignites a room and leaves a lasting impression.",
+  "Wildly crazy. She's a bit like a shooting star, a streak of laughter that streaks across the sky and leaves a trail of smiles.",
+  "Completely crazy. She's a touch of madness, like a clown car with a never-ending supply of laughter and surprises.",
+  "Absolutely crazy. She's a bit like a supernova, a burst of humor and a source of laughter that shines bright in a comedic universe.",
+  "Totally crazy. She's a force of nature, a hurricane of laughter that leaves a trail of joy and a few blown-away toupees.",
+  "Unbelievably crazy. She's a touch of madness, a whirlwind of laughter and a walking, talking meme factory.",
+  "Incredibly crazy. She's a bit like a fireworks display, a spectacular show of humor that lights up a room and leaves everyone in awe.",
+  "Mind-bogglingly crazy. She's a bit like a roller coaster, a wild ride of laughter that twists and turns and leaves you breathless.",
+  "Ridiculously crazy. She's a touch of insanity, like a circus with a troupe of clowns and a parade of hilarious mishaps.",
+  "Outrageously crazy. She's a bit like a carnival ride, a thrilling and hilarious experience that pushes the boundaries of laughter.",
+  "Insanely crazy. She's a bit like a lightning storm, a powerful and electrifying force of humor that leaves a lasting impact.",
+  "Mind-numbingly crazy. She's a touch of madness, like a stand-up comedy show that tickles your funny bone and leaves you in stitches.",
+  "Unbelievably crazy. She's a whirlwind of laughter, a hurricane of humor that sweeps you off your feet and leaves you gasping for breath.",
+  "Off-the-charts crazy. She's a bit like a comedy explosion, a mind-bending display of madness that defies all expectations and leaves you rolling on the floor laughing."
+]
+
+
+      resultdesc.innerHTML = options[sum]
+    }
+  </script>
+</head>
+<body>
+  <h1>Kristen's Crazy Scale™<br><sup style="margin-left: 10px; font-style: italic; font-size: 0.4em;">A useful guide to female craziness.</sup></h1>
+  <small></small>
+  <br><br>
+  
+  
+  <div class="input-group">
+    <label for="num1">Base level:</label>
+    <input type="range" disabled id="num1" min="0" max="10" oninput="calculateSum()">
+  </div>
+  <div class="input-group">
+    <label for="num2">Colors in hair:</label>
+    <input type="range" id="num2" min="0" max="10" value="0" oninput="calculateSum()">
+  </div>
+  <div class="input-group">
+    <label for="num3">Face tattoos:&nbsp;&nbsp;&nbsp;</label>
+    <input type="range" id="num3" min="0" max="10" value="0" oninput="calculateSum()">
+  </div>
+  <hr>
+  <br>
+  <h2 id="result">Crazy Score: 5</h2>
+  <i><p id="resultdesc">5 - Not too crazy</p></i>
+</body>
+</html>
