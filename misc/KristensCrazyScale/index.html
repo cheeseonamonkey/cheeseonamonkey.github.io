@@ -56,9 +56,18 @@
     font-family: "Rubik";
     color: purple;
   }
-  
+
+
+
+#input[type="range"]:before {
+  content: attr(value);
+  position: absolute;
+  left: -30px; /* adjust the value to position the content */
+}
+    
   .input-group input[type="number"],
   .input-group input[type="range"] {
+    
     flex: 1;
     padding: 5px;
     font-size: 20px;
