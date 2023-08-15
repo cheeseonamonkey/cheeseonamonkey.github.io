@@ -99,7 +99,7 @@
                const boardSection = document.createElement('div');
                boardSection.className = 'board-section';
                boardSection.innerHTML = `
-                  <h2 class="accordion-header" style="${board.prefs.background ?? 'rgb(63, 69, 83)' }">${board.name}</h2>
+                  <h2 class="accordion-header" style="background-color: ${board.prefs.background ?? 'rgb(63, 69, 83)' };">${board.name}</h2>
                   <div class="accordion-content">
                       <table id="${board.id}">
                           <tr>
