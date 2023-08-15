@@ -134,6 +134,7 @@
                               actions: actions.map(action => {
                                  return {
                                     card: action.data.card ? action.data.card.name : 'N/A',
+                                    type: action.type,
                                     date: action.date
                                  };
                               })
@@ -153,56 +154,59 @@
 
       function renderCheckboxes() {
          let boards = [...new Set(boardsData.map(data => data.board))];
-         
+         let types = [...new Set(boardsData.flatMap(data => data.actions.map(action => action.type)))];
+
          let checkboxes = '';
-         
-          ['boards'].forEach(category => {
-            checkboxes += `<div style="display: inline-block; margin-right: 10px;">Group by ${category}: `;
+         ['boards', 'types'].forEach(category => {
+            checkboxes += `<div style="display: inline-block; margin-right: 10px;">${category}: `;
             eval(category).forEach(value => {
                checkboxes += `<div style="margin-top: 5px;"><input type="checkbox" id="${category}-${value}" onchange="filterData()" style="margin-right: 5px;">${value}</div>`;
             });
             checkboxes += '</div>';
-          });
+         });
 
-          checkboxes += `<div style="display: inline-block; margin-right: 10px;">Group by date:
-                         <div style="margin-top: 5px;"><input type="checkbox" id="date-checkbox" onchange="filterData()" style="margin-right: 5px;">Date</div>
-                         </div>`;
-
-          document.getElementById('checkboxes').innerHTML = checkboxes;
-
+         document.getElementById('checkboxes').innerHTML = checkboxes;
       }
 
 
       function filterData() {
-        let checkedBoards = [...document.querySelectorAll('input[id^="boards-"]:checked')].map(input => input.id.split('-')[1]);
-        let checkedDates = document.getElementById('date-checkbox').checked;
+         let checkedBoards = [...document.querySelectorAll('input[id^="boards-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedCards = [...document.querySelectorAll('input[id^="cards-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedTypes = [...document.querySelectorAll('input[id^="types-"]:checked')].map(input => input.id.split('-')[1]);
+         let checkedDates = [...document.querySelectorAll('input[id^="dates-"]:checked')].map(input => input.id.split('-')[1]);
 
-        filteredData = boardsData.filter(boardData => {
-            return (checkedBoards.length === 0 || checkedBoards.includes(boardData.board));
-        });
+         filteredData = boardsData.filter(boardData => {
+            return (checkedBoards.length === 0 || checkedBoards.includes(boardData.board)) &&
+               boardData.actions.some(action => {
+                  return (checkedCards.length === 0 || checkedCards.includes(action.card)) &&
+                     (checkedTypes.length === 0 || checkedTypes.includes(action.type)) &&
+                     (checkedDates.length === 0 || checkedDates.includes(action.date));
+               });
+         });
 
-        renderTable(checkedDates);
-    }
+         renderTable();
+      }
 
-    function renderTable(groupByDate) {
-        let output = '<div class="table"><table>';
-        output += '<tr><th>Board</th><th>Card</th><th>Date</th></tr>';
+      function renderTable() {
+         let output = '<div class="table"><table>';
+         output += '<tr><th>Board</th><th>Card</th><th>Action Type</th><th>Date</th></tr>';
 
-        filteredData.forEach(boardData => {
+         filteredData.forEach(boardData => {
             boardData.actions.forEach(action => {
-                let d = new Date(action.date)
-                output += '<tr>';
-                output += `<td>${boardData.board}</td>`;
-                output += `<td>${action.card}</td>`;
-                if (groupByDate) output += `<td>${d.toLocaleDateString()}</td>`;
-                output += '</tr>';
+               let d = new Date(action.date)
+               output += '<tr>';
+               output += `<td>${boardData.board}</td>`;
+               output += `<td>${action.card}</td>`;
+               output += `<td>${action.type}</td>`;
+               output += `<td>${d.toLocaleDateString()}\n<i>${d.toLocaleTimeString()}</i></td>`;
+               output += '</tr>';
             });
-        });
+         });
 
-        output += '</table></div>';
+         output += '</table></div>';
 
-        document.getElementById('output').innerHTML = output;
-    }
+         document.getElementById('output').innerHTML = output;
+      }
    </script>
 
 </head>
@@ -222,7 +226,7 @@
 
    </div>
    <br><br>
-   <h4>Grouping:</h4>
+   <h4>filtering:</h4>
    <div id="checkboxes"></div>
    <br><br>
 
