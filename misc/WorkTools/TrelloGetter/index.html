@@ -117,40 +117,41 @@
       let filteredData = [];
 
       window.onload = function () {
-         document.getElementById('token-input').addEventListener('input', function (event) {
-            TOKEN = event.target.value;
-         });
+   document.getElementById('token-input').addEventListener('input', function (event) {
+      TOKEN = event.target.value;
+   });
 
-         document.getElementById('token-button').addEventListener('click', function () {
-            fetch(`https://api.trello.com/1/members/me/boards?key=${API_KEY}&token=${TOKEN}`)
-               .then(response => response.json())
-               .then(boards => {
-                  let promises = boards.map(board => {
-                     return fetch(`https://api.trello.com/1/boards/${board.id}/actions?key=${API_KEY}&token=${TOKEN}`)
-                        .then(response => response.json())
-                        .then(actions => {
+   document.getElementById('token-button').addEventListener('click', function () {
+      fetch(`https://api.trello.com/1/members/me/boards?key=${API_KEY}&token=${TOKEN}`)
+         .then(response => response.json())
+         .then(boards => {
+            let promises = boards.map(board => {
+               return fetch(`https://api.trello.com/1/boards/${board.id}/actions?key=${API_KEY}&token=${TOKEN}`)
+                  .then(response => response.json())
+                  .then(actions => {
+                     return {
+                        board: board.name,
+                        actions: actions.map(action => {
                            return {
-                              board: board.name,
-                              actions: actions.map(action => {
-                                 return {
-                                    card: action.data.card ? action.data.card.name : 'N/A',
-                                    type: action.type,
-                                    date: action.date
-                                 };
-                              })
+                              card: action.data.card ? action.data.card.name : 'N/A',
+                              type: action.type,
+                              date: action.date
                            };
-                        });
+                        })
+                     };
                   });
+            });
 
-                  Promise.all(promises).then(results => {
-                     boardsData = results;
-                     filteredData = results;
-                     renderCheckboxes();
-                     renderTable();
-                  });
-               });
+            Promise.all(promises).then(results => {
+               boardsData = results.filter(boardData => boardData.actions.length > 0); // Filter out boards with no actions
+               filteredData = results.filter(boardData => boardData.actions.length > 0); // Filter out boards with no actions
+               renderCheckboxes();
+               renderTable();
+            });
          });
-      };
+   });
+};
+
 
       function renderCheckboxes() {
          let boards = [...new Set(boardsData.map(data => data.board))];
