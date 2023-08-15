@@ -42,7 +42,6 @@
 
       .accordion-header {
          font-family: 'Rubik';
-         background-color: rgb(63, 69, 83);
          color: #fff;
          padding: 5px;
          cursor: pointer;
@@ -100,7 +99,7 @@
                const boardSection = document.createElement('div');
                boardSection.className = 'board-section';
                boardSection.innerHTML = `
-                  <h2 class="accordion-header">${board.name}</h2>
+                  <h2 class="accordion-header" style="${board.prefs.background ?? 'rgb(63, 69, 83)' }">${board.name}</h2>
                   <div class="accordion-content">
                       <table id="${board.id}">
                           <tr>
@@ -109,11 +108,7 @@
                           </tr>
                       </table>
                       <table id="${board.id}-cards" class="card-details">
-                          <tr>
-                              <th>Name</th>
-                              <th>Description</th>
-                              <th>Assigned Users</th>
-                          </tr>
+                      
                       </table>
                       <br clear="both">
                   </div>
@@ -147,14 +142,14 @@
                                        });
                                     }
                                     cardDetails.innerHTML += ` 
-                                                                                 <tr>
+                                          <tr>
 
                                                 <b><u>${card.name}:</u></b> &nbsp;&nbsp;&nbsp;
                                                 <i>assigned to: ${assignedUsers}</i><br>
                                                  <small style="font-family: monospace; font-size: 0.8em;">${card.desc}</small>
                                                  
                                                  
-                                             </tr>
+                                          </tr>
                                              
                                          `;
                                  });
