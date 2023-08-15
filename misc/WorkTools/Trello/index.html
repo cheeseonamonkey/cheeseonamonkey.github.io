@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Trello API Authentication</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <button id="authenticate">Authenticate with Trello</button>
+
+    <script>
+        $(document).ready(function() {
+            var apiKey = '9d507b010ce64238a93ae6e810b8f005';
+            var secret = '859a5654e3d9a8a0351966c04124a201b31a4a629fb5ea9261cb56d41a27df25';
+            var returnUrl = 'https://cheeseonamonkey.github.io/misc/WorkTools/Trello';
+            var authUrl = 'https://trello.com/1/authorize?return_url=' + returnUrl + '&expiration=1day&name=MyPersonalToken&scope=read,write&response_type=token&key=' + apiKey;
+
+            $('#authenticate').click(function() {
+                window.location.href = authUrl;
+            });
+
+            var token = window.location.hash.substring(1);
+            if (token) {
+                localStorage.setItem('trello_token', token);
+                alert('Authentication successful!');
+            }
+        });
+    </script>
+</body>
+</html>
