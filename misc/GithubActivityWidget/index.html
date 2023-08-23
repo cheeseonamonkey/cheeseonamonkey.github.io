@@ -1,4 +1,4 @@
-<div>
+<div id="">
 <script>
 const user = new URLSearchParams(window.location.search).get('user')
 if(!user){
@@ -8,6 +8,35 @@ if(!user){
 fetch(`https://api.github.com/users/${user.toString()}/events/public`)
     .then(response => response.json())
     .then(data => {
+
+      const events = JSON.parse(data);
+      
+      
+    events.forEach(event => {
+      const eventDiv = document.createElement('div');
+      
+      const eventTypeSpan = document.createElement('span');
+      eventTypeSpan.textContent = event.type;
+    
+      const actorSpan = document.createElement('span');
+      actorSpan.textContent = event.actor;
+    
+      const repositorySpan = document.createElement('span');
+      repositorySpan.textContent = event.repository;
+    
+      const createdAtSpan = document.createElement('span');
+      createdAtSpan.textContent = event.createdAt;
+    
+      // 4. Append the elements to the GithubActivityWidget div
+      eventDiv.appendChild(eventTypeSpan);
+      eventDiv.appendChild(actorSpan);
+      eventDiv.appendChild(repositorySpan);
+      eventDiv.appendChild(createdAtSpan);
+    
+      githubActivityWidget.appendChild(eventDiv);
+    });
+
+      
       // Process the JSON data here
       console.log(data);
     })
