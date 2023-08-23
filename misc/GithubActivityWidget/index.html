@@ -1,4 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Add Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.1/dist/tailwind.min.css" rel="stylesheet">
+
+  <title>Github Activity Widget</title>
+</head>
+
+<body>
   <div id="GithubActivityWidget" class="inner-shadow-lg w-full max-w-2xl mx-auto overflow-y-scroll h-[500px] border border-gray-300 px-3 py-0 rounded-lg">
     <div id="GithubActivityContainer" class="flex flex-col"></div>
   </div>
@@ -9,11 +22,15 @@
       const events = await Promise.all([
         (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=1`)).json(),
         (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=2`)).json(),
-        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=3`)).json()
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=3`)).json(),
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=4`)).json(),
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=5`)).json(),
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=6`)).json()
       ]);
 
       const allEvents = events.flat();
       const container = document.querySelector('#GithubActivityContainer');
+      let previousRepo = '';
 
       // Group events by timeframe
       const groupedEvents = allEvents.reduce((grouped, event) => {
@@ -35,8 +52,9 @@
          const elementParent = document.createElement('div')
          container.appendChild(elementParent)
          elementParent.className = 'p-x-10'
-          const element = createGithubEventElement(event);
+          const element = createGithubEventElement(event, previousRepo);
           elementParent.appendChild(element);
+          previousRepo = event.repo.name;
         });
       });
     }
@@ -44,7 +62,7 @@
 
 
 
-    function createGithubEventElement(event) {
+    function createGithubEventElement(event, previousRepo) {
       
       let element = document.createElement('div');
      
@@ -54,9 +72,12 @@
 
       const repo = createElement('div', `<h3 style=" margin-right: 1em; display: inline; float:right; font-family: Arial;" ><a href="https://github.com/${event.repo.name}" target="_blank" class="font-quicksand text-bold w-fill text-blue-800">${event.repo.name.split('/')[1]}</a></h3>`);
       
-      repo.innerHTML += `<span class="text-gray-800"> ${eventHandler(event)}</span>`;
+      if (event.repo.name !== previousRepo) {
+        element.appendChild(repo);
+      }
+      
+      element.innerHTML += `<span class="text-gray-800"> ${eventHandler(event)}</span>`;
 
-      element.appendChild(repo);
       return element;
     }
 
@@ -134,3 +155,6 @@
     init();
 
   </script>
+</body>
+
+</html>
