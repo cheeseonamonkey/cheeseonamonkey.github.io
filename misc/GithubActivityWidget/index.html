@@ -18,7 +18,7 @@ if(!user){
   throw("GithubActivityWidget: no user provided")
 }
 
-fetch(`https://api.github.com/users/${user.toString()}/events/public`)
+fetch(`https://api.github.com/users/${user.toString()}/events/public?limit=59`)
     .then(response => response.json())
     .then(processGithubEvents);
 
