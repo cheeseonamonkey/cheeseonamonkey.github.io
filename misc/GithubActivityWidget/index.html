@@ -2,9 +2,7 @@
   <table id="GithubActivityTable">
     <thead>
       <tr>
-        <th>Event Type</th>
-        <th>Actor</th>
-        <th>Repository</th>
+        <th>Repo</th>
         <th>Created At</th>
         <th>Description</th>
       </tr>
@@ -33,29 +31,45 @@ function processGithubEvents(events) {
 }
 
 function createGithubEventElement(event) {
+
+
+function getLengthAgo(dateOf) {
+    let currentDate = new Date();
+    let timeDifference = currentDate.getTime() - dateOf.getTime();
+    let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    let hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    let weeks = Math.floor(days / 7);
+    let months = Math.floor(days / 30);
+
+    if(months > 0) {
+        return `${months} months ago`;
+    } else if(weeks > 0) {
+        return `${weeks} weeks ago`;
+    } else if(days > 0) {
+        return `${days} days ago`;
+    } else {
+        return `${hours} hours ago`;
+    }
+}
+  
   const row = document.createElement('tr');
 
-  const eventType = document.createElement('td');
-  eventType.textContent = event.type;
-  row.appendChild(eventType);
-
-  const actor = document.createElement('td');
-  actor.textContent = event.actor.login;
-  row.appendChild(actor);
-
+  const createdAt = document.createElement('td');
+  let dateOf = new Date(event.created_at) ?? null;
+  createdAt.innerHTML = `<i>(${(getLengthAgo(dateOf) ?? "")})</i>`;
+  row.appendChild(createdAt);
+  
   const repo = document.createElement('td');
   repo.textContent = event.repo.name;
   row.appendChild(repo);
 
-  const createdAt = document.createElement('td');
-  createdAt.textContent = new Date(event.created_at).toLocaleString();
-  row.appendChild(createdAt);
+ 
 
   const description = document.createElement('td');
   description.textContent = getDescription(event);
   row.appendChild(description);
 
-  return row;
+  return row; 
 }
 
 function getDescription(event) {
