@@ -1,9 +1,9 @@
-<div id="GithubActivityWidget">
-  <table id="GithubActivityTable">
+<div id="GithubActivityWidget" style="width: 300px; height: 500px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;">
+  <table id="GithubActivityTable" style="width: 100%; border-collapse: collapse;">
     <thead>
       <tr>
         <th></th>
-        <th>Created At</th>
+        <th>Repo</th>
         <th>Description</th>
       </tr>
     </thead>
@@ -32,7 +32,7 @@ function processGithubEvents(events) {
 
 function createGithubEventElement(event) {
 
-  function getLengthAgo(dateOf) {
+function getLengthAgo(dateOf) {
     let currentDate = new Date();
     let timeDifference = currentDate.getTime() - dateOf.getTime();
     let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
@@ -49,112 +49,43 @@ function createGithubEventElement(event) {
     } else {
         return `${hours} hours ago`;
     }
-  }
+}
 
-  const row = document.createElement('tr');
+  
+const row = document.createElement('tr');
 
-  const createdAt = document.createElement('td');
-  let dateOf = new Date(event.created_at) ?? null;
-  createdAt.innerHTML = `<i>(${(getLengthAgo(dateOf) ?? "")})</i>`;
-  row.appendChild(createdAt);
+const createdAt = document.createElement('td');
+let dateOf = new Date(event.created_at) ?? null;
+createdAt.innerHTML = `<i>(${(getLengthAgo(dateOf) ?? "")})</i>`;
+row.appendChild(createdAt);
 
-  const repo = document.createElement('td');
-  repo.textContent = event.repo.name;
-  row.appendChild(repo);
+const repo = document.createElement('td');
+repo.innerHTML = `<a href="https://github.com/${event.repo.name}" target="_blank">${event.repo.name}</a>`;
+row.appendChild(repo);
 
-  const description = document.createElement('td');
-  description.innerHTML = getDescription(event);
-  row.appendChild(description);
+ 
 
-  return row;
+const description = document.createElement('td');
+description.innerHTML = getDescription(event);
+row.appendChild(description);
+
+return row; 
 }
 
 function getDescription(event) {
-  switch (event.type) {
-    case 'PushEvent':
-      let commits = event.payload.commits;
-      let branch = event.payload.ref.replace("refs/heads/", "");
-      let commitMessages = "Commit Messages: ";
-      commits.forEach(commit => {
-        commitMessages += commit.message + "<br>";
-      });
-      return `Pushed ${commits.length} new commit(s) to the ${branch} branch.<br>${commitMessages}`;
-    case 'PullRequestEvent':
-      let actionTitlePR = "";
-      switch (event.payload.action) {
-        case 'opened':
-          actionTitlePR = "Opened";
-          break;
-        case 'closed':
-          actionTitlePR = "Closed";
-          break;
-        case 'reopened':
-          actionTitlePR = "Reopened";
-          break;
-        case 'synchronize':
-          actionTitlePR = "Updated";
-          break;
-        case 'assigned':
-          actionTitlePR = "Assigned";
-          break;
-        case 'unassigned':
-          actionTitlePR = "Unassigned";
-          break;
-        case 'review_requested':
-          actionTitlePR = "Review Requested";
-          break;
-        case 'review_request_removed':
-          actionTitlePR = "Review Request Removed";
-          break;
-        default:
-          actionTitlePR = "Performed an action on";
-          break;
-      }
-      return `${actionTitlePR} a pull request:<br>${event.payload.pull_request.title}`;
-    case 'IssuesEvent':
-      let actionTitleIssue = "";
-      switch (event.payload.action) {
-        case 'opened':
-          actionTitleIssue = "Opened";
-          break;
-        case 'closed':
-          actionTitleIssue = "Closed";
-          break;
-        case 'reopened':
-          actionTitleIssue = "Reopened";
-          break;
-        case 'assigned':
-          actionTitleIssue = "Assigned";
-          break;
-        case 'unassigned':
-          actionTitleIssue = "Unassigned";
-          break;
-        case 'labeled':
-          actionTitleIssue = "Labeled";
-          break;
-        case 'unlabeled':
-          actionTitleIssue = "Unlabeled";
-          break;
-        case 'edited':
-          actionTitleIssue = "Edited";
-          break;
-        case 'milestoned':
-          actionTitleIssue = "Milestoned";
-          break;
-        case 'demilestoned':
-          actionTitleIssue = "Demilestoned";
-          break;
-        default:
-          actionTitleIssue = "Performed an action on";
-          break;
-      }
-      return `${actionTitleIssue} an issue:<br>${event.payload.issue.title}`;
-    case 'ForkEvent':
-      return `Forked the repository:<br><a href="${event.payload.forkee.html_url}" target="_blank">${event.payload.forkee.full_name}</a>`;
-    case 'WatchEvent':
-      return `Started watching this repository.`;
-    default:
-      return 'Performed an unknown event.';
-  }
+switch (event.type) {
+case 'PushEvent':
+return `Pushed ${event.payload.commits.length} commit(s) to <a href="https://github.com/${event.repo.name}/tree/${event.payload.ref.replace('refs/heads/', '')}" target="_blank">${event.payload.ref.replace('refs/heads/', '')}</a> branch. Commit message(s): ${event.payload.commits.map(commit => `<a href="https://github.com/${event.repo.name}/commit/${commit.sha}" target="_blank">${commit.message}</a>`).join(', ')}.`;
+case 'PullRequestEvent':
+return `<a href="${event.payload.pull_request.html_url}" target="_blank">${event.payload.pull_request.title}</a> pull request was ${event.payload.action}.`;
+case 'IssuesEvent':
+return `<a href="${event.payload.issue.html_url}" target="_blank">${event.payload.issue.title}</a> issue was ${event.payload.action}.`;
+case 'ForkEvent':
+return `Forked the repository to <a href="${event.payload.forkee.html_url}" target="_blank">${event.payload.forkee.full_name}</a>.`;
+case 'WatchEvent':
+return `Started watching this repository.`;
+default:
+return 'Performed an unknown event.';
+}
 }
 </script>
