@@ -1,48 +1,77 @@
 <div id="GithubActivityWidget">
+  <table id="GithubActivityTable">
+    <thead>
+      <tr>
+        <th>Event Type</th>
+        <th>Actor</th>
+        <th>Repository</th>
+        <th>Created At</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+
 <script>
 const user = new URLSearchParams(window.location.search).get('user')
 if(!user){
   throw("GithubActivityWidget: no user provided")
 }
-  
+
 fetch(`https://api.github.com/users/${user.toString()}/events/public`)
     .then(response => response.json())
-    .then(events => {
+    .then(processGithubEvents);
 
-      
-      
-      
-    events.forEach(event => {
-      const eventDiv = document.createElement('div');
-      
-      const eventTypeSpan = document.createElement('span');
-      eventTypeSpan.textContent = event.type;
-    
-      const actorSpan = document.createElement('span');
-      actorSpan.textContent = event.actor;
-    
-      const repositorySpan = document.createElement('span');
-      repositorySpan.textContent = event.repository;
-    
-      const createdAtSpan = document.createElement('span');
-      createdAtSpan.textContent = event.createdAt;
-    
-      // 4. Append the elements to the GithubActivityWidget div
-      eventDiv.appendChild(eventTypeSpan);
-      eventDiv.appendChild(actorSpan);
-      eventDiv.appendChild(repositorySpan);
-      eventDiv.appendChild(createdAtSpan);
-    
-      GithubActivityWidget.appendChild(eventDiv);
-    });
+function processGithubEvents(events) {
+  const tableBody = document.querySelector('#GithubActivityTable tbody');
+  events.forEach(event => {
+    const row = createGithubEventElement(event);
+    tableBody.appendChild(row);
+  });
+}
 
-      
-      // Process the JSON data here
-      console.log(data);
-    })
-    .catch(error => {
-      console.error('GithubActivityWidget: Error :(', error);
-    });
-  </script>
-</div>
-  
+function createGithubEventElement(event) {
+  const row = document.createElement('tr');
+
+  const eventType = document.createElement('td');
+  eventType.textContent = event.type;
+  row.appendChild(eventType);
+
+  const actor = document.createElement('td');
+  actor.textContent = event.actor.login;
+  row.appendChild(actor);
+
+  const repo = document.createElement('td');
+  repo.textContent = event.repo.name;
+  row.appendChild(repo);
+
+  const createdAt = document.createElement('td');
+  createdAt.textContent = new Date(event.created_at).toLocaleString();
+  row.appendChild(createdAt);
+
+  const description = document.createElement('td');
+  description.textContent = getDescription(event);
+  row.appendChild(description);
+
+  return row;
+}
+
+function getDescription(event) {
+  switch (event.type) {
+    case 'PushEvent':
+      return `I pushed ${event.payload.commits.length} new commit(s) to the repository.`;
+    case 'PullRequestEvent':
+      return `I ${event.payload.action} a pull request.`;
+    case 'IssuesEvent':
+      return `I ${event.payload.action} an issue.`;
+    case 'ForkEvent':
+      return 'I forked the repository.';
+    case 'WatchEvent':
+      return `I started watching this repository.`;
+    default:
+      return 'I performed an unknown event.';
+  }
+}
+</script>
