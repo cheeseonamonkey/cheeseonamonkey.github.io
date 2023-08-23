@@ -1,0 +1,17 @@
+<div>
+<script>
+const user = new URLSearchParams(window.location.search).get('user')
+if(!user){throw("no user provided")}
+  
+fetch(`https://api.github.com/users/${user.toString()}/events/public`)
+    .then(response => response.json())
+    .then(data => {
+      // Process the JSON data here
+      console.log(data);
+    })
+    .catch(error => {
+      console.error('An error occurred while fetching the JSON data:', error);
+    });
+  </script>
+</div>
+  
