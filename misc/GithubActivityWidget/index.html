@@ -7,9 +7,9 @@ if(!user){
   
 fetch(`https://api.github.com/users/${user.toString()}/events/public`)
     .then(response => response.json())
-    .then(data => {
+    .then(events => {
 
-      const events = JSON.parse(data);
+      
       
       
     events.forEach(event => {
