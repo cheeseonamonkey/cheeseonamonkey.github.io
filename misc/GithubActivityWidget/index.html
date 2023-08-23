@@ -1,91 +1,136 @@
-<div id="GithubActivityWidget" style="width: 300px; height: 500px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;">
-  <table id="GithubActivityTable" style="width: 100%; border-collapse: collapse;">
-    <thead>
-      <tr>
-        <th></th>
-        <th>Repo</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-</div>
 
-<script>
-const user = new URLSearchParams(window.location.search).get('user')
-if(!user){
-  throw("GithubActivityWidget: no user provided")
-}
+  <div id="GithubActivityWidget" class="inner-shadow-lg w-full max-w-2xl mx-auto overflow-y-scroll h-[500px] border border-gray-300 px-3 py-0 rounded-lg">
+    <div id="GithubActivityContainer" class="flex flex-col"></div>
+  </div>
 
-fetch(`https://api.github.com/users/${user.toString()}/events/public?limit=59`)
-    .then(response => response.json())
-    .then(processGithubEvents);
+  <script>
+    async function init() {
+      const user = 'cheeseonamonkey';
+      const events = await Promise.all([
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=1`)).json(),
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=2`)).json(),
+        (await fetch(`https://api.github.com/users/${user.toString()}/events/public?page=3`)).json()
+      ]);
 
-function processGithubEvents(events) {
-  const tableBody = document.querySelector('#GithubActivityTable tbody');
-  events.forEach(event => {
-    const row = createGithubEventElement(event);
-    tableBody.appendChild(row);
-  });
-}
+      const allEvents = events.flat();
+      const container = document.querySelector('#GithubActivityContainer');
 
-function createGithubEventElement(event) {
+      // Group events by timeframe
+      const groupedEvents = allEvents.reduce((grouped, event) => {
+        const timeframe = getLengthAgo(new Date(event.created_at));
+        if (!grouped[timeframe]) {
+          grouped[timeframe] = [];
+        }
+        grouped[timeframe].push(event);
+        return grouped;
+      }, {});
 
-function getLengthAgo(dateOf) {
-    let currentDate = new Date();
-    let timeDifference = currentDate.getTime() - dateOf.getTime();
-    let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
-    let hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    let weeks = Math.floor(days / 7);
-    let months = Math.floor(days / 30);
-
-    if(months > 0) {
-        return `${months} months ago`;
-    } else if(weeks > 0) {
-        return `${weeks} weeks ago`;
-    } else if(days > 0) {
-        return `${days} days ago`;
-    } else {
-        return `${hours} hours ago`;
+      // Iterate over each timeframe and append events
+      Object.keys(groupedEvents).forEach(timeframe => {
+        const timeframeElement = createElement('div', `<h2  style="background-color: rgba(33,33,33,0.1);" class="text-lg font-bold text-slate-700 font-rubik">${timeframe} ago, I:</h2>`);
+        timeframeElement.style.marginTop = '1.22em';
+        
+        container.appendChild(timeframeElement);
+        groupedEvents[timeframe].forEach(event => {
+         const elementParent = document.createElement('div')
+         container.appendChild(elementParent)
+         elementParent.className = 'p-x-10'
+          const element = createGithubEventElement(event);
+          elementParent.appendChild(element);
+        });
+      });
     }
-}
 
-  
-const row = document.createElement('tr');
 
-const createdAt = document.createElement('td');
-let dateOf = new Date(event.created_at) ?? null;
-createdAt.innerHTML = `<i>(${(getLengthAgo(dateOf) ?? "")})</i>`;
-row.appendChild(createdAt);
 
-const repo = document.createElement('td');
-repo.innerHTML = `<a href="https://github.com/${event.repo.name}" target="_blank">${event.repo.name}</a>`;
-row.appendChild(repo);
 
- 
+    function createGithubEventElement(event) {
+      
+      let element = document.createElement('div');
+     
+      element.className = 'shadow-sm active:outline-1 focus:outline-1 hover:shadow-inner border-b-2 hover:border-t-1 border-x-2 py-1 m-0';
 
-const description = document.createElement('td');
-description.innerHTML = getDescription(event);
-row.appendChild(description);
+      let dateOf = new Date(event.created_at);
 
-return row; 
-}
+      const repo = createElement('div', `<h3 style=" margin-right: 1em; display: inline; float:right; font-family: Arial;" ><a href="https://github.com/${event.repo.name}" target="_blank" class="font-quicksand text-bold w-fill text-blue-800">${event.repo.name.split('/')[1]}</a></h3>`);
+      
+      repo.innerHTML += `<span class="text-gray-800"> ${eventHandler(event)}</span>`;
 
-function getDescription(event) {
-switch (event.type) {
-case 'PushEvent':
-return `Pushed ${event.payload.commits.length} commit(s) to <a href="https://github.com/${event.repo.name}/tree/${event.payload.ref.replace('refs/heads/', '')}" target="_blank">${event.payload.ref.replace('refs/heads/', '')}</a> branch. Commit message(s): ${event.payload.commits.map(commit => `<a href="https://github.com/${event.repo.name}/commit/${commit.sha}" target="_blank">${commit.message}</a>`).join(', ')}.`;
-case 'PullRequestEvent':
-return `<a href="${event.payload.pull_request.html_url}" target="_blank">${event.payload.pull_request.title}</a> pull request was ${event.payload.action}.`;
-case 'IssuesEvent':
-return `<a href="${event.payload.issue.html_url}" target="_blank">${event.payload.issue.title}</a> issue was ${event.payload.action}.`;
-case 'ForkEvent':
-return `Forked the repository to <a href="${event.payload.forkee.html_url}" target="_blank">${event.payload.forkee.full_name}</a>.`;
-case 'WatchEvent':
-return `Started watching this repository.`;
-default:
-return 'Performed an unknown event.';
-}
-}
-</script>
+      element.appendChild(repo);
+      return element;
+    }
+
+    function createElement(tag, html) {
+      const el = document.createElement(tag);
+      el.innerHTML = html;
+      return el;
+    }
+
+    function getLengthAgo(dateOf) {
+      let currentDate = new Date();
+      let timeDifference = currentDate.getTime() - dateOf.getTime();
+      let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      let weeks = Math.floor(days / 7);
+      let months = Math.floor(days / 30);
+      return months > 0 ? pluralize(months, "month") :
+        weeks > 0 ? pluralize(weeks, "week") :
+        days > 0 ? pluralize(days, "day") :
+        pluralize(Math.floor(timeDifference / (1000 * 60 * 60)), "hour");
+    }
+
+    function pluralize(quantity, noun) {
+      return `${quantity} ${noun}${quantity > 1 ? "s" : ""}`;
+    }
+
+    function eventHandler(event) {
+      switch (event.type) {
+        case "PushEvent":
+          return `pushed ${pluralize(event.payload.commits.length, "commit")} to branch <a href="https://github.com/${event.repo.name}/tree/${event.payload.ref.replace('refs/heads/', '')}" target="_blank" class="text-blue-600 hover:underline">${event.payload.ref.replace('refs/heads/', '')}</a>:<br> ${event.payload.commits.map(commit => `<li style="margin-left: 2.2em; font-family: mono; list-style:none;font-size: 0.7em;"><a href="https://github.com/${event.repo.name}/commit/${commit.sha}" target="_blank" class="truncate text-gray-700 hover:underline">${commit.message}</a></li>`).join("\n")}`;
+
+        case "PullRequestEvent":
+          return `<a href="${event.payload.pull_request.html_url}" target="_blank" class="text-blue-600 hover:underline">${event.payload.pull_request.title}</a> ${event.payload.action} a pull request.`;
+
+        case "IssuesEvent":
+          return `<a href="${event.payload.issue.html_url}" target="_blank" class="text-blue-600 hover:underline">${event.payload.issue.title}</a> issue was ${event.payload.action}.`;
+
+        case "ForkEvent":
+          return `forked a repository to <a href="${event.payload.forkee.html_url}" target="_blank" class="text-blue-600 hover:underline">${event.payload.forkee.full_name}</a>.`;
+
+        case "WatchEvent":
+          return 'started watching this repository.';
+
+        case "CreateEvent":
+          return 'created a repository.';
+
+        case "DeleteEvent":
+          return 'deleted a repository.';
+
+        case "GollumEvent":
+          return 'made a wiki edit.';
+
+        case "IssueCommentEvent":
+          return 'made a comment on an issue.';
+
+        case "MemberEvent":
+          return 'added a user to a repository.';
+
+        case "PublicEvent":
+          return 'made a repository public.';
+
+        case "PullRequestReviewEvent":
+          return 'made a review on a pull request.';
+
+        case "PullRequestReviewCommentEvent":
+          return 'made a comment on a pull request.';
+
+        case "ReleaseEvent":
+          return 'published a release.';
+
+        default:
+          return 'performed an event.';
+      }
+    }
+
+    init();
+
+  </script>
