@@ -27,7 +27,6 @@
 
     .search-bar {
       margin-bottom: 20px;
-      display: inline;
     }
 
     .search-bar input {
@@ -69,7 +68,8 @@
     }
 
     #lblFilterCount {
-font-size: 1.25em;
+font-size: 1.05em;
+      font-family: Arial;
       display: inline;
       max-width: 1.2em;
       float: right;
@@ -90,10 +90,11 @@ font-size: 1.25em;
 
 <body>
   <h1>Google Drive OAuth</h1>
-  <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8"/> files</b> from the checked folders!</i></p>
+  
   <div class="search-bar">
-    <input style="width: 42%; display: inline; float: left; font-size: 1.07em;" type="text" placeholder="Filter folders"><br style="float: right;"/>
-    <span style="float: right;">filter matches:</span> <h6 id="lblFilterCount"></h6>
+    <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8"/> files</b> from the checked folders!</i></p>
+    <input style="width: 42%; display: inline; float: left; font-size: 1.07em;" type="text" placeholder="Filter folders">
+    <span style="float: right;">filter matches by:</span> <span id="lblFilterCount"> &nbsp; (0 found)</span>
     <textarea style="font-family: monospace; width: 49%;  float: right;" rows="4" id="txtFilter">
 release
 debug</textarea>
