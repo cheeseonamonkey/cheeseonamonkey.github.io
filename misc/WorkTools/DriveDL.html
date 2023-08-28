@@ -68,6 +68,11 @@
         font-size: 1.2em;
       }
     }
+
+    p {
+        display: block;
+        
+    }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DriveDL - release getter</title>
@@ -78,7 +83,7 @@
   <h1>Google Drive OAuth</h1>
 
   <div class="search-bar">
-    <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8" /> files</b> from the checked folders!</i></p> <input style="display: inline; width: 10em;" type="text" placeholder="Filter folders" /> <br />
+    <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8" /> files</b> from the checked folders!</i> <input style="display: inline; width: 10em;" type="text" placeholder="Filter folders" /> </p>
     
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
     <textarea style="font-family: monospace; width: 49%;" rows="4" id="txtFilter">release
