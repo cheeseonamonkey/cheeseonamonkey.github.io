@@ -27,39 +27,34 @@
 
     .search-bar {
       margin-bottom: 20px;
-    }
-
-    .search-bar input {
-      width: 100%;
-      padding: 10px;
-      font-size 1.1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    .folder-item {
       display: flex;
+      justify-content: space-between;
       align-items: center;
     }
 
-    .pin-checkbox {
-      transform: scale(1.5);
-      margin-right: 10px;
+    .search-bar input[type="text"] {
+      width: 42%;
+      font-size: 1.07em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 10px;
+    }
+
+    .search-bar span {
+      font-family: Arial;
+      font-size: 1.05em;
+      max-width: 1.2em;
     }
 
     .folder-title {
-      margin-left: 10px;
       color: blue;
-      font-family: 'Rubik', sans-serif;
     }
 
     .pinned {
       background: #f0f0f0;
       font-size: 0.9em;
       order: -1;
-      
-      box-shadow: inset .5px .5px .8px 2.5px rgba(1,1,1,0.1);
+      box-shadow: inset 0.5px 0.5px 0.8px 2.5px rgba(1, 1, 1, 0.1);
     }
 
     input[type="number"] {
@@ -67,52 +62,41 @@
       font-size: 1.15em;
     }
 
-    #lblFilterCount {
-font-size: 1.05em;
-      font-family: Arial;
-      display: inline;
-      max-width: 1.2em;
-      float: right;
-    }
-
     @media only screen and (max-width: 600px) {
       body {
         padding: 9px;
         font-size: 1.2em;
-
       }
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> DriveDL - release getter </title>
+  <title>DriveDL - release getter</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
   <h1>Google Drive OAuth</h1>
-  
-  <div class="search-bar">
-    <p style="font-family: Arial;"><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8"/> files</b> from the checked folders!</i></p>
-    <input style="width: 42%; display: inline; float: left; font-size: 1.07em;" type="text" placeholder="Filter folders">
-    <span style="float: right;">filter matches by: <span id="lblFilterCount"> &nbsp; (0 found)</span>
-    <textarea style="font-family: monospace; width: 49%;  float: right;" rows="4" id="txtFilter">
-release
-debug</textarea>
-    
-    <br clear="both" />
 
+  <div class="search-bar">
+    <p style="font-family: Arial;"><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8" /> files</b> from the checked folders!</i></p>
+    <input type="text" placeholder="Filter folders">
+    <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
+    <textarea style="font-family: monospace; width: 49%;" rows="4" id="txtFilter">release
+debug</textarea>
   </div>
-      
+
   <ul id="fileList"></ul>
   <script>
+    const lblFilterCount = document.getElementById('lblFilterCount');
+    const txtFilter = document.getElementById('txtFilter');
+    const inputPageSize = document.getElementById('inputPageSize');
 
-lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " found"
-    
-    txtFilter.addEventListener('input', ()=>{
-lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " found"
-    })
+    lblFilterCount.innerHTML = `${txtFilter.value.split("\n").length} found`;
 
-    
+    txtFilter.addEventListener('input', () => {
+      lblFilterCount.innerHTML = `${txtFilter.value.split("\n").length} found`;
+    });
+
     const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
     const redirectUri = encodeURIComponent(window.location.href);
     const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
@@ -126,7 +110,7 @@ lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " fou
         document.body.innerHTML +=
           `<br />
         <a href="${authUrl}">Authenticate Google Drive</a>
-        <br />`
+        <br />`;
       }
     }
 
@@ -209,23 +193,21 @@ lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " fou
         sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
         row.appendChild(sizeCell);
 
-        txtFilter.value.split("\n").forEach( it=> {
-          if(row.innerText.match(it))
+        txtFilter.value.split("\n").forEach(it => {
+          if (row.innerText.match(it))
             row.innerHTML += 'MATCHES\n';
           else
             row.innerHTML += 'NOT MATCHES\n';
 
         });
 
-        
-          
         table.appendChild(row);
       }
     }
 
     window.onload = handleClientLoad;
 
-    const searchInput = document.querySelector('.search-bar input');
+    const searchInput = document.querySelector('.search-bar input[type="text"]');
     searchInput.addEventListener('input', function (e) {
       const searchValue = e.target.value.toLowerCase();
       const folderItems = document.querySelectorAll('.folder-item');
@@ -239,27 +221,7 @@ lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " fou
         }
       });
     });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   </script>
-
-
-
-
 </body>
 
 </html>
