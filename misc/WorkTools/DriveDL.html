@@ -106,10 +106,10 @@ debug</textarea>
   <ul id="fileList"></ul>
   <script>
 
-lblFilterCount.innerHTML = txtFilter.value.split("\n").length
+lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " found"
     
     txtFilter.addEventListener('input', ()=>{
-lblFilterCount.innerHTML = txtFilter.value.split("\n").length
+lblFilterCount.innerHTML = txtFilter.value.split("\n").length.toString() + " found"
     })
 
     
