@@ -90,9 +90,10 @@
 release
 debug</textarea>
     
-    <br clear="both />
+    <br clear="both" />
 
   </div>
+      
   <ul id="fileList"></ul>
   <script>
 
@@ -114,9 +115,9 @@ lblFilterCount.value = txtFilter.value.split("\n").length
         showFolders(accessToken);
       } else {
         document.body.innerHTML +=
-          `<br>
+          `<br />
         <a href="${authUrl}">Authenticate Google Drive</a>
-        <br>`
+        <br />`
       }
     }
 
