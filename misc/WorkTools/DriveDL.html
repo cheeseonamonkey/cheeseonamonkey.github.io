@@ -97,10 +97,10 @@ debug</textarea>
   <ul id="fileList"></ul>
   <script>
 
-lblFilterCount.value = txtFilter.value.split("\n").length
+lblFilterCount.innerHTML = txtFilter.value.split("\n").length
     
     txtFilter.addEventListener('change', ()=>{
-lblFilterCount.value = txtFilter.value.split("\n").length
+lblFilterCount.innerHTML = txtFilter.value.split("\n").length
     })
 
     
