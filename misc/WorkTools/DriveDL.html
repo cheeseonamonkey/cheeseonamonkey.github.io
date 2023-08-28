@@ -134,7 +134,6 @@ lblFilterCount.value = txtFilter.value.split("\n").length
       });
       const folderData = await folderResponse.json();
       const folders = folderData.files;
-      const fileList = document.getElementById('fileList');
 
       for (let folder of folders) {
         const folderItem = document.createElement('li');
