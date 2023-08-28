@@ -211,9 +211,9 @@ lblFilterCount.innerHTML = txtFilter.value.split("\n").length
 
         txtFilter.value.split("\n").forEach( it=> {
           if(row.innerText.match(it))
-            row.innerHTML += 'MATCHES';
+            row.innerHTML += 'MATCHES\n';
           else
-            row.innerHTML += 'NOT MATCHES';
+            row.innerHTML += 'NOT MATCHES\n';
 
         });
 
