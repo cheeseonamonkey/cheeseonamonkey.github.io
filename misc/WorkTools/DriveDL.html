@@ -78,7 +78,7 @@
   <h1>Google Drive OAuth</h1>
 
   <div class="search-bar">
-    <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8" /> files</b> from the checked folders!</i></p> <input style="display: inline; width: 10em;" type="text" placeholder="Filter folders" />
+    <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8" /> files</b> from the checked folders!</i></p> <input style="display: inline; width: 10em;" type="text" placeholder="Filter folders" /> <br />
     
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
     <textarea style="font-family: monospace; width: 49%;" rows="4" id="txtFilter">release
@@ -171,7 +171,7 @@ debug</textarea>
       folderItem.appendChild(table);
 
       for (let file of files) {
-        const row = document.createElement('tr');
+        const row = document.createElement('tr'); 
 
         const nameCell = document.createElement('td');
         nameCell.textContent = file.name;
