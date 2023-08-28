@@ -60,6 +60,11 @@
       order: -1;
     }
 
+    input[type="number"] {
+      width: 2em;
+      font-size: 1.6em;
+    }
+
     @media only screen and (max-width: 600px) {
       body {
         padding: 10px;
@@ -75,7 +80,7 @@
 
 <body>
   <h1>Google Drive OAuth</h1>
-  <p><i>Gets the <b>newest <input type="number" id="inputPageSize"/> files</b> from the checked folders!</i></p>
+  <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" max="8"/> files</b> from the checked folders!</i></p>
   <div class="search-bar">
     <input type="text" placeholder="Filter folders">
   </div>
