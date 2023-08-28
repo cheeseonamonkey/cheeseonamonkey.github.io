@@ -85,16 +85,24 @@
   <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="8"/> files</b> from the checked folders!</i></p>
   <div class="search-bar">
     <input style="width: 44%; float: left; font-size: 1.1em;" type="text" placeholder="Filter folders">
-    <span style="float: right;">filter matches:</span><br />
+    <span style="float: right;">filter matches:</span><br /> <h5 id="lblFilterCount"></h5>
     <textarea style="font-family: monospace; width: 49%;  float: right;" rows="4" id="txtFilter">
 release
-debug
-    </textarea>
+debug</textarea>
+    
     <br clear="both />
 
   </div>
   <ul id="fileList"></ul>
   <script>
+
+lblFilterCount.value = txtFilter.value.split("\n").length
+    
+    txtFilter.addEventListener('change', ()=>{
+lblFilterCount.value = txtFilter.value.split("\n").length
+    })
+
+    
     const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
     const redirectUri = encodeURIComponent(window.location.href);
     const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
