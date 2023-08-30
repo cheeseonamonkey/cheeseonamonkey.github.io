@@ -170,7 +170,7 @@ debug</textarea>
         pinCheckbox.classList.add('pin-checkbox');
         folderItem.appendChild(pinCheckbox);
 
-        const folderTitle = document.createElement('h2');
+        const folderTitle = document.createElement('h5');
         folderTitle.textContent = folder.name;
         folderTitle.classList.add('folder-title');
         folderItem.appendChild(folderTitle);
@@ -249,7 +249,7 @@ debug</textarea>
       const searchValue = e.target.value.toLowerCase();
       const folderItems = document.querySelectorAll('.folder-item');
       folderItems.forEach(function (folderItem) {
-        const folderTitle = folderItem.querySelector('h2');
+        const folderTitle = folderItem.querySelector('h5');
         const folderName = folderTitle.textContent.toLowerCase();
         if (folderName.includes(searchValue)) {
           folderItem.style.display = 'block';
