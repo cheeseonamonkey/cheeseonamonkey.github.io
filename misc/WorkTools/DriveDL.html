@@ -124,7 +124,7 @@ debug</textarea>
         document.body.innerHTML +=
           `<br />
         <h6>You are logged into Google Drive. Nice! </h6>
-        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;<a href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;<a href="${location.href.origin}" >logout</a></span>
         <br />`;
         showFolders(accessToken);
         
