@@ -224,6 +224,7 @@ debug</textarea>
       for (let file of files) {
         const row = document.createElement('tr'); 
         row.style.width = '100%';
+        row.style.maxWidth = '98vw';
 
         const nameCell = document.createElement('td');
         nameCell.textContent = file.name;
