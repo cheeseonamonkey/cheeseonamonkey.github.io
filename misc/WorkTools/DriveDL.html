@@ -132,7 +132,7 @@ debug</textarea>
         document.body.innerHTML +=
           `<br />
         <a href="${authUrl}">Authenticate Google Drive</a>
-        <span>&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');location.href = location.href.split("?")>clear storage</a></span>
+        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;<a href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
         <br />`;
       }
     }
