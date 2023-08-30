@@ -100,12 +100,13 @@
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
   </div>
 
-  <!-- Group: Filter textarea -->
+  <!-- Group: Filter textarea 
   <div class="search-bar">
     <textarea rows="2" id="txtFilter">release
 debug</textarea>
+  
   </div>
-
+-->
   <ul id="fileList"></ul>
   <script>
     const lblFilterCount = document.getElementById('lblFilterCount');
@@ -214,13 +215,13 @@ debug</textarea>
         const sizeCell = document.createElement('td');
         sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
         row.appendChild(sizeCell);
-
+/*
         txtFilter.value.split("\n").forEach(it => {
           if (row.innerText.match(it))
             row.innerHTML += 'MATCHES\n';
           else
             row.innerHTML += 'NOT MATCHES\n';
-
+*/
         });
 
         table.appendChild(row);
