@@ -223,6 +223,7 @@ debug</textarea>
 
       for (let file of files) {
         const row = document.createElement('tr'); 
+        row.style.width = '100%';
 
         const nameCell = document.createElement('td');
         nameCell.textContent = file.name;
@@ -238,7 +239,7 @@ debug</textarea>
         link.href = file.webViewLink;
         link.textContent = 'Download';
         linkCell.appendChild(link);
-        linkCell.innerHTML += `<span>&nbsp;(${(((file.size / 1024)/1024).toFixed(2) + 'mb')})</span>`
+        linkCell.innerHTML += `<span><i>&nbsp;&nbsp;&nbsp;(${(((file.size / 1024)/1024).toFixed(2) + ' MB')})</i></span>`
         row.appendChild(linkCell);
 
         
