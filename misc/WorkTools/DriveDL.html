@@ -111,8 +111,9 @@ h5 {
   <!-- Group: Filter textarea -->
   <div class="search-bar">
         <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
+    <small>(not fully implemented)</small>
 
-    <textarea rows="2" id="txtFilter">release
+    <textarea disabled="true" rows="2" id="txtFilter">release
 debug</textarea>
   </div>
 </div>
@@ -237,13 +238,13 @@ debug</textarea>
         const sizeCell = document.createElement('td');
         sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
         row.appendChild(sizeCell);
-
+/*
         txtFilter.value.split("\n").forEach(it => {
           if (row.innerText.match(it))
             row.innerHTML += 'MATCHES\n';
           else
             row.innerHTML += 'NOT MATCHES\n';
-
+*/
         });
 
         table.appendChild(row);
