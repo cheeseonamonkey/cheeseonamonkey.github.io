@@ -217,7 +217,7 @@ debug</textarea>
       const fileData = await fileResponse.json();
       const files = fileData.files;
       const table = document.createElement('table');
-      table.style.width = '100%';
+
               table.style.maxWidth = '85vw';
 
       table.style.border = '1px solid black';
@@ -225,7 +225,6 @@ debug</textarea>
 
       for (let file of files) {
         const row = document.createElement('tr'); 
-        row.style.width = '100%';
         row.style.maxWidth = '85vw';
 
         const nameCell = document.createElement('td');
