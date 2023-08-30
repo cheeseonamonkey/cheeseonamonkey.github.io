@@ -1,19 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html>
 
@@ -57,9 +42,10 @@
       padding: 1px;
     }
 
-    .search-bar span {
+    .search-bar textarea {
       font-family: Arial;
-      font-size: 1.05em;
+      font-size: 1.1em;
+      width: 80%;
     }
 
     .folder-title {
@@ -87,7 +73,9 @@
     }
 
     p {
-        display: block;
+      display: block;
+      max-width: 48%;
+      float: left;
     }
   </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,13 +86,19 @@
 <body>
   <h1>Google Drive OAuth</h1>
 
+  <!-- Group: Gets the newest files and filter folders input -->
   <div class="search-bar">
-    <p><i style="max-width: 48%;  float: left;">Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i> </p>
-    <input style=" display: block;" type="text" value="build" placeholder="regex" />
-  <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
-    <textarea style="font-family: Arial; font-size: 1.1em; width: 80%;" rows="2" id="txtFilter">release
+    <div>
+      <p><i><b>Gets the newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
+    </div>
+    <input style="display: block;" type="text" value="build" placeholder="regex" />
+    <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
+  </div>
+
+  <!-- Group: Filter textarea -->
+  <div class="search-bar">
+    <textarea rows="2" id="txtFilter">release
 debug</textarea>
-  
   </div>
 
   <ul id="fileList"></ul>
