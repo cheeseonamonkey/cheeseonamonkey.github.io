@@ -177,6 +177,12 @@ debug</textarea>
           }
         });
       }
+
+      setTimeout( ()=> {
+    searchInput.dispatchEvent(new Event('input'));
+}, 666);
+
+      
     }
 
     async function showFiles(folderId, folderItem, accessToken) {
@@ -244,6 +250,8 @@ debug</textarea>
         }
       });
     });
+
+    
   </script>
 </body>
 
