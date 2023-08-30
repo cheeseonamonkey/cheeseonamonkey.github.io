@@ -225,7 +225,7 @@ debug</textarea>
         const row = document.createElement('tr'); 
 
         const nameCell = document.createElement('td');
-        nameCell.textContent = file.name + (((file.size / 1024)/1024).toFixed(2) + ' MB');
+        nameCell.textContent = file.name;
         row.appendChild(nameCell);
 
         const dateCell = document.createElement('td');
@@ -238,6 +238,7 @@ debug</textarea>
         link.href = file.webViewLink;
         link.textContent = 'Download';
         linkCell.appendChild(link);
+        linkCell.innerHTML += `<span>&nbsp;(${(((file.size / 1024)/1024).toFixed(2) + 'mb')})</span>`
         row.appendChild(linkCell);
 
         
