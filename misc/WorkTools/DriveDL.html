@@ -13,7 +13,7 @@
       font-size: 1.1em;
     }
 td {
-  white-space: nowrap;
+  
 overflow-x: auto;
 }
     h1 {
@@ -230,14 +230,19 @@ debug</textarea>
 
         const nameCell = document.createElement('td');
         nameCell.textContent = file.name;
+      nameCell.style = "font-family: Consolas, Courier, mono; transform: scaleX(0.95); width: 50%;";
+
         row.appendChild(nameCell);
 
         const dateCell = document.createElement('td');
         const date = new Date(file.createdTime);
         dateCell.textContent = date.toLocaleDateString();
         row.appendChild(dateCell);
+        nameCell.style = "transform: scaleX(0.92); font-size: 0.94em;  width: 25%;";
+
 
         const linkCell = document.createElement('td');
+        linkCell.style = "width: 25%; font-weight: bold;"
         const link = document.createElement('a');
         link.href = file.webViewLink;
         link.textContent = 'Download';
