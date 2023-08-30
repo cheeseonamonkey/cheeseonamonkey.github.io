@@ -128,13 +128,14 @@ debug</textarea>
         document.body.innerHTML +=
           `<br />
         <h6>You are logged into Google Drive. Nice! </h6>
-        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;<a href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
+        <span><a href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
         <br />`;
         showFolders(accessToken);
         
       } else {
         document.body.innerHTML +=
           `<br />
+          <h6>I don't think you are logged into Google Drive. </h6>
         <a href="${authUrl}">Authenticate Google Drive</a>
         <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;</span>
         <br />`;
