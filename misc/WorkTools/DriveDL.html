@@ -35,7 +35,7 @@
     }
 
     .search-bar input[type="text"] {
-      width: 75%;
+      width: 40%;
       font-size: 1.05em;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -45,7 +45,7 @@
     .search-bar textarea {
       font-family: Arial;
       font-size: 1.1em;
-      width: 85%;
+      width: 80%;
     }
 
     .folder-title {
@@ -61,15 +61,10 @@
     }
 
     #lblFilterCount {
-      width: 2em;
+      width: 3em;
       font-size: 1.055em;
     }
 
-    #inputPageSize {
-      transform: scale(1.15);
-      font-size: 1.1em;
-    }
-    
     @media only screen and (max-width: 600px) {
       body {
         padding: 8px;
@@ -79,7 +74,7 @@
 
     p {
       display: block;
-      max-width: 74%;
+      max-width: 48%;
       float: left;
     }
   </style>
@@ -94,19 +89,18 @@
   <!-- Group: Gets the newest files and filter folders input -->
   <div class="search-bar">
     <div>
-      <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
+      <p><i><b>Gets the newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
     </div>
     <input style="display: block;" type="text" value="build" placeholder="regex" />
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
   </div>
 
-  <!-- Group: Filter textarea 
+  <!-- Group: Filter textarea -->
   <div class="search-bar">
     <textarea rows="2" id="txtFilter">release
 debug</textarea>
-  
   </div>
--->
+
   <ul id="fileList"></ul>
   <script>
     const lblFilterCount = document.getElementById('lblFilterCount');
@@ -215,13 +209,13 @@ debug</textarea>
         const sizeCell = document.createElement('td');
         sizeCell.textContent = (file.size / 1024).toFixed(2) + ' KB';
         row.appendChild(sizeCell);
-/*
+
         txtFilter.value.split("\n").forEach(it => {
           if (row.innerText.match(it))
             row.innerHTML += 'MATCHES\n';
           else
             row.innerHTML += 'NOT MATCHES\n';
-*/
+
         });
 
         table.appendChild(row);
