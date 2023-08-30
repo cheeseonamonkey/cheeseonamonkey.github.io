@@ -50,11 +50,11 @@
     }
 
     .search-bar input[type="text"] {
-      width: 42%;
-      font-size: 1.17em;
+      width: 40%;
+      font-size: 1.05em;
       border: 1px solid #ccc;
       border-radius: 4px;
-      padding: 10px;
+      padding: 1px;
     }
 
     .search-bar span {
@@ -102,7 +102,7 @@
     <p><i style="max-width: 48%;  float: left;">Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i> <input style="float:right; display: inline; max-width: 49%;" type="text" placeholder="Filter folders" /> </p>
     
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
-    <textarea style="font-family: monospace; width: 49%;" rows="4" id="txtFilter">release
+    <textarea style="font-family: monospace; width: 49%;" rows="2" id="txtFilter">release
 debug</textarea>
   </div>
 
@@ -131,7 +131,7 @@ debug</textarea>
         document.body.innerHTML +=
           `<br />
         <a href="${authUrl}">Authenticate Google Drive</a>
-        <span>&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');"></a></span>
+        <span>&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');location.href = location.href.split("?")>clear storage</a></span>
         <br />`;
       }
     }
