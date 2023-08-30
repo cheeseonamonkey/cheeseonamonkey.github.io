@@ -4,6 +4,7 @@
 
 <head>
   <style>
+
     body {
       max-width: 800px;
       margin: 0 auto;
@@ -74,7 +75,11 @@ h5 {
       font-size: 1.15em;
       
     }
-
+#inputPageSize {
+  font-family: "Arial Black"
+  font-size: 1.1em;
+transform: scale(1.15);
+}
     @media only screen and (max-width: 600px) {
       body {
         padding: 8px;
@@ -100,7 +105,7 @@ h5 {
   <!-- Group: Gets the newest files and filter folders input -->
   <div class="search-bar">
     <div style="display: block;">
-      <p><i><b>Gets the newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
+      <p><i>Gets the <b style="font-size: 1.05em;">newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
     </div>
         <span>filter folders:</span>
 
