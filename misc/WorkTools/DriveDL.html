@@ -61,12 +61,13 @@
     }
 
     #lblFilterCount {
-      width: 3em;
+      width: 2em;
       font-size: 1.055em;
     }
 
     #inputPageSize {
       transform: scale(1.15);
+      font-size: 1.1em;
     }
     
     @media only screen and (max-width: 600px) {
@@ -93,7 +94,7 @@
   <!-- Group: Gets the newest files and filter folders input -->
   <div class="search-bar">
     <div>
-      <p><i><b>Gets the newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
+      <p><i>Gets the <b>newest <input type="number" id="inputPageSize" min="1" value="2" max="9" /> files</b> from the folders!</i></p>
     </div>
     <input style="display: block;" type="text" value="build" placeholder="regex" />
     <span>filter matches by: <span id="lblFilterCount">&nbsp; (0 found)</span></span>
