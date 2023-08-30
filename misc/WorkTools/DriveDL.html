@@ -112,10 +112,10 @@ debug</textarea>
     const txtFilter = document.getElementById('txtFilter');
     const inputPageSize = document.getElementById('inputPageSize');
 
-    lblFilterCount.innerHTML = `${txtFilter.value.split("\n").length} found`;
+    lblFilterCount.innerHTML = `(${txtFilter.value.split("\n").length} found)`;
 
     txtFilter.addEventListener('input', () => {
-      lblFilterCount.innerHTML = `${txtFilter.value.split("\n").length} found`;
+      lblFilterCount.innerHTML = `(${txtFilter.value.split("\n").length} found)`;
     });
 
     const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
