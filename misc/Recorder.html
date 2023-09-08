@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Recorder</title>
+    <!-- Include Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-4">Webcam Recorder</h1>
+        <video id="webcam" autoplay class="w-full mb-4"></video>
+        <div class="mb-4">
+            <label for="showPreview" class="mr-2">Show Preview</label>
+            <input type="checkbox" id="ckbShowPreview" checked class="form-checkbox">
+        </div>
+        <button id="startRecord" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Start Recording</button>
+        <button id="stopRecord" disabled class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Stop Recording</button>
+        <p class="mt-4">Recording status: <span id="recordingStatus">Not recording</span></p>
+        <div class="mt-4 relative">
+            <div id="volumeLevelMeter" class="absolute h-6 pt-1 pb-5 top-0 bg-purple-900 opacity-40" style="width: 0;"></div>
+            Volume Level: <span class="font-bold" id="volumeLevel">0</span>
+        </div>
+        <audio id="microphone" style="display:none;" muted></audio>
+    </div>
+    
+    
+    <script>
+        const webcam = document.getElementById('webcam');
+        const startRecordButton = document.getElementById('startRecord');
+        const stopRecordButton = document.getElementById('stopRecord');
+        const recordingStatus = document.getElementById('recordingStatus');
+        const volumeMeter = document.getElementById('volumeMeter');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const microphone = document.getElementById('microphone');
+        
+        // Check if the user has granted permission to access the microphone
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                microphone.srcObject = stream;
+                const audioContext = new AudioContext();
+                const microphoneNode = audioContext.createMediaStreamSource(stream);
+                const analyser = audioContext.createAnalyser();
+                microphoneNode.connect(analyser);
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                function updateVolumeMeter() {
+                    analyser.getByteFrequencyData(dataArray);
+                    const sum = dataArray.reduce((acc, val) => acc + val, 0);
+                    const average = sum / bufferLength;
+                    volumeLevel.textContent = average;
+                  	volumeLevelMeter.style.width = `${average*0.4}vw`;
+                    requestAnimationFrame(updateVolumeMeter);
+                }
+
+                updateVolumeMeter();
+            })
+            .catch(error => {
+                console.error('Error accessing microphone:', error);
+document.body.innerHTML += '<br /><span>error - check permissions!</span>'
+            });
+
+
+        startRecordButton.addEventListener('click', () => {
+            mediaRecorder.start();
+            startRecordButton.disabled = true;
+            stopRecordButton.disabled = false;
+            recordingStatus.innerHTML = '<img src="https://www.google.com/imgres?imgurl=https%3A%2F%2Fmedia.istockphoto.com%2Fid%2F1268251407%2Fvector%2Fred-dot-recording-sign-rec.jpg%3Fs%3D170667a%26w%3D0%26k%3D20%26c%3DLwC_WntO2GkQBYPuaj98TOXNtN2xcRV_ctWNmiDvu2s%3D&tbnid=HEE-6V4gVhwrlM&vet=12ahUKEwix0OaFmpqBAxUN5skDHbsZAqgQMygAegQIARBY..i&imgrefurl=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fred-dot-recording-sign-rec-gm1268251407-372226266&docid=KP8aVn2p-Bq2GM&w=589&h=295&q=recording%20dot%20image&ved=2ahUKEwix0OaFmpqBAxUN5skDHbsZAqgQMygAegQIARBY />"';
+        });
+      stopRecordButton.addEventListener('click', () => {
+          mediaRecorder.stop();
+          startRecordButton.disabled = false;
+          stopRecordButton.disabled = true;
+          recordingStatus.textContent = 'Not recording';
+
+          // Trim recordedChunks to the last 90 seconds
+		  // NOT 60 as the variable name suggests
+          const last60SecondsChunks = recordedChunks.slice(-900); // 900 chunks at 100ms each is 90 seconds
+
+          const blob = new Blob(last60SecondsChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'last-60-seconds-video.webm';
+          a.textContent = 'Download Last 60 Seconds Video';
+          document.body.appendChild(a);
+      });
+    </script>
+ 
+
+    </style>
+</body>
+</html>
+
+
+---
+
