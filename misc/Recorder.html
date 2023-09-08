@@ -4,28 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Recorder</title>
-    <!-- Include Tailwind CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
+
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold mb-4">Webcam Recorder</h1>
-        <video id="webcam" autoplay class="w-full mb-4"></video>
-        <div class="mb-4">
-            <label for="showPreview" class="mr-2">Show Preview</label>
-            <input type="checkbox" id="ckbShowPreview" checked class="form-checkbox">
-        </div>
-        <button id="startRecord" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2">Start Recording</button>
-        <button id="stopRecord" disabled class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Stop Recording</button>
-        <p class="mt-4">Recording status: <span id="recordingStatus">Not recording</span></p>
-        <div class="mt-4 relative">
-            <div id="volumeLevelMeter" class="absolute h-6 pt-1 pb-5 top-0 bg-purple-900 opacity-40" style="width: 0;"></div>
-            Volume Level: <span class="font-bold" id="volumeLevel">0</span>
-        </div>
-        <audio id="microphone" style="display:none;" muted></audio>
+<body class="bg-gray-200 min-h-screen p-4">
+    <h1 class="text-3xl font-bold mb-4">Webcam Recorder</h1>
+    <div class="relative">
+        <video id="webcam" autoplay class="w-full h-auto rounded-lg shadow-lg mb-4"></video>
+        <label for="showPreview" class="block mb-2">
+            <input type="checkbox" id="ckbShowPreview" checked class="mr-2">Show Preview
+        </label>
     </div>
     
+    <button id="startRecord" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-4">Start Recording</button>
+    <button id="stopRecord" disabled class="bg-red-500 text-white px-4 py-2 rounded-lg">Stop Recording</button>
     
+    <p class="mt-4">Recording status: <span id="recordingStatus" class="font-bold">Not recording</span></p>
+    
+    <div id="volumeMeter" class="mt-4">
+    <span style="width: 100px;" class="h-6 opacity-40 rounded-r-lg absolute bg-red-600" id="volumeLevelMeter"></span>
+        Volume Level: <span id="volumeLevel" class="font-bold">0</span>
+    </div>
+
+    <audio id="microphone" style="display:none;" muted></audio>
     <script>
         const webcam = document.getElementById('webcam');
         const startRecordButton = document.getElementById('startRecord');
@@ -35,7 +36,16 @@
         const volumeLevel = document.getElementById('volumeLevel');
         const microphone = document.getElementById('microphone');
         
-        // Check if the user has granted permission to access the microphone
+        webcam.muted = true;
+        
+ckbShowPreview.addEventListener('input', (ev)=>{
+if(ev.target.checked) 
+webcam.style.display = 'block'
+else
+webcam.style.display = 'none'});
+        let mediaRecorder;
+        let recordedChunks = [];
+  // Check if the user has granted permission to access the microphone
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 microphone.srcObject = stream;
@@ -50,19 +60,43 @@
                 function updateVolumeMeter() {
                     analyser.getByteFrequencyData(dataArray);
                     const sum = dataArray.reduce((acc, val) => acc + val, 0);
-                    const average = sum / bufferLength;
-                    volumeLevel.textContent = average;
-                  	volumeLevelMeter.style.width = `${average*0.4}vw`;
+                    const average = (sum / bufferLength).toFixed(1);;
+                    volumeLevel.textContent = average
+                    volumeLevelMeter.style.width = `${Number(average)*1.2}px`;
                     requestAnimationFrame(updateVolumeMeter);
+                    
                 }
 
                 updateVolumeMeter();
             })
             .catch(error => {
                 console.error('Error accessing microphone:', error);
-document.body.innerHTML += '<br /><span>error - check permissions!</span>'
             });
+        navigator.mediaDevices.getUserMedia({ video: {height:  {ideal: 480}}, audio:true })
+            .then(stream => {
+                webcam.srcObject = stream;
+                mediaRecorder = new MediaRecorder(stream, {
+            audioBitsPerSecond: 310_000 // Adjust this value for desired audio quality
+        });
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
 
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'recorded-video.webm';
+                    a.textContent = 'Download Video';
+                    document.body.appendChild(a);
+                };
+            })
+            .catch(error => {
+                console.error('Error accessing webcam:', error);
+            });
 
         startRecordButton.addEventListener('click', () => {
             mediaRecorder.start();
@@ -77,24 +111,67 @@ document.body.innerHTML += '<br /><span>error - check permissions!</span>'
           recordingStatus.textContent = 'Not recording';
 
           // Trim recordedChunks to the last 90 seconds
-		  // NOT 60 as the variable name suggests
-          const last60SecondsChunks = recordedChunks.slice(-900); // 900 chunks at 100ms each is 90 seconds
+		  
+          
+          const last90SecondsChunks = recordedChunks.slice(-900); // 900 chunks at 100ms each is 90 seconds
 
-          const blob = new Blob(last60SecondsChunks, { type: 'video/webm' });
+          const blob = new Blob(last90SecondsChunks, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'last-60-seconds-video.webm';
-          a.textContent = 'Download Last 60 Seconds Video';
+          a.download = 'last-90-seconds-video.webm';
+          a.innerHTML = '&nbsp;Download Last Video&nbsp;';
           document.body.appendChild(a);
       });
-    </script>
- 
+      
+      
+      
+      
+      
+      const audioInput = document.getElementById('audioInput');
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const analyser = audioContext.createAnalyser();
+const canvas = document.getElementById('audioCanvas');
+const canvasContext = canvas.getContext('2d');
 
-    </style>
+audioInput.srcObject = mediaRecorder.stream;
+
+// Connect the audio input to the analyzer
+const source = audioContext.createMediaStreamSource(mediaRecorder.stream);
+source.connect(analyser);
+
+// Set up the analyzer for visualization
+analyser.fftSize = 128;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+// Visualization function
+function visualize() {
+  analyser.getByteFrequencyData(dataArray);
+
+  canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+  const barWidth = (canvas.width / bufferLength) * 2.5;
+  let x = 0;
+
+  dataArray.forEach((value) => {
+    const barHeight = (value / 255) * canvas.height;
+    canvasContext.fillStyle = `rgb(${value + 100},50,50)`;
+    canvasContext.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight);
+    x += barWidth + 1;
+  });
+
+  requestAnimationFrame(visualize);
+}
+
+// Start visualization
+visualize();
+
+
+
+
+    </script>
 </body>
 </html>
 
-
----
 
