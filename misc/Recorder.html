@@ -17,9 +17,10 @@
         </label>
     </div>
     
-    <button id="startRecord" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-4">Start Recording</button>
-    <button id="stopRecord" disabled class="bg-red-500 text-white px-4 py-2 rounded-lg">Stop Recording</button>
-    
+    <button id="startRecord" class="bg-blue-500 text-white px-4 py-2 rounded-lg mr-4">Start </button>
+    <button id="stopRecord" disabled class="bg-red-500 text-white px-4 py-2 rounded-lg">Stop </button>
+    <button id="restartRecord" class="bg-green-500 text-white px-4 py-2 rounded-lg">Restart </button>
+
     <p class="mt-4">Recording status: <span id="recordingStatus" class="font-bold">Not recording</span></p>
     
     <div id="volumeMeter" class="mt-4">
@@ -29,6 +30,8 @@
 
     <audio id="microphone" style="display:none;" muted></audio>
     <script>
+	    const restartRecordButton = document.getElementById('restartRecord');
+
         const webcam = document.getElementById('webcam');
         const startRecordButton = document.getElementById('startRecord');
         const stopRecordButton = document.getElementById('stopRecord');
@@ -36,7 +39,21 @@
         const volumeMeter = document.getElementById('volumeMeter');
         const volumeLevel = document.getElementById('volumeLevel');
         const microphone = document.getElementById('microphone');
-        
+
+
+restartRecordButton.addEventListener('click', () => {
+    // Stop the current recording (if any)
+    if (mediaRecorder.state === 'recording') {
+        mediaRecorder.stop();
+    }
+
+    // Start a new recording
+    mediaRecorder.start();
+    startRecordButton.disabled = true;
+    stopRecordButton.disabled = false;
+    recordingStatus.innerHTML = '<img src="https://www.google.com/imgres?imgurl=https%3A%2F%2Fmedia.istockphoto.com%2Fid%2F1268251407%2Fvector%2Fred-dot-recording-sign-rec.jpg%3Fs%3D170667a%26w%3D0%26k%3D20%26c%3DLwC_WntO2GkQBYPuaj98TOXNtN2xcRV_ctWNmiDvu2s%3D&tbnid=HEE-6V4gVhwrlM&vet=12ahUKEwix0OaFmpqBAxUN5skDHbsZAqgQMygAegQIARBY..i&imgrefurl=https%3A%2F%2Fwww.istockphoto.com%2Fvector%2Fred-dot-recording-sign-rec-gm1268251407-372226266&docid=KP8aVn2p-Bq2GM&w=589&h=295&q=recording%20dot%20image&ved=2ahUKEwix0OaFmpqBAxUN5skDHbsZAqgQMygAegQIARBY />"';
+});
+	    
         webcam.muted = true;
         
 ckbShowPreview.addEventListener('input', (ev)=>{
