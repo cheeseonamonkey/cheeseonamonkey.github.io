@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Nunito Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .title {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .content {
+            margin-top: 50px;
+        }
+
+        .content h1 {
+            font-family: 'Rubik', sans-serif;
+            font-weight: 500;
+        }
+
+        .content p {
+            font-family: 'Lato', sans-serif;
+        }
+
+        .content .btn {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .content blockquote {
+            font-family: 'Poppins', sans-serif;
+            font-style: italic;
+        }
+    </style>
+    <title>Font Previewer</title>
+</head>
+<body>
+    <h1 class="title">Font Previewer</h1>
+    <div class="container">
+        <div class="row content">
+            <div class="col-md-6">
+                <h1>Main Title</h1>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vehicula mi vitae mauris vehicula, feugiat aliquet nisl porttitor. Sed suscipit laoreet convallis. Mauris sem nisi, ultrices a dui et, tristique hendrerit nisl. Proin semper magna sit amet nibh tempor, in accumsan sem pharetra. Nulla facilisi.</p>
+                <h2>Subheading</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam vehicula mi vitae mauris vehicula, feugiat aliquet nisl porttitor. Sed suscipit laoreet convallis.</p>
+                <h3>Menu Item</h3>
+                <button class="btn btn-primary">Button</button>
+                <blockquote class="blockquote mt-4">"This is an example of a quote!"</blockquote>
+            </div>
+            <div class="col-md-6">
+                <h2>Select Font For:</h2>
+                <ul>
+                    <li>
+                        <label for="menu-items">Menu Items</label>
+                        <select id="menu-items"></select>
+                    </li>
+                    <li>
+                        <label for="main-title">Main Title</label>
+                        <select id="main-title"></select>
+                    </li>
+                    <li>
+                        <label for="default-body">Default Body Text</label>
+                        <select id="default-body"></select>
+                    </li>
+                    <li>
+                        <label for="small-headings">Smaller Headings / Subheadings</label>
+                        <select id="small-headings"></select>
+                    </li>
+                    <li>
+                        <label for="buttons">Buttons</label>
+                        <select id="buttons"></select>
+                    </li>
+                    <li>
+                        <label for="quotes">Quotes</label>
+                        <select id="quotes"></select>
+                    </li>
+                </ul>
+            </div>
+        </div>
+<br>
+      <hr>
+      <br>
+    </div>
+
+    <script>
+        const fonts = [
+            'Lato', 'Martel Sans', 'Nunito Sans', 'Poppins', 'Quicksand', 'Rubik', 'Varela Round', 'Anton', 'Allan', 'Arvo',
+            'Port Lligat Slab', 'Raleway', 'Oxygen', 'Zilla Slab', 'Titillium Web', 'Montserrat', 'Exo 2', 'Roboto Condensed',
+            'Josefin Sans', 'Inconsolata', 'Mooli', 'Ubuntu', 'Kanit'
+        ];
+
+        const selectElements = document.querySelectorAll('select');
+
+        selectElements.forEach(select => {
+            fonts.forEach(font => {
+                const option = document.createElement('option');
+                option.value = font;
+                option.textContent = font;
+                select.appendChild(option);
+            });
+        });
+
+        selectElements.forEach(select => {
+            select.addEventListener('change', function() {
+                const font = this.value;
+                const className = this.id;
+                const elements = document.getElementsByClassName(className);
+
+                for (let i = 0; i < elements.length; i++) {
+                    elements[i].style.fontFamily = font;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
