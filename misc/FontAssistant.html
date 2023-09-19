@@ -10,6 +10,22 @@
             background-color: #f8f9fa;
         }
 
+        .header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .footer {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            margin-top: 50px;
+        }
+
         .title {
             text-align: center;
             margin-top: 50px;
@@ -44,7 +60,15 @@
     <title>Font Previewer</title>
 </head>
 <body>
-    <h1 class="title">Font Previewer</h1>
+    <div class="header">
+        <h1>Font Previewer</h1>
+        <nav>
+            <a href="#">Home</a> |
+            <a href="#">About</a> |
+            <a href="#">Contact</a>
+        </nav>
+    </div>
+
     <div class="container">
         <div class="row content">
             <div class="col-md-6">
@@ -56,7 +80,39 @@
                 <button class="btn btn-primary">Button</button>
                 <blockquote class="blockquote mt-4">"This is an example of a quote!"</blockquote>
             </div>
-            <div class="col-md-6">
+           
+        </div>
+        <br>
+        <hr>
+        <br>
+    </div>
+
+    <div class="container">
+        <div class="row content">
+            <div class="col-md-12">
+                <h2>Other Form</h2>
+                <form>
+                    <div class="form-group">
+                        <label for="exampleInputText">Text Input</label>
+                        <input type="text" class="form-control" id="exampleInputText" placeholder="Enter text">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleTextarea">Text Area</label>
+                        <textarea class="form-control" id="exampleTextarea" rows="3"></textarea>
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                        <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+        <br>
+        <hr>
+        <br>
+        
+         <div class="col-md-6">
                 <h2>Select Font For:</h2>
                 <ul>
                     <li>
@@ -85,10 +141,10 @@
                     </li>
                 </ul>
             </div>
-        </div>
-<br>
-      <hr>
-      <br>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2020 Font Previewer. All rights reserved.</p>
     </div>
 
     <script>
