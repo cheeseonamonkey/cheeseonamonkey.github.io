@@ -1,38 +1,26 @@
-name: Prompt and File Upload Example
+name: Mixed inputs
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      name:
+        type: choice
+        description: Who to greet
+        options: 
+        - monalisa
+        - cschleiden
+      message:
+        required: true
+      use-emoji:
+        type: boolean
+        description: Include 🎉🤣 emojis
+      environment:
+        type: environment
 
 jobs:
-  build:
+  greet:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Prompt user for input
-        uses: actions/github-script@v4
-        with:
-          script: |
-            const response = await github.actions.createWorkflowRunInputPrompt({
-              title: 'Enter your name',
-              description: 'Please enter your name:',
-              input: {
-                type: 'text',
-                required: true
-              }
-            });
-            console.log(response);
-
-      - name: Upload file
-        uses: actions/github-script@v4
-        with:
-          script: |
-            const response = await github.actions.uploadArtifact({
-              name: 'my-artifact',
-              path: 'path/to/file.txt'
-            });
-            console.log(response);
+    - name: Send greeting
+      run: echo "${{ github.event.inputs.message }} ${{ fromJSON('["", "🥳"]')[github.event.inputs.use-emoji == 'true'] }} ${{ github.event.inputs.name }}"
