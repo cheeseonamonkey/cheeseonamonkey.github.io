@@ -1,0 +1,38 @@
+name: Prompt and File Upload Example
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Prompt user for input
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const response = await github.actions.createWorkflowRunInputPrompt({
+              title: 'Enter your name',
+              description: 'Please enter your name:',
+              input: {
+                type: 'text',
+                required: true
+              }
+            });
+            console.log(response);
+
+      - name: Upload file
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const response = await github.actions.uploadArtifact({
+              name: 'my-artifact',
+              path: 'path/to/file.txt'
+            });
+            console.log(response);
