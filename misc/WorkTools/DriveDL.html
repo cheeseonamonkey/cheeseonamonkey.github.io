@@ -28,7 +28,7 @@
 
 </head>
 
-<body class="max-w-4/5 text-center mx-auto p-5 font-rubik text-base">
+<body class="max-w-4/5 text-center text-lg mx-auto p-5 font-rubik text-base">
     <h1 class="text-center mb-5">Google Drive OAuth</h1>
 
     <div class="bg-gray-100 p-2 shadow">
@@ -70,7 +70,7 @@
                 document.body.innerHTML +=
                     ` <div class="m-3 p-1 border" > <br/>  <br />
         <h6>You are logged into Google Drive. Nice! </h6> <br/>
-        <span><a class='text-blue-600 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
+        <span><a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
         <br />`;
                 showFolders(accessToken);
 
@@ -78,7 +78,7 @@
                 document.body.innerHTML +=
                     ` <div class="m-3 p-1 border" >  <br />
           <h6>I don't think you are logged into Google Drive. </h6> <br/>
-        <a class='text-blue-600 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}"> ➜ Authenticate Google Drive</a>
+        <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}"> ➜ Authenticate Google Drive</a>
         <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;</span>
         <br />`;
             }
