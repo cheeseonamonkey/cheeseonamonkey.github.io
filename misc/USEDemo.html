@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Algebra with Universal Sentence Encoder</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-gray-100 p-8">
+
+    <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
+        <h1 class="text-2xl font-bold mb-4">Word Algebra with Universal Sentence Encoder</h1>
+
+        <div id="output" class="mb-4"></div>
+
+        <input type="text" id="word1" placeholder="Enter word " class="p-2 border rounded mr-2">
+        <button id="btnWordAlgebra" class="p-2 bg-blue-500 text-white rounded">Perform Word Algebra</button>
+
+        <ul class="m-1 p-1" id="ulResults"></ul>
+        <canvas id="myCanvas" class="mt-4" width="400" height="300"></canvas>
+
+    </div>
+
+    <script>
+        let model;
+
+        function plotGraph(float32Array) {
+            const canvas = myCanvas;
+            const ctx = canvas.getContext('2d');
+
+            // Find the minimum and maximum values in the array
+            const minValue = Math.min(...float32Array);
+            const maxValue = Math.max(...float32Array);
+
+            // Exaggeration factor based on the range of data
+            const exaggerationFactor = 2; // Adjust as needed
+            const scaledMin = minValue - exaggerationFactor * (maxValue - minValue);
+            const scaledMax = maxValue + exaggerationFactor * (maxValue - minValue);
+
+            // Calculate a scale factor based on the exaggerated range of data
+            const scaleFactor = canvas.height / Math.log(1 + scaledMax - scaledMin);
+
+            ctx.beginPath();
+
+            float32Array.forEach((value, index) => {
+                // Use only 1/10th of the data points
+                if (index % 10 !== 0) {
+                    return;
+                }
+
+                const x = (index / 10) * (canvas.width / (float32Array.length / 2));
+                const y = Math.log(1 + value - scaledMin) * scaleFactor;
+
+                // Rotate each point by an angle (in radians)
+                const angle = (index * Math.PI) / 180;
+                const rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
+                const rotatedY = x * Math.sin(angle) + y * Math.cos(angle);
+
+                if (index === 0) {
+                    ctx.moveTo(rotatedX, rotatedY);
+                } else {
+                    ctx.lineTo(rotatedX, rotatedY);
+                }
+            });
+
+            ctx.closePath();
+
+            // Configurable styles
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.1)';
+            ctx.fill();
+
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+
+
+        function logIt(str) {
+            console.log('logging:', str);
+            ulResults.innerHTML += `<li>${str.toString()}</li>`;
+        }
+
+        (async () => {
+            logIt("getting model...");
+            model = await use.load();
+            console.log("Model loaded:", model);
+            logIt("model loaded.");
+        })();
+
+        async function performWordAlgebra() {
+            const word1 = document.getElementById('word1').value;
+
+            if (!word1) {
+                alert("Please enter a word!");
+                return;
+            }
+
+            const embeddings = await model.embed(word1);
+
+            plotGraph(await embeddings.data());
+        }
+
+        const btnWordAlgebra = document.getElementById('btnWordAlgebra');
+        btnWordAlgebra.addEventListener('click', performWordAlgebra);
+    </script>
+</body>
+
+</html>
