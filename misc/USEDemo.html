@@ -89,31 +89,41 @@
     }
 
     (async () => {
-        logIt("getting model....", true, true);
-        model = await use.load();
-        console.log("Model loaded:", model);
-        logIt("model loaded.", true, true);
+        try{
+            logIt("getting model....", true, true);
+            model = await use.load();
+            console.log("Model loaded:", model);
+            logIt("model loaded.", true, true);
+         }catch(err) {
+        logIt(err, 'red', false)
+        }
     })();
 
     async function performWordAlgebra() {
-        btnWordAlgebra.style.backgroundColor = "gray"
-        const word1 = document.getElementById('word1').value;
-
-        if (!word1) {
-            logIt('please enter some text first.', 'black', true);
-            return;
+        try{ 
+            btnWordAlgebra.style.backgroundColor = "gray"
+            const word1 = document.getElementById('word1').value;
+    
+            if (!word1) {
+                logIt('please enter some text first.', 'black', true);
+                return;
+            }
+    
+            if (!model) {
+                logIt('please wait for the model.', 'black', true);
+                return;
+            }
+    
+            const embeddings = await model.embed(word1);
+            const color = getRandomColor();
+    
+            plotEmbed(await embeddings.data(), color);
+            logIt(word1, color);
+    
+            btnWordAlgebra.style.backgroundColor = null;
+        }catch(err) {
+            logIt(err, 'red', false)
         }
-
-        if (!model) {
-            logIt('please wait for the model.', 'black', true);
-            return;
-        }
-
-        const embeddings = await model.embed(word1);
-        const color = getRandomColor();
-
-        plotEmbed(await embeddings.data(), color);
-        logIt(word1, color);
     }
 
     const btnWordAlgebra = document.getElementById('btnWordAlgebra');
