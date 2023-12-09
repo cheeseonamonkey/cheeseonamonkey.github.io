@@ -38,7 +38,7 @@
    
    
   <script>
-    const lightenHexColor = hex => `${hex}2a`;
+    const lightenHexColor = hex => `${hex}1a`;
     const copyColor = hex => `${hex}`;
 
     let theColors = ["#FF5384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FFaF40", "#B3B3CC", "#FFD700", "#8B4513", "#00FF00"];
@@ -62,7 +62,7 @@
 
         ctx.beginPath();
 
-        for (let i = 0; i < dataArray.length; i += 12) {
+        for (let i = 0; i < dataArray.length; i += 13) {
             const angle = startAngle + i * rotationStep;
             const radius = (scaler + dataArray[i] * 750) - 50;
             const x = centerX + Math.cos(angle) * radius;
@@ -82,7 +82,7 @@
 
         // Set the stroke style and draw the shape
         ctx.strokeStyle = copyColor(color).toString();
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
         ctx.fill();
 
