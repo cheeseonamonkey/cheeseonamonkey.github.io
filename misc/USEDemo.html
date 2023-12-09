@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Algebra with Universal Sentence Encoder</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500&family=Nunito:wght@300&family=Poppins:wght@500&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
@@ -15,7 +20,10 @@
 <body class="bg-gray-100 p-8">
 
     <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
-        <h1 class="text-2xl font-bold mb-4">Word Algebra with Universal Sentence Encoder</h1>
+        <h1 class="text-xl font-bold mb-4" style="font-family: 'Josefin Sans', sans-serif;"> <b
+                class="text-3xl"><u>Plotting Words</u></b><br> &nbsp;&nbsp;&nbsp;<small>with</small> <b><i>Universal
+                    Sentence Encoder</i>
+        </h1>
 
         <div id="output" class="mb-4"></div>
 
@@ -23,93 +31,94 @@
         <button id="btnWordAlgebra" class="p-2 bg-blue-500 text-white rounded">Perform Word Algebra</button>
 
         <ul class="m-1 p-1" id="ulResults"></ul>
-        <canvas id="myCanvas" class="mt-4" width="400" height="300"></canvas>
+        <canvas id="myCanvas" class="mt-4" width="450" height="450"></canvas>
 
     </div>
 
-    <script>
-        let model;
+   
+   
+  <script>
+    const lightenHexColor = hex => `${hex}2a`;
+    let theColors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40", "#B3B3CC", "#FFD700", "#8B4513", "#00FF00"];
+    let model;
 
-        function plotGraph(float32Array) {
-            const canvas = myCanvas;
-            const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
 
-            // Find the minimum and maximum values in the array
-            const minValue = Math.min(...float32Array);
-            const maxValue = Math.max(...float32Array);
+    function getRandomColor() {
+        return theColors[Math.floor(Math.random() * theColors.length)];
+    }
 
-            // Exaggeration factor based on the range of data
-            const exaggerationFactor = 2; // Adjust as needed
-            const scaledMin = minValue - exaggerationFactor * (maxValue - minValue);
-            const scaledMax = maxValue + exaggerationFactor * (maxValue - minValue);
+    function plotEmbed(dataArray, color) {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const scaler = centerY / 1.5;
 
-            // Calculate a scale factor based on the exaggerated range of data
-            const scaleFactor = canvas.height / Math.log(1 + scaledMax - scaledMin);
+        const rotationStep = (2 * Math.PI) / dataArray.length;
+        const startAngle = -Math.PI / 2;
 
-            ctx.beginPath();
-
-            float32Array.forEach((value, index) => {
-                // Use only 1/10th of the data points
-                if (index % 10 !== 0) {
-                    return;
-                }
-
-                const x = (index / 10) * (canvas.width / (float32Array.length / 2));
-                const y = Math.log(1 + value - scaledMin) * scaleFactor;
-
-                // Rotate each point by an angle (in radians)
-                const angle = (index * Math.PI) / 180;
-                const rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
-                const rotatedY = x * Math.sin(angle) + y * Math.cos(angle);
-
-                if (index === 0) {
-                    ctx.moveTo(rotatedX, rotatedY);
-                } else {
-                    ctx.lineTo(rotatedX, rotatedY);
-                }
-            });
-
-            ctx.closePath();
-
-            // Configurable styles
-            ctx.fillStyle = 'rgba(0, 0, 255, 0.1)';
-            ctx.fill();
-
-            ctx.strokeStyle = 'blue';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-
-
-        function logIt(str) {
-            console.log('logging:', str);
-            ulResults.innerHTML += `<li>${str.toString()}</li>`;
-        }
-
-        (async () => {
-            logIt("getting model...");
-            model = await use.load();
-            console.log("Model loaded:", model);
-            logIt("model loaded.");
-        })();
-
-        async function performWordAlgebra() {
-            const word1 = document.getElementById('word1').value;
-
-            if (!word1) {
-                alert("Please enter a word!");
-                return;
+        for (let i = 0; i < dataArray.length; i += 12) {
+            const angle = startAngle + i * rotationStep;
+            const radius = scaler + dataArray[i] * 500;
+            const x = centerX + Math.cos(angle) * radius;
+            const y = centerY + Math.sin(angle) * radius;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
             }
-
-            const embeddings = await model.embed(word1);
-
-            plotGraph(await embeddings.data());
         }
 
-        const btnWordAlgebra = document.getElementById('btnWordAlgebra');
-        btnWordAlgebra.addEventListener('click', performWordAlgebra);
-    </script>
+        ctx.closePath();
+        ctx.fillStyle = lightenHexColor(color).toString();
+        ctx.fill();
+        ctx.strokeStyle = color.toString();
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+
+    function logIt(str, color, plainBlack = false) {
+        console.log('logging:', str);
+        const ulResults = document.getElementById('ulResults');
+        if (plainBlack)
+            ulResults.innerHTML += `<li class="text-lg" style='color: ${color};  text-shadow: .4px .4px 2px black;'>${str.toString()}</li>`;
+        else
+            ulResults.innerHTML += `<li class="text-lg" style='color: ${color};  text-shadow: .4px .4px 2px black;'>${str.toString()}</li>`;
+    }
+
+    (async () => {
+        logIt("getting model....", true, true);
+        model = await use.load();
+        console.log("Model loaded:", model);
+        logIt("model loaded.", true, true);
+    })();
+
+    async function performWordAlgebra() {
+        const word1 = document.getElementById('word1').value;
+
+        if (!word1) {
+            logIt('please enter some text first.', 'black', true);
+            return;
+        }
+
+        if (!model) {
+            logIt('please wait for the model.', 'black', true);
+            return;
+        }
+
+        const embeddings = await model.embed(word1);
+        const color = getRandomColor();
+
+        plotEmbed(await embeddings.data(), color);
+        logIt(word1, color);
+    }
+
+    const btnWordAlgebra = document.getElementById('btnWordAlgebra');
+    btnWordAlgebra.addEventListener('click', performWordAlgebra);
+</script>
+
+   
+
 </body>
 
 </html>
