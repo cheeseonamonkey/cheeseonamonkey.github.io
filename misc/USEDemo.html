@@ -23,29 +23,63 @@
 </head>
 
 <body class="bg-slate-100 p-3">
-
     <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
         <h1 class="text-xl font-bold mb-4" style="font-family: 'Josefin Sans', sans-serif;">
-            <b class="text-3xl m-1 my-2"><u>Plotting Semantics</u></b><br>
-            &nbsp;&nbsp;&nbsp;&nbsp;<small> with the</small> <b><i>Universal Sentence Encoder</i></b>
+            <b class="text-3xl shadow m-1 my-2"><u>Plotting Semantics</u></b><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<small><SMALL class="font-thin"> with the</SMALL></small> <b><i>Universal Sentence
+                    Encoder</i></b>
         </h1>
         <hr>
 
-        <div class="flex items-center">
-            <input type="text" id="word1" placeholder="Enter language"
-                class="p-2 border rounded mr-2 focus:outline-none">
-            <button id="btnWordAlgebra"
-                class="p-2 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none">Embed</button>
+        <div class="max-w-lg mx-auto bg-white px-3 py-2 rounded shadow-md">
+            <div class="mb-6">
+                <textarea id="word1" placeholder="Enter some language here..."
+                    class="p-2 border bg-gray-200 rounded focus:bg-gray-100 w-full resize-y mb-3"></textarea>
+
+                <div class="flex px-1 items-center m-1">
+                    <label class="float-left text-gray-800" for="txtComparator" class="mr-2">measure:</label>
+                    <input type="text" id="txtComparator"
+                        class="p-1 text-sm mx-2 w-full float-right border rounded focus:outline-none"
+                        placeholder="(optional)">
+                </div>
+
+                <button id="btnWordAlgebra"
+                    class="clear-both p-2 m-3 text-lg float-right bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none">Embed</button>
+                <br class="clear-both" />
+
+            </div>
         </div>
+
+
         <div class="flex flex-col">
             <div class="border shadow-inner h-32 m-1 mt-4 p-1 pb-0 overflow-y-auto relative">
                 <div class="absolute overflow-none bottom-0 w-[100%]">
                     <ul class="pt-1 w-full" id="ulLog"></ul>
                 </div>
             </div>
-            <canvas id="myCanvas" class="mt-4 bg-gray-200 border width-full shadow-inner p-1" width="450"
+            <canvas id="myCanvas" class="mt-4 bg-gray-200 border w-full shadow-inner p-1" width="450"
                 height="450"></canvas>
         </div>
+
+
+        <footer class="border-t p-1 max-w-2xl text-sm mt-16  bottom-0 w-full" style="width: 100%; font-family: Nunito;">
+            <h2 style="font-family: Josefin Sans;" class="text-gray-600 text-lg font-bold underline">What is this??</h2>
+            <p class="">This page uses the <a class="text-blue-600 underline "
+                    href='https://arxiv.org/abs/1803.11175'>Universal
+                    Sentence Encoder</a> to create
+                <i>numerical</i> representations of <i>semantic
+                    concepts</i> called <i><b><a class="text-blue-600 underline "
+                            href="https://en.wikipedia.org/wiki/Word_embedding">embeddings</a></b></i>.
+            </p>
+            <p> We can represent these embeddings in multidimensional space, to understand their relationships to each
+                other and do math on them.
+            <p>When you input some language, it calculates the embeddings, plots them to the graph, and measures how
+                semantically similar your
+                phrase is to a measurement word.</p>
+            <a href="https://www.github.com/cheeseonamonkey" class="text-sm text-blue-500 hover:underline">github</a>
+
+        </footer>
+
     </div>
 
     <script>
@@ -133,6 +167,41 @@
         })();
 
         async function performWordAlgebra() {
+
+            function cosineSimilarity(vec1, vec2) {
+                if (vec1.length !== vec2.length)
+                    throw new Error("Vector lengths must be equal");
+
+                console.log(vec1, vec2)
+
+                let dotProduct = 0;
+                let mag1 = 0;
+                let mag2 = 0;
+
+                for (let i = 0; i < vec1.length; i++) {
+                    dotProduct += vec1[i] * vec2[i];
+                    mag1 += vec1[i] * vec1[i];
+                    mag2 += vec2[i] * vec2[i];
+                }
+
+                mag1 = Math.sqrt(mag1);
+                mag2 = Math.sqrt(mag2);
+
+                if (mag1 === 0 || mag2 === 0) {
+                    console.warn("One or both vectors have zero magnitude. Returning 0 similarity.");
+                    return 0;
+                }
+
+                const cosSim = dotProduct / (mag1 * mag2);
+
+                console.log(cosSim);
+                return cosSim;
+            }
+
+
+
+
+
             try {
                 btnWordAlgebra.style.backgroundColor = "gray";
                 const word1 = document.getElementById('word1').value;
@@ -147,12 +216,28 @@
                     logIt('enter text!.', 'black', true);
                     return;
                 }
-                const embeddings = await model.embed(word1);
+                const embedWord1 = await model.embed(word1);
                 const color = getRandomColor();
 
-                plotEmbed(await embeddings.data(), color);
-                logWord(word1, color);
+                plotEmbed(await embedWord1.data(), color);
+
+                if (txtComparator.value === "")
+                    logWord(word1, color);
+                else {
+                    (async () => {
+                        const comparator = txtComparator.value
+                        const embeddedComparator = await model.embed(comparator)
+                        const cosSim = cosineSimilarity(await embeddedComparator.data(), await embedWord1.data()) ?? "err"
+                        logWord(`${word1} (${(cosSim * 100).toFixed(1)}% similar to: ${txtComparator.value})`, color);
+                    })()
+                }
+
+
+                // cosine sim
+
                 btnWordAlgebra.style.backgroundColor = null;
+
+
             } catch (err) {
                 logIt('error:\n   ' + err, 'red', false)
             }
