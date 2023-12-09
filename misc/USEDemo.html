@@ -72,7 +72,7 @@
         ctx.closePath();
         ctx.fillStyle = lightenHexColor(color).toString();
         ctx.fill();
-        ctx.strokeStyle = color.toString();
+        ctx.strokeStyle = color.toString().value;
         ctx.lineWidth = 3;
         ctx.stroke();
     }
