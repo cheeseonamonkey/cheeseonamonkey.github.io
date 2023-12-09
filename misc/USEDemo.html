@@ -39,6 +39,8 @@
    
   <script>
     const lightenHexColor = hex => `${hex}2a`;
+    const copyColor = hex => `${hex}`;
+
     let theColors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40", "#B3B3CC", "#FFD700", "#8B4513", "#00FF00"];
     let model;
 
@@ -57,9 +59,9 @@
         const rotationStep = (2 * Math.PI) / dataArray.length;
         const startAngle = -Math.PI / 2;
 
-        for (let i = 0; i < dataArray.length; i += 12) {
+        for (let i = 0; i < dataArray.length; i += 8) {
             const angle = startAngle + i * rotationStep;
-            const radius = scaler + dataArray[i] * 500;
+            const radius = scaler + dataArray[i] * 550;
             const x = centerX + Math.cos(angle) * radius;
             const y = centerY + Math.sin(angle) * radius;
             if (i === 0) {
@@ -72,8 +74,8 @@
         ctx.closePath();
         ctx.fillStyle = lightenHexColor(color).toString();
         ctx.fill();
-        ctx.strokeStyle = color.toString().value;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = copyColor(color).toString();
+        ctx.lineWidth = 2;
         ctx.stroke();
     }
 
@@ -94,6 +96,7 @@
     })();
 
     async function performWordAlgebra() {
+        btnWordAlgebra.style.backgroundColor = "gray"
         const word1 = document.getElementById('word1').value;
 
         if (!word1) {
