@@ -8,9 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500&family=Nunito:wght@300&family=Poppins:wght@500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500&family=Nunito:wght@300&family=Poppins:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
@@ -20,24 +18,24 @@
 <body class="bg-gray-100 p-8">
 
     <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow-md">
-        <h1 class="text-xl font-bold mb-4" style="font-family: 'Josefin Sans', sans-serif;"> <b
-                class="text-3xl m-1 my-2"><u>Plotting Words</u></b><br> &nbsp;&nbsp;&nbsp;<small>with</small> <b><i>Universal
-                    Sentence Encoder</i>
+        <h1 class="text-xl font-bold mb-4" style="font-family: 'Josefin Sans', sans-serif;">
+            <b class="text-3xl m-1 my-2"><u>Plotting Semantics</u></b><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<small> with the</small> <b><i>Universal Sentence Encoder</i></b>
         </h1>
-<hr>
+        <hr>
         <div id="output" class="mb-4"></div>
 
-        <input type="text" id="word1" placeholder="Enter word " class="p-2 border rounded mr-2">
-        <button id="btnWordAlgebra" class="p-2 bg-blue-500 text-white rounded">Perform Word Algebra</button>
+        <div class="flex items-center">
+            <input type="text" id="word1" placeholder="Enter word " class="p-2 border rounded mr-2 focus:outline-none">
+            <button id="btnWordAlgebra" class="p-2 bg-blue-500 text-white rounded hover:bg-blue-700 focus:outline-none">Perform Word Algebra</button>
+        </div>
 
-        <ul class="m-2 p-2" id="ulResults"></ul>
+        <ul class="mt-4 p-2" id="ulResults"></ul>
         <canvas id="myCanvas" class="mt-4 bg-gray-200 border" width="450" height="450"></canvas>
 
     </div>
 
-   
-   
-  <script>
+    <script>
     const lightenHexColor = hex => `${hex}2a`;
     const copyColor = hex => `${hex}`;
 
