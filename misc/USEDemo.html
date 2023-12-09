@@ -41,7 +41,7 @@
     const lightenHexColor = hex => `${hex}2a`;
     const copyColor = hex => `${hex}`;
 
-    let theColors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40", "#B3B3CC", "#FFD700", "#8B4513", "#00FF00"];
+    let theColors = ["#FF5384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FFaF40", "#B3B3CC", "#FFD700", "#8B4513", "#00FF00"];
     let model;
 
     const canvas = document.getElementById('myCanvas');
@@ -51,7 +51,7 @@
         return theColors[Math.floor(Math.random() * theColors.length)];
     }
 
-    function plotEmbed(dataArray, color) {
+ function plotEmbed(dataArray, color) {
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const scaler = centerY / 1.5;
@@ -59,9 +59,12 @@
         const rotationStep = (2 * Math.PI) / dataArray.length;
         const startAngle = -Math.PI / 2;
 
-        for (let i = 0; i < dataArray.length; i += 8) {
+
+        ctx.beginPath();
+
+        for (let i = 0; i < dataArray.length; i += 12) {
             const angle = startAngle + i * rotationStep;
-            const radius = scaler + dataArray[i] * 550;
+            const radius = (scaler + dataArray[i] * 750) - 50;
             const x = centerX + Math.cos(angle) * radius;
             const y = centerY + Math.sin(angle) * radius;
             if (i === 0) {
@@ -72,12 +75,28 @@
         }
 
         ctx.closePath();
-        ctx.fillStyle = lightenHexColor(color).toString();
-        ctx.fill();
+
+        // Adjust the alpha value of the fill color
+        const fillAlpha = 0.5; // Adjust this value as needed
+        ctx.fillStyle = hexToRGBA(lightenHexColor(color), fillAlpha).toString();
+
+        // Set the stroke style and draw the shape
         ctx.strokeStyle = copyColor(color).toString();
         ctx.lineWidth = 2;
         ctx.stroke();
+        ctx.fill();
+
     }
+
+    // Helper function to convert hex color to RGBA with a specified alpha value
+    function hexToRGBA(hex, alpha) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+
+        return `rgba(${r},${g},${b},${alpha})`;
+    }
+
 
     function logIt(str, color, plainBlack = false) {
         console.log('logging:', str);
@@ -89,41 +108,32 @@
     }
 
     (async () => {
-        try{
-            logIt("getting model....", true, true);
-            model = await use.load();
-            console.log("Model loaded:", model);
-            logIt("model loaded.", true, true);
-         }catch(err) {
-        logIt(err, 'red', false)
-        }
+        logIt("getting model....", true, true);
+        model = await use.load();
+        console.log("Model loaded:", model);
+        logIt("model loaded.", true, true);
     })();
 
     async function performWordAlgebra() {
-        try{ 
-            btnWordAlgebra.style.backgroundColor = "gray"
-            const word1 = document.getElementById('word1').value;
-    
-            if (!word1) {
-                logIt('please enter some text first.', 'black', true);
-                return;
-            }
-    
-            if (!model) {
-                logIt('please wait for the model.', 'black', true);
-                return;
-            }
-    
-            const embeddings = await model.embed(word1);
-            const color = getRandomColor();
-    
-            plotEmbed(await embeddings.data(), color);
-            logIt(word1, color);
-    
-            btnWordAlgebra.style.backgroundColor = null;
-        }catch(err) {
-            logIt(err, 'red', false)
+        btnWordAlgebra.style.backgroundColor = "gray"
+        const word1 = document.getElementById('word1').value;
+
+        if (!word1) {
+            logIt('please enter some text first.', 'black', true);
+            return;
         }
+
+        if (!model) {
+            logIt('please wait for the model.', 'black', true);
+            return;
+        }
+
+        const embeddings = await model.embed(word1);
+        const color = getRandomColor();
+
+        plotEmbed(await embeddings.data(), color);
+        logIt(word1, color);
+        btnWordAlgebra.style.backgroundColor = null;
     }
 
     const btnWordAlgebra = document.getElementById('btnWordAlgebra');
