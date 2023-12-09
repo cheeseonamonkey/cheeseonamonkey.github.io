@@ -54,7 +54,7 @@
  function plotEmbed(dataArray, color) {
         const centerX = canvas.width    / 2;
         const centerY = canvas.height   / 2;
-        const scaler  = canvas.height    / 2.1;
+        const scaler  = canvas.height    / 2;
 
         const rotationStep = (2 * Math.PI) / dataArray.length;
         const startAngle = -Math.PI / 2;
@@ -62,7 +62,7 @@
 
         ctx.beginPath();
 
-        for (let i = 0; i < dataArray.length; i += 15) {
+        for (let i = 0; i < dataArray.length; i += 12) {
             const angle = startAngle + i * rotationStep;
             const radius = (scaler + dataArray[i] * 750) - 50;
             const x = centerX + Math.cos(angle) * radius;
