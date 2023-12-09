@@ -30,7 +30,7 @@
         <input type="text" id="word1" placeholder="Enter word " class="p-2 border rounded mr-2">
         <button id="btnWordAlgebra" class="p-2 bg-blue-500 text-white rounded">Perform Word Algebra</button>
 
-        <ul class="m-1 p-1" id="ulResults"></ul>
+        <ul class="m-2 p-2" id="ulResults"></ul>
         <canvas id="myCanvas" class="mt-4 bg-gray-200 border" width="450" height="450"></canvas>
 
     </div>
@@ -102,7 +102,7 @@
         console.log('logging:', str);
         const ulResults = document.getElementById('ulResults');
         const textColor = plainBlack ? 'black' : color;
-        ulResults.innerHTML += `<li class="text-md border-b border-gray-200" style='font-family: Roboto, Arial, mono; color: ${textColor}; text-shadow: .4px .4px 2px black;'>${str.toString()}</li>`;
+        ulResults.innerHTML += `<li class="text-md text-gray-900 border-bl px-1 border-gray-200" style='font-family: Nunito, Roboto, Arial, mono; color: ${textColor}; text-shadow: .4px .4px 2px black;'>${str.toString()}</li>`;
     }
 
     function logWord(str, color) {
