@@ -64,18 +64,26 @@
 
         <footer class="border-t p-1 max-w-2xl text-sm mt-16  bottom-0 w-full" style="width: 100%; font-family: Nunito;">
             <h2 style="font-family: Josefin Sans;" class="text-gray-600 text-lg font-bold underline">What is this??</h2>
-            <p class="">This page uses the <a class="text-blue-600 underline "
+
+            </p>
+            <h2 style="font-family: Josefin Sans;" class="text-gray-600 text-lg font-bold underline">How does it work??
+            </h2>
+            <p class="text-justify">Input some language to visualize & compare language as shapes.<br>
+                You may also enter a word or phrase to "measure" the similarity. This is really interesting to measure
+                different aspects of things, or to discover information about how language is used (for example: we
+                could actually <i>quanitfy</i> racial/political bias)
+            </p><br>
+            <p class="text-justify">This page uses the <a class="text-blue-600 underline "
                     href='https://arxiv.org/abs/1803.11175'>Universal
                     Sentence Encoder</a> to create
                 <i>numerical</i> representations of <i>semantic
-                    concepts</i> called <i><b><a class="text-blue-600 underline "
-                            href="https://en.wikipedia.org/wiki/Word_embedding">embeddings</a></b></i>.
-            </p>
-            <p> We can represent these embeddings in multidimensional space, to understand their relationships to each
+                    concepts</i> called <i><a class="text-blue-600 underline "
+                        href="https://en.wikipedia.org/wiki/Word_embedding">embeddings</a></i>.
+            <p class="text-justify"> We can represent these embeddings in multidimensional space, to understand their
+                relationships to
+                each
                 other and do math on them.
-            <p>When you input some language, it calculates the embeddings, plots them to the graph, and measures how
-                semantically similar your
-                phrase is to a measurement word.</p>
+            <p class="text-justify">Similarities are calculated using the <b>cosine similarity</b> formula.</p>
             <a href="https://www.github.com/cheeseonamonkey" class="text-sm text-blue-500 hover:underline">github</a>
 
         </footer>
@@ -228,7 +236,7 @@
                         const comparator = txtComparator.value
                         const embeddedComparator = await model.embed(comparator)
                         const cosSim = cosineSimilarity(await embeddedComparator.data(), await embedWord1.data()) ?? "err"
-                        logWord(`${word1} (${(cosSim * 100).toFixed(1)}% similar to: ${txtComparator.value})`, color);
+                        logWord(`${word1} (<b style='text-size: 1.2em;'>${(cosSim * 100).toFixed(1)}% similar</b> to: ${txtComparator.value})`, color);
                     })()
                 }
 
