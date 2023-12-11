@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!--
+    <style>
+        @media (max-width: 767px) { body { overflow-x: hidden; } }
+    </style>
+   -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Algebra with Universal Sentence Encoder</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500&family=Nunito:wght@300&family=Poppins:wght@500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-slate-100 p-3 pl-1">
+    <div class="max-w-2xl mx-auto p-4 bg-white rounded shadow-md text-xs whitespace-no-wrap">
+        <h1 class="font-bold mb-4 whitespace-no-wrap"
+            style="font-family: 'Josefin Sans', sans-serif; white-space: no-wrap;">
+            <b class="text-3xl m-1 my-2"><u>Auto-Librarian</u></b><br>
+            &nbsp;&nbsp;&nbsp;<i><small class="font-thin">automating the Dewey Decimal System with</small> <b>Natural
+                    Language Processing</b> </i>
+        </h1>
+        <hr>
+
+        <div class="max-w-9/10 m-auto p-3 bg-white rounded shadow-md">
+            <label class="block font-bold text-md text-gray-900 mb-1"
+                style="font-family: 'Poppins', sans-serif; text-shadow: .5px .5px 2px rgba(23, 23, 24, 0.4);">book
+                title:</label>
+            <div class="flex">
+                <input type="text" id="txtTitle" class="w-full p-2 border rounded-md shadow-inner">
+
+                <!-- go button -->
+                <button id="btnGo"
+                    class="bg-blue-500 text-white px-5 py-1 mx-3 shadow rounded hover:bg-blue-600 focus:outline-none focus:ring focus:border-blue-300">
+                    Go
+                </button>
+            </div>
+            <div>
+                <ul class="pt-1 w-full" id="ulLog"></ul>
+            </div>
+            <canvas width="100%" height="200" id="chartCanvas"></canvas>
+        </div>
+
+        <footer class="border-t p-1 max-w-2xl mt-20 text-xs w-full" style="width: 100%; font-family: Nunito;">
+            <h2 class="text-gray-600 text-sm font-bold underline" style="font-family: Josefin Sans;">What is this??</h2>
+            <p>Input any book title to magically calculate & visualize its Dewey Decimal categorization.</p> <br>
+            <h2 class="text-gray-600 text-sm font-bold underline" style="font-family: Josefin Sans;">How does it work??
+            </h2>
+            <p class="">This page uses the <a class="text-blue-600 underline"
+                    href='https://arxiv.org/abs/1803.11175'>Universal Sentence Encoder</a> to create <i>numerical</i>
+                representations of <i>semantic concepts</i> called <i><b><a class="text-blue-600 underline"
+                            href="https://en.wikipedia.org/wiki/Word_embedding">embeddings</a></b></i>. This is like
+                a <i>measurement</i> of the actual <i>meaning</i> of words.</p>
+            <br>
+            <p>We can represent these embeddings in multidimensional space, to understand their relationships to each
+                other
+                and do math on them.</p>
+            <br>
+            <p><a href="https://www.github.com/cheeseonamonkey" class="text-xs text-blue-500 hover:underline">github</a>
+            </p>
+        </footer>
+    </div>
+
+
+    <script>
+
+
+
+
+
+
+        function logIt(str) {
+            console.log(str.toString());
+            const logLi = document.createElement('li')
+            logLi.innerHTML = str
+            ulLog.appendChild(logLi)
+        }
+
+        function createSignalChart(signal, title, maxPoints = 80) {
+            try {
+                const minValueY = Math.min(...signal);
+                const maxValueY = Math.max(...signal);
+
+                // Downsampling
+                const downsampledSignal = downsample(signal, maxPoints);
+
+                // Get the existing canvas element
+                const canvas = document.getElementById('chartCanvas');
+                const ctx = canvas.getContext('2d');
+
+                // Set the canvas size based on its parent container or any desired size
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+
+                // Create or update Chart.js configuration object
+                // Create or update Chart.js configuration object
+                const chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: downsampledSignal.map((_, index) => ''),
+                        datasets: [{
+                            label: title.toString(),
+                            borderWidth: 4,
+                            pointRadius: 0,
+                            fill: false,
+                            data: downsampledSignal,
+                            cubicInterpolationMode: 'monotone',
+                        }],
+                    },
+                    options: {
+
+                        scales: {
+                            x: {
+                                display: false, // hide x-axis
+                            },
+                            y: {
+                                display: false, // hide y-axis
+                            },
+                        },
+                        plugins: {
+                            annotations: {
+                                label1: {
+                                    type: 'label',
+                                    xValue: Math.min(...signal),
+                                    yValue: signal[0],
+                                    backgroundColor: '#111',
+                                    content: ['This is my text', 'This is my text, second line'],
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: true, // hide legend
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    labelPointStyle: function (context) {
+                                        return {
+                                            pointStyle: 'triangle',
+                                            rotation: 0
+                                        };
+                                    }
+                                }
+                            },
+                        },
+                        elements: {
+                            point: {
+                                radius: 0, // hide points
+                            },
+                        },
+                    },
+                };
+
+
+                // Check if the Chart instance already exists
+                if (myChart) {
+                    // Add a new dataset with the updated data
+                    datasetIndex++;
+                    myChart.data.datasets.push({
+                        label: title,
+                        borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
+                        borderWidth: 5,
+                        pointRadius: 0,
+                        fill: false,
+                        data: downsampledSignal,
+                        cubicInterpolationMode: 'default',
+                        tension: 0.6,
+                    });
+
+                    // Update the existing chart with new data
+                    myChart.update();
+                } else {
+                    // Create Chart.js instance
+                    myChart = new Chart(ctx, chartConfig);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+
+        // Function to downsample the signal to the specified number of data points
+        function downsample(signal, maxDataPoints, smoothingWindowSize = 20) {
+
+
+            var smoothedSignal = [];
+            for (var i = 0; i < signal.length; i++) {
+                var sum = 0;
+                var count = 0;
+                for (var j = i - Math.floor(smoothingWindowSize / 2); j <= i + Math.floor(smoothingWindowSize / 2); j++) {
+                    if (j >= 0 && j < signal.length) {
+                        sum += signal[j];
+                        count++;
+                    }
+                }
+                smoothedSignal.push(sum / count);
+            }
+
+
+            var ratio = Math.ceil(smoothedSignal.length / maxDataPoints);
+            return smoothedSignal.filter((value, index) => index % ratio === 0);
+
+
+
+        }
+
+
+        function cosineSimilarity(vec1, vec2) {
+
+            if (vec1.length !== vec2.length)
+                throw new Error("Vector lengths must be equal");
+
+            console.log(vec1, vec2)
+
+            let dotProduct = 0;
+            let mag1 = 0;
+            let mag2 = 0;
+
+            for (let i = 0; i < vec1.length; i++) {
+                dotProduct += vec1[i] * vec2[i];
+                mag1 += vec1[i] * vec1[i];
+                mag2 += vec2[i] * vec2[i];
+            }
+
+            mag1 = Math.sqrt(mag1);
+            mag2 = Math.sqrt(mag2);
+
+            if (mag1 === 0 || mag2 === 0)
+                throw new Error("Vector lengths must be equal");
+
+            const cosSim = dotProduct / (mag1 * mag2);
+
+            console.log(cosSim);
+            return cosSim;
+
+
+        }
+
+
+        async function performWordAlgebra() {
+
+
+
+            try {
+                const word1 = document.getElementById('txtTitle').value;
+
+
+                if (!model) {
+                    logIt('wait for the model!', 'black', true);
+                    return;
+                }
+
+                if (!word1 || word1 === "") {
+                    logIt('enter text!.', 'black', true);
+                    return;
+                }
+                const embedWord1 = await model.embed(word1);
+                createSignalChart(await embedWord1.data(), title = word1)
+
+
+
+
+
+
+
+
+
+
+            } catch (err) {
+                logIt('error:\n   ' + err, 'red', false)
+            }
+        }
+
+
+
+        btnGo.addEventListener('click', performWordAlgebra);
+
+
+        const initModel = async () => {
+            try {
+
+                btnGo.innerHTML = "getting model...";
+                btnGo.disabled = true;
+
+                const model = await use.load();
+                console.log("Model loaded");
+                return model;
+
+            } catch (error) {
+                console.error("Error loading the model:", error);
+            } finally {
+                btnGo.innerHTML = "Get";
+                btnGo.disabled = false;
+            }
+        };
+
+
+
+
+        let ctx = chartCanvas.getContext('2d')
+        let myChart;
+        let datasetIndex = 0;
+
+
+        let model;
+
+
+        (async () => {
+            try {
+                model = await initModel();
+                // Do something with the model
+            } catch (error) {
+                console.error("Error initializing the model:", error);
+            }
+        })();
+
+
+    </script>
+
+
+
+</body>
+
+</html>
