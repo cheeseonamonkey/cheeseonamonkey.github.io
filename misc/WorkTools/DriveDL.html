@@ -28,19 +28,22 @@
 
 </head>
 
-<body class="max-w-4/5 text-center text-lg mx-auto p-5 font-rubik text-base">
+<body class="max-w-9/10 text-center text-lg mx-auto p-2 font-rubik text-base">
    <h1 class="text-center mb-5">Google Drive OAuth</h1>
 
    <div class="bg-gray-100 p-2 shadow">
       <!-- Group: Gets the newest files and filter folders input -->
       <div class="search-bar">
+         <button id="authenticateButton">Authenticate Google Drive</button>
+
          <div style="display: block;">
             <span style="display:block; margin:auto; width:105%;"> <i
                   style="font-weight: lighter; font-family:Verdana, Geneva, Tahoma, sans-serif;">This tool simply
-                  gets links to download the
+                  gets links to the
                   <b><u>most recent</u> &nbsp; <input type="number"
-                        style="font-size: 1.05em; border: none; box-shadow: inset .3px .3px 1.1px 2px rgba(44,44,44,0.11);  background-color: rgba(138, 138, 147, 0.01); font-family: Arial, Helvetica, mono, sans-serif; padding:0; max-width: 1.5em; transform: scale(1.15,1.05);"
-                        id="inputPageSize" min="1" value="2" max="9" /> &nbsp;</b>files
+                        style="font-size: 1.05em; border: none; box-shadow: inset .3px .3px 1.1px 2px rgba(44,44,44,0.11);  background-color: rgba(138, 138, 147, 0.01); font-family: Arial, Helvetica, mono, sans-serif; padding:0; max-width: 1.6em; transform: scale(1.2,1.1);"
+                        id="inputPageSize" min="1" value="2" max="9" onfocus="()=>{ inputPageSize.value = ''; }"
+                        onchange="()=>{alert();}" /> &nbsp;</b>files
                   from the
                   selected Google Drive folders!</i></span>
          </div>
@@ -52,166 +55,158 @@
 
    </div>
    <ul id="fileList" class="text-left"></ul>
-   <script>
-      const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
-      const redirectUri = encodeURIComponent(window.location.href);
+   <div id="authLinkBox" class="max-w-md mx-auto p-8 bg-white border rounded-lg shadow-md">
 
-      // "will have access to ALL drive files..."
-      // const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
+      <script>
+         const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
+         const redirectUri = encodeURIComponent(window.location.href.toString().trimEnd('/'));
+         const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.metadata.readonly');
+         const accessToken = getAccessTokenFromHash();
+         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 
-      // "will"
-      const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
+         function getAccessTokenFromHash() {
+            const hash = window.location.hash.substr(1);
+            const urlParams = new URLSearchParams(hash);
+            return urlParams.get('access_token');
+         }
 
-      /*  Authorization URL:  */
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+         async function fetchData(endpoint, queryParams, fields, mimeType) {
+            const response = await fetch(`${endpoint}?${queryParams}`, {
+               headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Accept': mimeType || 'application/json', // Set the desired mime type
+               }
+            });
+            const data = await response.json();
+            return data.files;
+         }
 
-      const accessToken = navigateToDriveAuth();
 
-      function navigateToDriveAuth() {
-         const hash = window.location.hash.substr(1);
-         const urlParams = new URLSearchParams(hash);
-         return urlParams.get('access_token');
-      }
+         async function fetchFiles(folderId, pageSize) {
+            const queryParams = `q='${folderId}' in parents&orderBy=createdTime desc&pageSize=${pageSize}&fields=files(id,name,createdTime,webViewLink,webContentLink,size)`;
+            return await fetchData('https://www.googleapis.com/drive/v3/files', queryParams);
+         }
 
-      function drawFolder(folder) {
-         const folderItem = document.createElement('li');
-         folderItem.classList.add('folder-item');
+         async function fetchFolders() {
+            const queryParams = `q=mimeType='application/vnd.google-apps.folder'&fields=files(id,name)`;
+            return await fetchData('https://www.googleapis.com/drive/v3/files', queryParams);
+         }
 
-         const pinCheckbox = document.createElement('input');
-         pinCheckbox.type = 'checkbox';
-         pinCheckbox.classList.add('pin-checkbox');
-         folderItem.appendChild(pinCheckbox);
+         window.onload = async () => {
+            const authLinkBox = document.getElementById('authLinkBox');
+            if (accessToken) {
+               authLinkBox.innerHTML += `<h6 class="text-lg font-semibold">You are logged into Google Drive. Nice!</h6>
+           <span><a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}">Logout</a></span>`;
 
-         const folderTitle = document.createElement('h5');
-         folderTitle.textContent = folder.name;
-         folderTitle.classList.add('folder-title');
-         folderItem.appendChild(folderTitle);
-
-         pinCheckbox.addEventListener('change', function () {
-            if (pinCheckbox.checked) {
-               folderItem.classList.add('pinned');
-               showFiles(folder.id, folderItem);
+               const folders = await fetchFolders();
+               for (let folder of folders) {
+                  const folderItem = drawFolder(folder);
+                  fileList.appendChild(folderItem);
+               }
             } else {
-               folderItem.classList.remove('pinned');
-               folderItem.removeChild(folderItem.querySelector('table'));
+               authLinkBox.innerHTML += `<h6 class="text-lg font-semibold">I don't think you are logged into Google Drive.</h6>
+           <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}">Authenticate Google Drive</a>`;
             }
-         });
+         };
+         function drawFolder(folder) {
+            const folderItem = document.createElement('li');
+            folderItem.classList.add(
+               'flex', 'flex-col', 'items-start', 'p-2', 'pb-1', 'pt-2', 'border-b-2', 'border-gray-300',
+               'md:p-1', 'md:pb-0', 'md:pt-3'
+            );
 
-         return folderItem;
-      }
+            // wrapper for the checkbox and make it clickable
+            const checkboxWrapper = document.createElement('div');
+            checkboxWrapper.classList.add('flex', 'items-center', 'mb-2');
+            folderItem.appendChild(checkboxWrapper);
 
-      async function fetchFolders() {
+            const pinCheckbox = document.createElement('input');
+            pinCheckbox.type = 'checkbox';
+            pinCheckbox.classList.add(
+               'form-checkbox', 'pointer-events-auto', 'text-cyan-700', 'pointer-events-none', 'mx-2', 'h-6', 'w-6', 'cursor-pointer'
+            );
+            checkboxWrapper.appendChild(pinCheckbox);
 
-         /*  get all Drive folders:  */
-         const folderResponse = await fetch(
-            'https://www.googleapis.com/drive/v3/files' +             // endpoint: https://developers.google.com/drive/api/v3/reference/files/list 
-            '?q=mimeType=\'application/vnd.google-apps.folder\'' +    // where is folder
-            '&fields=files(id,name)',                                 // select: folder ID, folder name
-            { headers: { 'Authorization': `Bearer ${accessToken}` } }
-         );
+            const folderTitle = document.createElement('h5');
+            folderTitle.textContent = folder.name;
+            folderTitle.classList.add('text-lg', 'font-semibold', 'mb-2');
+            checkboxWrapper.appendChild(folderTitle);
 
-         const folderData = await folderResponse.json();
-         return folderData.files;
-      }
+            // make entire row clickable
+            folderItem.style.cursor = 'pointer';
 
-      async function showFolders() {
-         const folders = await fetchFolders();
-
-         for (let folder of folders) {
-            const folderItem = drawFolder(folder);
-            fileList.appendChild(folderItem);
-         }
-
-        
-      }
-
-      async function fetchFiles(folderId, pageSize) {
-         /* 
-          Get all files in a specific Drive folder:
-      `  */
-         const fileResponse = await fetch(
-            'https://www.googleapis.com/drive/v3/files' +            // endpoint: https://www.googleapis.com/drive/v3/files   (same endpoint)
-            `?q=\'${folderId}\' in parents` +                        // where file is in the specified folder
-            `&orderBy=createdTime ` +                                // order by date desc
-            `desc&pageSize=${pageSize}` +                            // limit by
-            `&fields=files(id,name,createdTime,webViewLink,size)`,   // select: ID, name, createdTime, webViewLink, size
-            { headers: { 'Authorization': `Bearer ${accessToken}` } }
-         );
+            folderItem.addEventListener('click', function (event) {
 
 
-         const fileData = await fileResponse.json();
-         return fileData.files;
-      }
-
-      function drawFile(file) {
-         const row = document.createElement('tr');
-
-         const nameCell = document.createElement('td');
-         nameCell.textContent = file.name;
-         nameCell.style = "font-family: Consolas, Courier, mono; transform: scaleX(0.95); width: 50%;";
-         row.appendChild(nameCell);
-
-         const dateCell = document.createElement('td');
-         const date = new Date(file.createdTime);
-         dateCell.textContent = date.toLocaleDateString();
-         row.appendChild(dateCell);
-         nameCell.style = "transform: scaleX(0.92); font-size: 0.94em; width: 25%;";
-
-         const linkCell = document.createElement('td');
-         linkCell.style = "width: 25%; font-weight: bold;"
-         const link = document.createElement('a');
-         link.href = file.webViewLink;
-         link.textContent = 'Download';
-         linkCell.appendChild(link);
-         linkCell.innerHTML += `<span><i>&nbsp;&nbsp;&nbsp;(${(((file.size / 1024) / 1024).toFixed(2) + ' MB')})</i></span>`
-         row.appendChild(linkCell);
-
-         return row;
-      }
-
-      async function showFiles(folderId, folderItem) {
-         const pageSize = inputPageSize.value || 4;
-         const files = await fetchFiles(folderId, pageSize);
-
-         const table = document.createElement('table');
-         table.style.maxWidth = '85vw';
-         table.style.border = '1px solid black';
-         folderItem.appendChild(table);
-
-         for (let file of files) {
-            const row = drawFile(file);
-            table.appendChild(row);
-         }
-      }
-
-      window.onload = function () {
 
 
-         if (accessToken) {
-            document.body.innerHTML += `
-            <div class="m-3 p-1 border">
-               <br/>
-               <h6>You are logged into Google Drive. Nice! </h6>
-               <br/>
-               <span><a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}">logout</a></span>
-               <br />
-            </div>`;
-            showFolders();
-         } else {
-            document.body.innerHTML += `
-            <div class="m-3 p-1 border">
-               <br/>
-               <h6>I don't think you are logged into Google Drive. </h6>
-               <br/>
-               <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}"> ➜ Authenticate Google Drive</a>
-               <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;</span>
-               <br />
-            </div>`;
+
+               if (event.target === pinCheckbox || event.target.tagName === 'a' || event.target.tagName === 'td')
+                  event.stopPropagation();
+               else
+                  pinCheckbox.checked = !pinCheckbox.checked; // Toggle checkbox on row click
+
+               if (pinCheckbox.checked) {
+                  folderItem.classList.add('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300');
+                  folderItem.classList.add('pointer-events-none');
+                  drawFiles(folder.id, folderItem);
+               } else {
+                  folderItem.classList.remove('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300');
+                  folderItem.classList.remove('pointer-events-none');
+                  folderItem.removeChild(folderItem.querySelector('table'));
+               }
+            });
+
+
+            return folderItem;
          }
 
 
-      };
-   </script>
+         function drawFile(file) {
+            const row = document.createElement('tr');
+            row.classList.add('text-sm');
+
+            const nameCell = document.createElement('td');
+            nameCell.innerHTML = `<a class="pointer-events-auto text-blue-600 underline" href="${file.webViewLink}">${file.name}</a>`;
+            nameCell.classList.add('font-mono', 'transform', 'scale-x-95', 'w-1/2');
+            row.appendChild(nameCell);
+
+            const dateCell = document.createElement('td');
+            const date = new Date(file.createdTime);
+            dateCell.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            dateCell.classList.add('transform', 'scale-x-90', 'text-xs', 'w-1/10', 'max-w-1/8');
+            row.appendChild(dateCell);
+
+            const linkCell = document.createElement('td');
+            linkCell.classList.add('w-3/8', 'pointer-events-auto', 'font-bold');
+
+            const link = document.createElement('a');
+            link.href = file.webContentLink;
+            link.textContent = 'Download';
+            linkCell.appendChild(link);
+            linkCell.innerHTML += `<small class='pointer-events-auto text-sm font-thin'><br> <span><i>&nbsp;&nbsp;&nbsp;(${((file.size / (1024 * 1024)).toFixed(2) + ' MB')})</i></span></small>`;
+            row.appendChild(linkCell);
+
+            return row;
+         }
+
+
+         async function drawFiles(folderId, folderItem) {
+            const pageSize = inputPageSize.value || 2;
+            const files = await fetchFiles(folderId, pageSize);
+
+            const table = document.createElement('table');
+            table.classList.add('w-full', 'border', 'border-black', 'mt-2', 'overflow-x-auto');
+
+            folderItem.appendChild(table);
+
+            for (let file of files) {
+               const row = drawFile(file);
+               table.appendChild(row);
+            }
+         }
+      </script>
+
 
 </body>
 
