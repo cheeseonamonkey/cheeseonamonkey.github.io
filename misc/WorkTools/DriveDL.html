@@ -187,20 +187,7 @@
       }
 
       window.onload = function () {
-         const searchInput = document.querySelector('.search-bar input[type="text"]');
-         searchInput.addEventListener('input', function (e) {
-            const searchValue = e.target.value.toLowerCase();
-            const folderItems = document.querySelectorAll('.folder-item');
-            folderItems.forEach(function (folderItem) {
-               const folderTitle = folderItem.querySelector('h5');
-               const folderName = folderTitle.textContent.toLowerCase();
-               if (folderName.includes(searchValue)) {
-                  folderItem.style.display = 'block';
-               } else {
-                  folderItem.style.display = 'none';
-               }
-            });
-         });
+
 
          if (accessToken) {
             document.body.innerHTML += `
@@ -223,6 +210,24 @@
                <br />
             </div>`;
          }
+
+
+         const searchInput = document.querySelector('.search-bar input[type="text"]');
+         searchInput.addEventListener('input', function (e) {
+            const searchValue = e.target.value.toLowerCase();
+            const folderItems = document.querySelectorAll('.folder-item');
+            folderItems.forEach(function (folderItem) {
+               const folderTitle = folderItem.querySelector('h5');
+               const folderName = folderTitle.textContent.toLowerCase();
+               if (folderName.includes(searchValue)) {
+                  folderItem.style.display = 'block';
+               } else {
+                  folderItem.style.display = 'none';
+               }
+            });
+         });
+
+
       };
    </script>
 
