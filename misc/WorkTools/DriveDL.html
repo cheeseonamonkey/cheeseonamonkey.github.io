@@ -3,210 +3,229 @@
 
 <head>
 
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DriveDL - release getter</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        .search-bar input[type="text"] {
-            @apply w-2/3 text-lg border border-gray-300 rounded p-1;
-        }
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>DriveDL - release getter</title>
+   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+   <style>
+      .search-bar input[type="text"] {
+         @apply w-2/3 text-lg border border-gray-300 rounded p-1;
+      }
 
-        .search-bar textarea {
-            @apply font-sans text-lg w-4/5;
-        }
+      .search-bar textarea {
+         @apply font-sans text-lg w-4/5;
+      }
 
-        .folder-title {
-            @apply text-blue-500;
-        }
+      .folder-title {
+         @apply text-blue-500;
+      }
 
-        .pinned {
-            @apply bg-gray-200 text-sm order-first p-1 shadow-inner;
-        }
-    </style>
+      .pinned {
+         @apply bg-gray-200 text-sm order-first p-1 shadow-inner;
+      }
+   </style>
 
 </head>
 
 <body class="max-w-4/5 text-center text-lg mx-auto p-5 font-rubik text-base">
-    <h1 class="text-center mb-5">Google Drive OAuth</h1>
+   <h1 class="text-center mb-5">Google Drive OAuth</h1>
 
-    <div class="bg-gray-100 p-2 shadow">
-        <!-- Group: Gets the newest files and filter folders input -->
-        <div class="search-bar">
-            <div style="display: block;">
-                <span style="display:block; margin:auto; width:105%;"> <i
-                        style="font-weight: lighter; font-family:Verdana, Geneva, Tahoma, sans-serif;">This tool simply
-                        gets links to download the
-                        <b><u>most recent</u> &nbsp; <input type="number"
-                                style="font-size: 1.05em; border: none; box-shadow: inset .3px .3px 1.1px 2px rgba(44,44,44,0.11);  background-color: rgba(138, 138, 147, 0.01); font-family: Arial, Helvetica, mono, sans-serif; padding:0; max-width: 1.5em; transform: scale(1.15,1.05);"
-                                id="inputPageSize" min="1" value="2" max="9" /> &nbsp;</b>files
-                        from the
-                        selected Google Drive folders!</i></span>
-            </div>
+   <div class="bg-gray-100 p-2 shadow">
+      <!-- Group: Gets the newest files and filter folders input -->
+      <div class="search-bar">
+         <div style="display: block;">
+            <span style="display:block; margin:auto; width:105%;"> <i
+                  style="font-weight: lighter; font-family:Verdana, Geneva, Tahoma, sans-serif;">This tool simply
+                  gets links to download the
+                  <b><u>most recent</u> &nbsp; <input type="number"
+                        style="font-size: 1.05em; border: none; box-shadow: inset .3px .3px 1.1px 2px rgba(44,44,44,0.11);  background-color: rgba(138, 138, 147, 0.01); font-family: Arial, Helvetica, mono, sans-serif; padding:0; max-width: 1.5em; transform: scale(1.15,1.05);"
+                        id="inputPageSize" min="1" value="2" max="9" /> &nbsp;</b>files
+                  from the
+                  selected Google Drive folders!</i></span>
+         </div>
 
-            <br>
+         <br>
 
-        </div>
-
-
-    </div>
-    <ul id="fileList" class="text-left"></ul>
-    <script>
-        const lblFilterCount = document.getElementById('lblFilterCount');
-        const inputPageSize = document.getElementById('inputPageSize');
+      </div>
 
 
+   </div>
+   <ul id="fileList" class="text-left"></ul>
+   <script>
+      const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
+      const redirectUri = encodeURIComponent(window.location.href);
 
+      // "will have access to ALL drive files..."
+      // const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
 
-        const clientId = '234538019368-9cj60k6jis23t2c2acsq39mghav8ncf7.apps.googleusercontent.com';
-        const redirectUri = encodeURIComponent(window.location.href);
-        const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.readonly');
-        const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
+      // "will"
+      const scope = encodeURIComponent('https://www.googleapis.com/auth/drive.file');
 
-        async function handleClientLoad() {
-            const accessToken = getAccessTokenFromUrl();
-            if (accessToken) {
-                document.body.innerHTML +=
-                    ` <div class="m-3 p-1 border" > <br/>  <br />
-        <h6>You are logged into Google Drive. Nice! </h6> <br/>
-        <span><a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}" >logout</a></span>
-        <br />`;
-                showFolders(accessToken);
+      /*  Authorization URL:  */
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}`;
 
+      const accessToken = navigateToDriveAuth();
+
+      function navigateToDriveAuth() {
+         const hash = window.location.hash.substr(1);
+         const urlParams = new URLSearchParams(hash);
+         return urlParams.get('access_token');
+      }
+
+      function drawFolder(folder) {
+         const folderItem = document.createElement('li');
+         folderItem.classList.add('folder-item');
+
+         const pinCheckbox = document.createElement('input');
+         pinCheckbox.type = 'checkbox';
+         pinCheckbox.classList.add('pin-checkbox');
+         folderItem.appendChild(pinCheckbox);
+
+         const folderTitle = document.createElement('h5');
+         folderTitle.textContent = folder.name;
+         folderTitle.classList.add('folder-title');
+         folderItem.appendChild(folderTitle);
+
+         pinCheckbox.addEventListener('change', function () {
+            if (pinCheckbox.checked) {
+               folderItem.classList.add('pinned');
+               showFiles(folder.id, folderItem);
             } else {
-                document.body.innerHTML +=
-                    ` <div class="m-3 p-1 border" >  <br />
-          <h6>I don't think you are logged into Google Drive. </h6> <br/>
-        <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}"> ➜ Authenticate Google Drive</a>
-        <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;</span>
-        <br />`;
+               folderItem.classList.remove('pinned');
+               folderItem.removeChild(folderItem.querySelector('table'));
             }
-        }
+         });
 
-        function getAccessTokenFromUrl() {
-            const hash = window.location.hash.substr(1);
-            const urlParams = new URLSearchParams(hash);
-            return urlParams.get('access_token');
-        }
+         return folderItem;
+      }
 
-        async function showFolders(accessToken) {
-            const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files?q=mimeType=\'application/vnd.google-apps.folder\'&fields=files(id,name)', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            const folderData = await folderResponse.json();
-            const folders = folderData.files;
+      async function fetchFolders() {
 
-            for (let folder of folders) {
-                const folderItem = document.createElement('li');
-                folderItem.classList.add('folder-item');
-                fileList.appendChild(folderItem);
+         /*  get all Drive folders:  */
+         const folderResponse = await fetch(
+            'https://www.googleapis.com/drive/v3/files' +             // endpoint: https://developers.google.com/drive/api/v3/reference/files/list 
+            '?q=mimeType=\'application/vnd.google-apps.folder\'' +    // where is folder
+            '&fields=files(id,name)',                                 // select: folder ID, folder name
+            { headers: { 'Authorization': `Bearer ${accessToken}` } }
+         );
 
-                const pinCheckbox = document.createElement('input');
-                pinCheckbox.type = 'checkbox';
-                pinCheckbox.classList.add('pin-checkbox');
-                folderItem.appendChild(pinCheckbox);
+         const folderData = await folderResponse.json();
+         return folderData.files;
+      }
 
-                const folderTitle = document.createElement('h5');
-                folderTitle.textContent = folder.name;
-                folderTitle.classList.add('folder-title');
-                folderItem.appendChild(folderTitle);
+      async function showFolders() {
+         const folders = await fetchFolders();
 
-                pinCheckbox.addEventListener('change', function (e) {
-                    if (pinCheckbox.checked) {
-                        folderItem.classList.add('pinned');
-                        showFiles(folder.id, folderItem, accessToken);
-                    } else {
-                        folderItem.classList.remove('pinned');
-                        folderItem.removeChild(folderItem.querySelector('table'));
-                    }
-                });
-            }
+         for (let folder of folders) {
+            const folderItem = drawFolder(folder);
+            fileList.appendChild(folderItem);
+         }
 
-            setTimeout(() => {
-                searchInput.dispatchEvent(new Event('input'));
-            }, 666);
+         setTimeout(() => {
+            searchInput.dispatchEvent(new Event('input'));
+         }, 666);
+      }
+
+      async function fetchFiles(folderId, pageSize) {
+         /* 
+          Get all files in a specific Drive folder:
+      `  */
+         const fileResponse = await fetch(
+            'https://www.googleapis.com/drive/v3/files' +            // endpoint: https://www.googleapis.com/drive/v3/files   (same endpoint)
+            `?q=\'${folderId}\' in parents` +                        // where file is in the specified folder
+            `&orderBy=createdTime ` +                                // order by date desc
+            `desc&pageSize=${pageSize}` +                            // limit by
+            `&fields=files(id,name,createdTime,webViewLink,size)`,   // select: ID, name, createdTime, webViewLink, size
+            { headers: { 'Authorization': `Bearer ${accessToken}` } }
+         );
 
 
-        }
+         const fileData = await fileResponse.json();
+         return fileData.files;
+      }
 
-        async function showFiles(folderId, folderItem, accessToken) {
-            const intPageSize = inputPageSize.value ?? 2;
-            const fileResponse = await fetch(`https://www.googleapis.com/drive/v3/files?q=\'${folderId}\' in parents&orderBy=createdTime desc&pageSize=${intPageSize}&fields=files(id,name,createdTime,webViewLink,size)`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            const fileData = await fileResponse.json();
-            const files = fileData.files;
-            const table = document.createElement('table');
+      function drawFile(file) {
+         const row = document.createElement('tr');
 
-            table.style.maxWidth = '85vw';
+         const nameCell = document.createElement('td');
+         nameCell.textContent = file.name;
+         nameCell.style = "font-family: Consolas, Courier, mono; transform: scaleX(0.95); width: 50%;";
+         row.appendChild(nameCell);
 
-            table.style.border = '1px solid black';
-            folderItem.appendChild(table);
+         const dateCell = document.createElement('td');
+         const date = new Date(file.createdTime);
+         dateCell.textContent = date.toLocaleDateString();
+         row.appendChild(dateCell);
+         nameCell.style = "transform: scaleX(0.92); font-size: 0.94em; width: 25%;";
 
-            for (let file of files) {
-                const row = document.createElement('tr');
-                row.style.maxWidth = '85vw';
+         const linkCell = document.createElement('td');
+         linkCell.style = "width: 25%; font-weight: bold;"
+         const link = document.createElement('a');
+         link.href = file.webViewLink;
+         link.textContent = 'Download';
+         linkCell.appendChild(link);
+         linkCell.innerHTML += `<span><i>&nbsp;&nbsp;&nbsp;(${(((file.size / 1024) / 1024).toFixed(2) + ' MB')})</i></span>`
+         row.appendChild(linkCell);
 
-                const nameCell = document.createElement('td');
-                nameCell.textContent = file.name;
-                nameCell.style = "font-family: Consolas, Courier, mono; transform: scaleX(0.95); width: 50%;";
+         return row;
+      }
 
-                row.appendChild(nameCell);
+      async function showFiles(folderId, folderItem) {
+         const pageSize = inputPageSize.value || 4;
+         const files = await fetchFiles(folderId, pageSize);
 
-                const dateCell = document.createElement('td');
-                const date = new Date(file.createdTime);
-                dateCell.textContent = date.toLocaleDateString();
-                row.appendChild(dateCell);
-                nameCell.style = "transform: scaleX(0.92); font-size: 0.94em;  width: 25%;";
+         const table = document.createElement('table');
+         table.style.maxWidth = '85vw';
+         table.style.border = '1px solid black';
+         folderItem.appendChild(table);
 
+         for (let file of files) {
+            const row = drawFile(file);
+            table.appendChild(row);
+         }
+      }
 
-                const linkCell = document.createElement('td');
-                linkCell.style = "width: 25%; font-weight: bold;"
-                const link = document.createElement('a');
-                link.href = file.webViewLink;
-                link.textContent = 'Download';
-                linkCell.appendChild(link);
-                linkCell.innerHTML += `<span><i>&nbsp;&nbsp;&nbsp;(${(((file.size / 1024) / 1024).toFixed(2) + ' MB')})</i></span>`
-                row.appendChild(linkCell);
-
-
-                /*
-                        txtFilter.value.split("\n").forEach(it => {
-                          if (row.innerText.match(it))
-                            row.innerHTML += 'MATCHES\n';
-                          else
-                            row.innerHTML += 'NOT MATCHES\n';
-                
-                        });
-                */
-                table.appendChild(row);
-            }
-        }
-
-        window.onload = handleClientLoad;
-
-        const searchInput = document.querySelector('.search-bar input[type="text"]');
-        searchInput.addEventListener('input', function (e) {
+      window.onload = function () {
+         const searchInput = document.querySelector('.search-bar input[type="text"]');
+         searchInput.addEventListener('input', function (e) {
             const searchValue = e.target.value.toLowerCase();
             const folderItems = document.querySelectorAll('.folder-item');
             folderItems.forEach(function (folderItem) {
-                const folderTitle = folderItem.querySelector('h5');
-                const folderName = folderTitle.textContent.toLowerCase();
-                if (folderName.includes(searchValue)) {
-                    folderItem.style.display = 'block';
-                } else {
-                    folderItem.style.display = 'none';
-                }
+               const folderTitle = folderItem.querySelector('h5');
+               const folderName = folderTitle.textContent.toLowerCase();
+               if (folderName.includes(searchValue)) {
+                  folderItem.style.display = 'block';
+               } else {
+                  folderItem.style.display = 'none';
+               }
             });
-        });
+         });
 
+         if (accessToken) {
+            document.body.innerHTML += `
+            <div class="m-3 p-1 border">
+               <br/>
+               <h6>You are logged into Google Drive. Nice! </h6>
+               <br/>
+               <span><a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${location.href.split(/[\?\#]/)[0]}">logout</a></span>
+               <br />
+            </div>`;
+            showFolders();
+         } else {
+            document.body.innerHTML += `
+            <div class="m-3 p-1 border">
+               <br/>
+               <h6>I don't think you are logged into Google Drive. </h6>
+               <br/>
+               <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}"> ➜ Authenticate Google Drive</a>
+               <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:localStorage.clear();alert('done');>clear storage</a>&nbsp;&nbsp;</span>
+               <br />
+            </div>`;
+         }
+      };
+   </script>
 
-    </script>
 </body>
 
 </html>
