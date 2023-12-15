@@ -7,18 +7,16 @@
 
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>DriveDL - release getter</title>
-   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+   <link
+      href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap&family=Josefin+Sans:wght@600&family=Nunito:wght@300"
+      rel="stylesheet">
    <style>
-      .search-bar input[type="text"] {
-         @apply w-2/3 text-lg border border-gray-300 rounded p-1;
-      }
+      *::selection {
+         color: rgb(254, 255, 227);
+         background-color: rgba(17, 17, 166, 0.353);
+         text-shadow: rgb(84, 0, 78) 0 0 6px, rgb(84, 0, 78) 0 0 16px;
 
-      .search-bar textarea {
-         @apply font-sans text-lg w-4/5;
-      }
 
-      .folder-title {
-         @apply text-blue-500;
       }
 
       .pinned {
@@ -29,16 +27,17 @@
 </head>
 
 <body class="max-w-9/10 text-center text-lg mx-auto p-2 font-rubik text-base">
-   <h1 class="text-center mb-5">Google Drive OAuth</h1>
+   <h1 class="text-center text-2xl mb-5" style="font-weight: bold; font-family: 'Josefin Sans';">Drive Release Fetcher
+   </h1>
 
    <div class="bg-gray-100 p-2 shadow">
       <!-- Group: Gets the newest files and filter folders input -->
       <div class="search-bar">
-         <button id="authenticateButton">Authenticate Google Drive</button>
 
          <div style="display: block;">
-            <span style="display:block; margin:auto; width:105%;"> <i
-                  style="font-weight: lighter; font-family:Verdana, Geneva, Tahoma, sans-serif;">This tool simply
+            <span style="display:block; margin:auto; width:105%; transform: scaleY(0.85);"> <i
+                  style="font-weight: thin; font-family: Nunito, Verdana, Geneva, Tahoma, sans-serif;">This tool
+                  simply
                   gets links to the
                   <b><u>most recent</u> &nbsp; <input type="number"
                         style="font-size: 1.05em; border: none; box-shadow: inset .3px .3px 1.1px 2px rgba(44,44,44,0.11);  background-color: rgba(138, 138, 147, 0.01); font-family: Arial, Helvetica, mono, sans-serif; padding:0; max-width: 1.6em; transform: scale(1.2,1.1);"
@@ -108,88 +107,59 @@
            <a class='text-blue-700 ml-2 dark:text-blue-500 hover:underline' href="${authUrl}">Authenticate Google Drive</a>`;
             }
          };
+
          function drawFolder(folder) {
             const folderItem = document.createElement('li');
-            folderItem.classList.add(
-               'flex', 'flex-col', 'items-start', 'p-2', 'pb-1', 'pt-2', 'border-b-2', 'border-gray-300',
-               'md:p-1', 'md:pb-0', 'md:pt-3'
-            );
+            folderItem.innerHTML = `
+        <div class="flex flex-col items-start p-2 pb-1 pt-2 border-b-2 border-gray-300 md:p-1 md:pb-0 md:pt-3">
+            <div class="flex items-center mb-2">
+                <input type="checkbox" class="form-checkbox pointer-events-auto text-cyan-700 pointer-events-none mx-2 h-6 w-6 cursor-pointer">
+                <h5 class="text-lg font-semibold mb-2">${folder.name}</h5>
+            </div>
+        </div>
+    `;
 
-            // wrapper for the checkbox and make it clickable
-            const checkboxWrapper = document.createElement('div');
-            checkboxWrapper.classList.add('flex', 'items-center', 'mb-2');
-            folderItem.appendChild(checkboxWrapper);
-
-            const pinCheckbox = document.createElement('input');
-            pinCheckbox.type = 'checkbox';
-            pinCheckbox.classList.add(
-               'form-checkbox', 'pointer-events-auto', 'text-cyan-700', 'pointer-events-none', 'mx-2', 'h-6', 'w-6', 'cursor-pointer'
-            );
-            checkboxWrapper.appendChild(pinCheckbox);
-
-            const folderTitle = document.createElement('h5');
-            folderTitle.textContent = folder.name;
-            folderTitle.classList.add('text-lg', 'font-semibold', 'mb-2');
-            checkboxWrapper.appendChild(folderTitle);
-
-            // make entire row clickable
             folderItem.style.cursor = 'pointer';
 
             folderItem.addEventListener('click', function (event) {
+               console.log(event.target.tagName)
 
+               const pinCheckbox = folderItem.querySelector('input[type="checkbox"]');
 
-
-
-
-               if (event.target === pinCheckbox || event.target.tagName === 'a' || event.target.tagName === 'td')
+               if (event.target === pinCheckbox || event.target.tagName === 'A')
                   event.stopPropagation();
                else
-                  pinCheckbox.checked = !pinCheckbox.checked; // Toggle checkbox on row click
+                  pinCheckbox.checked = !pinCheckbox.checked;
 
                if (pinCheckbox.checked) {
-                  folderItem.classList.add('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300');
-                  folderItem.classList.add('pointer-events-none');
+                  folderItem.classList.add('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300', 'pointer-events-none');
                   drawFiles(folder.id, folderItem);
                } else {
-                  folderItem.classList.remove('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300');
-                  folderItem.classList.remove('pointer-events-none');
+                  folderItem.classList.remove('bg-yellow-100', 'border', 'shadow-sm', 'border-orange-300', 'pointer-events-none');
                   folderItem.removeChild(folderItem.querySelector('table'));
                }
             });
 
-
             return folderItem;
          }
 
-
          function drawFile(file) {
-            const row = document.createElement('tr');
-            row.classList.add('text-sm');
-
-            const nameCell = document.createElement('td');
-            nameCell.innerHTML = `<a class="pointer-events-auto text-blue-600 underline" href="${file.webViewLink}">${file.name}</a>`;
-            nameCell.classList.add('font-mono', 'transform', 'scale-x-95', 'w-1/2');
-            row.appendChild(nameCell);
-
-            const dateCell = document.createElement('td');
             const date = new Date(file.createdTime);
-            dateCell.textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            dateCell.classList.add('transform', 'scale-x-90', 'text-xs', 'w-1/10', 'max-w-1/8');
-            row.appendChild(dateCell);
 
-            const linkCell = document.createElement('td');
-            linkCell.classList.add('w-3/8', 'pointer-events-auto', 'font-bold');
-
-            const link = document.createElement('a');
-            link.href = file.webContentLink;
-            link.textContent = 'Download';
-            linkCell.appendChild(link);
-            linkCell.innerHTML += `<small class='pointer-events-auto text-sm font-thin'><br> <span><i>&nbsp;&nbsp;&nbsp;(${((file.size / (1024 * 1024)).toFixed(2) + ' MB')})</i></span></small>`;
-            row.appendChild(linkCell);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+        <td class="font-mono transform scale-x-95 w-1/2">
+            <a class="pointer-events-auto text-blue-600 underline" href="${file.webViewLink}">${file.name}</a>
+        </td>
+        <td class="transform scale-x-90 text-xs w-1/10 max-w-1/8">${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        <td class="w-3/8 pointer-events-auto font-bold">
+            <a class='underline text-blue-600'  style="font-family: 'Josefin Sans', sans-serif; white-space: no-wrap;" href="https://drive.google.com/uc?export=download&confirm=no_antivirus&id=${file.id}">Download</a>
+            <small class="pointer-events-auto text-sm font-thin"><br> <span><i>&nbsp;&nbsp;&nbsp;(${((file.size / (1024 * 1024)).toFixed(2) + ' MB')})</i></span></small>
+        </td>
+    `;
 
             return row;
          }
-
 
          async function drawFiles(folderId, folderItem) {
             const pageSize = inputPageSize.value || 2;
@@ -205,6 +175,8 @@
                table.appendChild(row);
             }
          }
+
+
       </script>
 
 
