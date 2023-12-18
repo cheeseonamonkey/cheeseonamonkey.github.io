@@ -13,6 +13,9 @@ semantic searching:
  - ![image](https://github.com/cheeseonamonkey/cheeseonamonkey.github.io/assets/54555500/9303d5e9-807c-4d2a-8c43-9b9b493bd331)
 
 
+![image](https://github.com/cheeseonamonkey/cheeseonamonkey.github.io/assets/54555500/83ce4bb7-51f8-48b6-84bb-ecb385bdf045)
+![image](https://github.com/cheeseonamonkey/cheeseonamonkey.github.io/assets/54555500/1f610665-978c-4661-9fe5-26f862707b1a)
+
 
 
 
