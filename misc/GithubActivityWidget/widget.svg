@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="300" height="200">
+  <style>
+    .widget {
+      fill: #ffffff;
+    }
+    .timeframe {
+      fill: rgba(33, 33, 33, 0.1);
+      font-size: 14px;
+      font-weight: bold;
+      font-family: 'Rubik', sans-serif;
+    }
+    .event {
+      font-size: 12px;
+      color: #333333;
+    }
+    .repo-link {
+      fill: #0066cc;
+    }
+  </style>
+  <rect x="0" y="0" width="300" height="200" class="widget"></rect>
+  <!-- Timeframe -->
+  <text x="10" y="20" class="timeframe">1 month ago, I:</text>
+
+  <!-- Sample Event -->
+  <g transform="translate(10, 40)">
+    <!-- Repository Link -->
+    <a href="https://github.com/example/repo" target="_blank" class="repo-link">
+      <text x="0" y="0">Repo Name</text>
+    </a>
+    <!-- Event Description -->
+    <text x="0" y="20" class="event">pushed 3 commits to branch <a href="#" target="_blank" class="repo-link">main</a>:</text>
+    <text x="20" y="40" class="event">- Commit 1 message</text>
+    <text x="20" y="60" class="event">- Commit 2 message</text>
+    <text x="20" y="80" class="event">- Commit 3 message</text>
+  </g>
+</svg>
