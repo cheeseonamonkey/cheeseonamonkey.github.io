@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Random Stick Figure Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col items-center justify-center h-screen bg-gray-100 font-['Rubik']">
+    <canvas id="stickFigureCanvas" width="325" height="325" class="border-2 border-black m-4"></canvas>
+    <button onclick="generateNewStickFigure()"
+        class="mt-4 py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">Generate New Stick
+        Figure</button>
+    <br />
+    <small class="w-4/5">Submit training data:<br /><i>For example, submit what the stickman is doing, etc.<br />Your
+            answers will be used to train an AI to generate stickmen from queried text.</i></small>
+    <input type="text" id="txtInput" class="bg-gray-200 text-gray-800 p-1 mt-2 m-1 border shadow-inner rounded" />
+    <button onClick="getEmbedding()" disabled="true" class="m-1 px-2 py-1 bg-blue-200 rounded-sm">Submit (coming
+        soon)</button>
+    <hr class="w-full my-4" />
+    <p id="angleDisplay" class="text-gray-700"></p>
+    <div id="embeddingDisplay" class="text-xs mt-4"></div>
+
+    <script>
+        let model = null;
+
+        async function getEmbedding() {
+            const text = document.getElementById("txtInput").value.trim();
+            if (text && model) {
+                const embeddings = await model.embed([text]);
+                document.getElementById("embeddingDisplay").innerText = embeddings.arraySync().toString();
+            } else {
+                console.error("Model not loaded or no text inputted.");
+            }
+        }
+
+        async function loadUSEModel() {
+            console.log("Loading Universal Sentence Encoder...");
+            return await use.load();
+        }
+
+        class StickFigure {
+            constructor(angles) {
+                this.angles = angles;
+                this.drawStickFigure();
+                this.displayAngles();
+            }
+
+            static getRandomAngle() {
+                const allowedAngles = [-50, -40, -35, -15, 5, 30, 45, 60];
+                return allowedAngles[Math.floor(Math.random() * allowedAngles.length)];
+            }
+
+            static createRandomStickFigure() {
+                const randomAngles = Array(8).fill(0).map(() => StickFigure.getRandomAngle());
+                return new StickFigure(randomAngles);
+            }
+
+            drawStickFigure() {
+                const canvas = document.getElementById("stickFigureCanvas");
+                const ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 8;
+                ctx.strokeStyle = "#333";
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                const drawSegment = (start, lengths, angle1, angle2) => {
+                    ctx.save();
+                    ctx.translate(...start);
+                    ctx.rotate(angle1 * Math.PI / 180);
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(...lengths[0]);
+                    ctx.translate(...lengths[0]);
+                    ctx.rotate(angle2 * Math.PI / 180);
+                    ctx.lineTo(...lengths[1]);
+                    ctx.stroke();
+                    ctx.restore();
+                };
+
+                ctx.beginPath();
+                ctx.arc(175, 80, 32, 0, Math.PI * 2); // Head
+                ctx.moveTo(175, 112); // Neck
+                ctx.lineTo(175, 190); // Body
+                ctx.stroke();
+
+                drawSegment([175, 140], [[-40, 0], [-40, 0]], this.angles[0], this.angles[2]); // Left arm
+                drawSegment([175, 140], [[40, 0], [40, 0]], this.angles[1], this.angles[3]); // Right arm
+                drawSegment([175, 190], [[-40, 50], [-50, 0]], this.angles[4], this.angles[6]); // Left leg
+                drawSegment([175, 190], [[40, 50], [50, 0]], this.angles[5], this.angles[7]); // Right leg
+            }
+
+            displayAngles() {
+                const angleText = `
+                    Left Arm: ${this.angles[0]}°, Right Arm: ${this.angles[1]}°, Left Forearm: ${this.angles[2]}°, Right Forearm: ${this.angles[3]}°, 
+                    Left Leg: ${this.angles[4]}°, Right Leg: ${this.angles[5]}°, Left Knee: ${this.angles[6]}°, Right Knee: ${this.angles[7]}°
+                `;
+                document.getElementById("angleDisplay").innerHTML = angleText.trim();
+            }
+        }
+
+        function generateNewStickFigure() {
+            StickFigure.createRandomStickFigure();
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            model = await loadUSEModel();
+            generateNewStickFigure();
+        });
+    </script>
+</body>
+
+</html>
