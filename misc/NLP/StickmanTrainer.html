@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Stickman Trainer</title>
+    <title>Random Stick Figure Generator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -15,177 +15,210 @@
 <body class="bg-gray-100 font-['Rubik']">
     <div class="p-4 bg-cyan-800 text-white text-center">
         <h1 class="text-3xl text-blue-200 font-bold tracking-wide" style="font-family: 'Playfair Display', serif;">
-            Stickman Trainer
+            StickmanTrainer
         </h1>
     </div>
 
     <div class="flex flex-col items-center justify-center min-h-screen p-4">
-        <!-- Stick Figure Canvas -->
         <canvas id="stickFigureCanvas" width="325" height="325" class="border-2 border-black shadow-md"></canvas>
         <button onclick="generateNewStickFigure()"
             class="mt-4 py-2 px-6 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition-colors">
             Generate New Stick Figure
         </button>
 
-        <!-- Data Submission Section -->
         <div class="w-full sm:w-3/4 lg:w-1/2 mt-6 bg-white p-6 rounded-lg shadow-lg">
             <h2 class="underline text-xl font-semibold text-gray-800">Submit Data:</h2>
-            <small class="block text-gray-600"><i>Describe the stickman's pose, feeling, or idea it conveys.</i></small>
+            <small class="block text-gray-600">
+                <i>Submit training data here. Describe the pose, feeling, or idea the stickman conveys, etc.</i>
+            </small>
             <input type="text" id="txtInput"
-                class="w-full mt-2 py-2 px-4 bg-gray-200 text-gray-800 border rounded focus:border-blue-500" />
-            <button id="submitButton" onclick="submitText()"
+                class="w-full mt-2 py-2 px-4 bg-gray-200 text-gray-800 border rounded shadow-inner focus:outline-none focus:border-blue-500" />
+            <button id="submitButton" onClick="getEmbedding()"
                 class="mt-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-800 transition-colors"
                 disabled>
                 Loading Model...
             </button>
         </div>
 
-        <!-- Angle Display Section -->
+        <hr class="w-full border-t-2 border-gray-300 my-6" />
+
         <h2 class="underline text-lg font-bold text-gray-800">Current Angles:</h2>
-        <p id="angleDisplay" class="bg-blue-200 border p-1 shadow-inner text-sm font-mono text-gray-700"></p>
+        <p id="angleDisplay" class="bg-blue-200 border p-1 shadow-inner bg-opacity-50 text-sm font-mono text-gray-700">
+        </p>
 
-        <!-- Semantic Embedding Plot -->
+        <h2 class="underline text-lg font-bold text-gray-800">Semantic Embeddings:</h2>
         <canvas id="embeddingPlot" width="400" height="75"
-            class="border-2 border-black my-4 shadow-md bg-opacity-40 bg-blue-800"></canvas>
+            class="border-2 border-black my-4 shadow-md bg-blue-600 shadow-inner bg-opacity-25"></canvas>
 
-        <!-- Note -->
         <div class="w-full flex justify-end">
-            <small class="text-sm italic text-gray-500">
-                If you want to play with semantic embedding plots, try <a class="text-blue-700 underline"
-                    href="https://cheeseonamonkey.github.io/misc/NLP/USEDemo.html">here</a>.
+            <small class="text-sm italic text-gray-500" style="font-family: 'Lucida Sans', sans-serif;">
+                (If you just want to play with the semantic embedding plots, do so
+                <b><a class="text-blue-700 underline"
+                        href="https://cheeseonamonkey.github.io/misc/NLP/USEDemo.html">here</a></b>.
+                Please do not submit faulty training data ☹️)
             </small>
         </div>
     </div>
 
     <script>
-        let model = null;
+        let useModel = null;
+        const submitBtn = document.getElementById("submitButton");
 
         async function loadModel() {
-            model = await use.load();
-            document.getElementById("submitButton").innerText = "Submit";
-            document.getElementById("submitButton").disabled = false;
+            useModel = await use.load();
+            submitBtn.textContent = "Submit";
+            submitBtn.disabled = false;
         }
 
-        function generateRandomColor() {
-            return `#${Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0')}`;
+        async function getEmbedding() {
+            const txt = txtInput.value.trim();
+            if (!txt) return console.error("No text inputted.");
+            txtInput.value = "";
+            submitBtn.disabled = true;
+
+            if (useModel) {
+                const emb = await useModel.embed([txt]);
+                const embArray = emb.arraySync()[0];
+                plotEmbedding(tsneSimple(embArray, 50), txt);
+            } else {
+                console.error("Model not loaded.");
+            }
+
+            submitBtn.disabled = false;
         }
 
-        async function submitText() {
-            const text = document.getElementById("txtInput").value.trim();
-            if (!text || !model) return;
+        function plotEmbedding(embeddings, label) {
 
-            const embedding = await model.embed([text]);
-            const embeddingArray = embedding.arraySync()[0];
-            const reducedEmbedding = tsneSimple(embeddingArray, 50);
-            plotEmbedding(reducedEmbedding, text);
-        }
-
-        function plotEmbedding(embedding, label) {
+            function randomColor() {
+                const r = Math.floor(Math.random() * 256);
+                const g = Math.floor(Math.random() * 256);
+                const b = Math.floor(Math.random() * 256);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
             const canvas = document.getElementById("embeddingPlot");
             const ctx = canvas.getContext("2d");
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous plots
-
-            const step = canvas.width / embedding.length;
-            const color = generateRandomColor();
+            const pointRadius = 5;
+            const minVal = Math.min(...embeddings.slice(1));
+            const maxVal = Math.max(...embeddings.slice(1));
+            const epsilon = 1e-6;
 
             ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-
-            embedding.forEach((val, index) => {
-                const x = step * (index + 1);
-                const y = canvas.height - (val * canvas.height);
-                if (index === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
+            ctx.strokeStyle = randomColor();
+            ctx.lineWidth = 4;
+            const scaled = (val) => (canvas.height - pointRadius - (val - (minVal - epsilon)) * (canvas.height - 2 * pointRadius) / (maxVal - minVal + 2 * epsilon));
+            embeddings.slice(1).forEach((val, idx) => {
+                const x = (canvas.width / (embeddings.length - 1)) * (idx + 1);
+                const y = scaled(val);
+                idx === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
             });
-
             ctx.stroke();
-
-            // Label the plot
-            ctx.fillStyle = color;
-            ctx.font = 'bold 12px monospace';
-            ctx.fillText(label, Math.random() * canvas.width, 15 + Math.random() * (canvas.height - 30));
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.font = 'bold 12px mono';
+            ctx.fillText(label, Math.random() * (canvas.width - 50), 20 + Math.random() * (canvas.height - 20));
         }
 
-        function tsneSimple(arr, reducedSize) {
-            const step = Math.ceil(arr.length / reducedSize);
-            return Array.from({ length: reducedSize }, (_, i) => {
-                const start = i * step;
-                const end = Math.min(start + step, arr.length);
-                const slice = arr.slice(start, end);
-                return slice.reduce((sum, val) => sum + val, 0) / slice.length;
-            });
+        function tsneSimple(arr, len) {
+            let l = Math.ceil(arr.length / len), res = new Float32Array(len);
+            for (let i = 0; i < len; i++) {
+                let r = i * l, f = Math.min(r + l, arr.length), sum = 0;
+                for (let c = r; c < f; c++) sum += arr[c];
+                res[i] = sum / (f - r);
+            }
+            return res;
         }
 
         class StickFigure {
-            constructor(angles) {
+            constructor(angles, headAngle, translation) {
                 this.angles = angles;
+                this.headAngle = headAngle;
+                this.translation = translation;
                 this.draw();
                 this.displayAngles();
             }
 
-            static randomAngle() {
-                return Math.floor(Math.random() * 121) - 60; // Random angle between -60 and 60
+            static randAngle() {
+                return [-50, 55, -45, 45, -30, 30, -15, 15, 5, 0, -5][Math.floor(Math.random() * 11)];
+            }
+
+            static randHeadAngle() {
+                return [-40, 35, -20, 20, 15, -15, -10, 10, 5, -5, 0][Math.floor(Math.random() * 11)];
             }
 
             static createRandom() {
-                return new StickFigure(Array(8).fill(0).map(StickFigure.randomAngle));
+                return new StickFigure(
+                    Array.from({ length: 8 }, StickFigure.randAngle),
+                    StickFigure.randHeadAngle(),
+                    {
+                        x: Math.floor(Math.random() * 60) - 30,
+                        y: Math.floor(Math.random() * 60) - 30
+                    }
+                );
             }
 
             draw() {
                 const canvas = document.getElementById("stickFigureCanvas");
                 const ctx = canvas.getContext("2d");
-
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.lineWidth = 8;
                 ctx.strokeStyle = "#333";
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+
+                ctx.save();
+                ctx.translate(this.translation.x, this.translation.y);
+
+                const neckX = 175;
+                const neckY = 110;
+
+                ctx.save();
+                ctx.translate(neckX, neckY);
+                ctx.rotate(this.headAngle * Math.PI / 180);
+                ctx.translate(0, -35);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 28, 31, 0.1, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
 
                 ctx.beginPath();
-                ctx.arc(175, 80, 30, 0, Math.PI * 2); // Head
-                ctx.moveTo(175, 112); // Neck
-                ctx.lineTo(175, 190); // Body
+                ctx.moveTo(neckX, neckY);
+                ctx.lineTo(neckX, 190);
                 ctx.stroke();
 
-                this.drawSegment(ctx, [175, 140], [[-40, 0], [-40, 0]], this.angles[0], this.angles[2]); // Left arm
-                this.drawSegment(ctx, [175, 140], [[40, 0], [40, 0]], this.angles[1], this.angles[3]); // Right arm
-                this.drawSegment(ctx, [175, 190], [[-40, 50], [-50, 0]], this.angles[4], this.angles[6]); // Left leg
-                this.drawSegment(ctx, [175, 190], [[40, 50], [50, 0]], this.angles[5], this.angles[7]); // Right leg
+                this.drawSegment(ctx, [neckX, 120], [[-40, 0], [-40, 0]], this.angles[0], this.angles[2]);
+                this.drawSegment(ctx, [neckX, 120], [[40, 0], [40, 0]], this.angles[1], this.angles[3]);
+                this.drawSegment(ctx, [neckX, 190], [[-40, 35], [-50, 0]], this.angles[4], this.angles[6]);
+                this.drawSegment(ctx, [neckX, 190], [[40, 35], [50, 0]], this.angles[5], this.angles[7]);
+
+                ctx.restore();
             }
 
-            drawSegment(ctx, start, lengths, angle1, angle2) {
+            drawSegment(ctx, start, segments, angle1, angle2) {
                 ctx.save();
                 ctx.translate(...start);
                 ctx.rotate(angle1 * Math.PI / 180);
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.lineTo(...lengths[0]);
-                ctx.translate(...lengths[0]);
+                ctx.lineTo(...segments[0]);
+                ctx.translate(...segments[0]);
                 ctx.rotate(angle2 * Math.PI / 180);
-                ctx.lineTo(...lengths[1]);
+                ctx.lineTo(...segments[1]);
                 ctx.stroke();
                 ctx.restore();
             }
 
             displayAngles() {
-                const angleText = `
-                    Left Arm: ${this.angles[0]}°, \tRight Arm: ${this.angles[1]}° 
-                    Left Forearm: ${this.angles[2]}°, \tRight Forearm: ${this.angles[3]}° 
-                    Left Leg: ${this.angles[4]}°, \tRight Leg: ${this.angles[5]}° 
-                    Left Knee: ${this.angles[6]}°, \tRight Knee: ${this.angles[7]}°
-                `.replace(/\t/g, '\t\t');
-                document.getElementById("angleDisplay").innerText = angleText.trim();
+                const a = this.angles;
+                const t = this.translation;
+                document.getElementById("angleDisplay").innerText = `Head Angle: ${this.headAngle}°\nLeft Arm: ${a[0]}°, Right Arm: ${a[1]}°\nLeft Forearm: ${a[2]}°, Right Forearm: ${a[3]}°\nLeft Leg: ${a[4]}°, Right Leg: ${a[5]}°\nLeft Knee: ${a[6]}°, Right Knee: ${a[7]}°\nTranslation: x = ${t.x}, y = ${t.y}`;
             }
         }
+
 
         function generateNewStickFigure() {
             StickFigure.createRandom();
         }
 
-        window.addEventListener('DOMContentLoaded', async () => {
+        window.addEventListener("DOMContentLoaded", async () => {
             await loadModel();
             generateNewStickFigure();
         });
@@ -193,3 +226,9 @@
 </body>
 
 </html>
+
+
+---
+
+
+let the user change the angle vvalues interactively?
