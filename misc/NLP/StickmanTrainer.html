@@ -12,7 +12,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 font-['Rubik']">
+<body class="bg-gray-100 font-Rubik">
     <div class="p-4 bg-cyan-800 text-white text-center">
         <h1 class="text-3xl text-blue-200 font-bold tracking-wide" style="font-family: 'Playfair Display', serif;">
             StickmanTrainer
@@ -33,7 +33,7 @@
             </small>
             <input type="text" id="txtInput"
                 class="w-full mt-2 py-2 px-4 bg-gray-200 text-gray-800 border rounded shadow-inner focus:outline-none focus:border-blue-500" />
-            <button id="submitButton" onClick="getEmbedding()"
+            <button id="submitButton" onClick="submitClick()"
                 class="mt-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-800 transition-colors"
                 disabled>
                 Loading Model...
@@ -50,14 +50,8 @@
         <canvas id="embeddingPlot" width="400" height="75"
             class="border-2 border-black my-4 shadow-md bg-blue-600 shadow-inner bg-opacity-25"></canvas>
 
-        <div class="w-full flex justify-end">
-            <small class="text-sm italic text-gray-500" style="font-family: 'Lucida Sans', sans-serif;">
-                (If you just want to play with the semantic embedding plots, do so
-                <b><a class="text-blue-700 underline"
-                        href="https://cheeseonamonkey.github.io/misc/NLP/USEDemo.html">here</a></b>.
-                Please do not submit faulty training data ☹️)
-            </small>
-        </div>
+
+
     </div>
 
     <script>
@@ -70,22 +64,32 @@
             submitBtn.disabled = false;
         }
 
-        async function getEmbedding() {
+        async function submitClick() {
             const txt = txtInput.value.trim();
             if (!txt) return console.error("No text inputted.");
             txtInput.value = "";
             submitBtn.disabled = true;
 
-            if (useModel) {
+            if (!useModel) return console.error("Model not loaded.");
+
+            try {
+                const angles = Array.from(document.getElementById("angleDisplay").innerText.match(/\-?\d+(?:\.\d+)?/g)).map(parseFloat);
+                if (!angles || angles.length !== 9) return console.error("Angles data missing or invalid.");
+
                 const emb = await useModel.embed([txt]);
                 const embArray = emb.arraySync()[0];
-                plotEmbedding(tsneSimple(embArray, 50), txt);
-            } else {
-                console.error("Model not loaded.");
-            }
+
+                const payload = { angles, embedding: embArray };
+                const response = await fetch('YOUR_ENDPOINT_URL', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                console.log("Data submitted successfully!");
+            } catch (error) { console.error('Error submitting data:', error); }
 
             submitBtn.disabled = false;
         }
+
 
         function plotEmbedding(embeddings, label) {
 
@@ -223,12 +227,8 @@
             generateNewStickFigure();
         });
     </script>
+
+
 </body>
 
 </html>
-
-
----
-
-
-let the user change the angle vvalues interactively?
