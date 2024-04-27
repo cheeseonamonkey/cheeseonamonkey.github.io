@@ -1,179 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Cat Finder</title>
+    <title>Pet Finder</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="flex flex-col h-screen bg-stone-100">
     <div class="flex-grow flex justify-center items-center p-4">
-        <video id="webcam" autoplay playsinline class="w-full h-auto max-h-96 md:max-h-[80vh] lg:max-h-[85vh] rounded-lg border border-gray-300 shadow-md"></video>
+        <video id="webcam" autoplay playsinline
+            class="w-full h-auto max-h-96 md:max-h-[80vh] lg:max-h-[85vh] rounded-lg border border-gray-300 shadow-md"></video>
         <canvas id="canvas" class="hidden"></canvas>
     </div>
 
-    <h3 class="underline bold">Identified cats:</h3>
-    <div id="cat-images" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg"></div>
+    <h3 class="underline bold">Identified pets (cats and dogs):</h3>
+    <div id="pet-images"
+        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg">
+    </div>
 
-    <!-- Error Logging Area -->
     <div id="error-log" class="p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg mt-4"></div>
 
     <script>
-    function logError(error) {
-        const errorLog = document.getElementById("error-log");
-        const errorMsg = document.createElement("div");
-        errorMsg.innerText = `Error: ${error}`;
-        errorLog.appendChild(errorMsg);
-    }
+        function logError(error) {
+            const errorLog = document.getElementById("error-log");
+            const errorMsg = document.createElement("div");
+            errorMsg.innerText = `Error: ${error}`;
+            errorLog.appendChild(errorMsg);
+        }
 
-    window.onerror = function(message, source, lineno, colno, error) {
-        logError(`${message} at ${source}:${lineno}:${colno}`);
-    };
+        window.onerror = function (message, source, lineno, colno, error) {
+            logError(`${message} at ${source}:${lineno}:${colno}`);
+        };
 
-    async function setupWebcam() {
-        const webcam = document.getElementById("webcam");
-        try {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { exact: "environment" },
-                    },
-                });
+        async function setupWebcam() {
+            const webcam = document.getElementById("webcam");
+            try {
+                const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+                const constraints = { video: isMobile ? { facingMode: { exact: "environment" } } : { video: true } };
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 webcam.srcObject = stream;
                 return true;
-            } else {
-                logError("Webcam not supported.");
+            } catch (error) {
+                if (error.name === 'OverconstrainedError') {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        webcam.srcObject = stream;
+                        return true;
+                    } catch (fallbackError) {
+                        logError(`Error with default webcam setup: ${fallbackError}`);
+                    }
+                } else {
+                    logError(`Error accessing webcam: ${error}`);
+                }
                 return false;
             }
-        } catch (error) {
-            logError(`Error accessing webcam: ${error}`);
-            return false;
-        }
-    }
-
-    async function detectObjects() {
-        const webcam = document.getElementById("webcam");
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-        const catImagesContainer = document.getElementById("cat-images");
-        let model;
-
-        try {
-            model = await cocoSsd.load();
-        } catch (error) {
-            logError(`Error loading COCO-SSD model: ${error}`);
-            return;
         }
 
-        const detectionInterval = 350; // Detection interval in ms
-        let lastDetectionTime = 0;
+        async function detectObjects() {
+            const webcam = document.getElementById("webcam");
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const petImagesContainer = document.getElementById("pet-images");
+            let model;
 
-        // Dictionary to track detected cats
-        const detectedCats = {};
-
-        async function detectFrame() {
             try {
+                model = await cocoSsd.load();
+            } catch (error) {
+                logError(`Error loading COCO-SSD model: ${error}`);
+                return;
+            }
+
+            const detectionInterval = 350; // Detection interval in ms
+            let lastDetectionTime = 0;
+
+            let previousPetCount = 0; // To track the previous count of detected pets
+
+            async function detectFrame() {
                 const now = Date.now();
-                if (now - lastDetectionTime >= detectionInterval) {
-                    lastDetectionTime = now;
-                    canvas.width = webcam.videoWidth;
-                    canvas.height = webcam.videoHeight;
-                    ctx.drawImage(webcam, 0, 0);
+                if (now - lastDetectionTime < detectionInterval) {
+                    requestAnimationFrame(detectFrame);
+                    return;
+                }
 
+                lastDetectionTime = now;
+
+                canvas.width = webcam.videoWidth;
+                canvas.height = webcam.videoHeight;
+                ctx.drawImage(webcam, 0, 0);
+
+                try {
                     const predictions = await model.detect(canvas);
-                    const cats = predictions.filter((pred) => pred.class === "cat");
+                    const pets = predictions.filter((pred) => pred.class === "cat" || pred.class === "dog");
 
-                    // Update detected cats
-                    const newDetectedCats = {};
+                    const currentPetCount = pets.length;
 
-                    cats.forEach((cat) => {
-                        const { bbox } = cat;
+                    if (currentPetCount < previousPetCount) {
+                        // If the count decreases, pause for 1 second
+                        setTimeout(() => {
+                            previousPetCount = currentPetCount;
+                            detectFrame(); // Resume detection after 1 second
+                        }, 1000);
+                        return; // Exit early to avoid recursive calls during the sleep
+                    }
+
+                    // Clear the container and re-draw the detected pets
+                    petImagesContainer.innerHTML = "";
+
+                    pets.forEach((pet) => {
+                        const { bbox } = pet;
                         const [x, y, width, height] = bbox;
 
-                        // Generate a unique identifier for the cat based on its bounding box
-                        const identifier = `${Math.round(x)}-${Math.round(y)}-${Math.round(width)}-${Math.round(height)}`;
-
-                        // Update the timestamp for the detected cat
-                        newDetectedCats[identifier] = {
-                            timestamp: now,
-                            bbox,
-                        };
-                    });
-
-                    // Keep cats in the view for at least:
-                    const retentionTime = 1200;
-
-                    catImagesContainer.innerHTML = "";
-
-                    Object.keys(newDetectedCats).forEach((identifier) => {
-                        const { bbox } = newDetectedCats[identifier];
-                        const [x, y, width, height] = bbox;
-
-                        const catCanvas = document.createElement("canvas");
-                        const catCtx = catCanvas.getContext("2d");
+                        const petCanvas = document.createElement("canvas");
+                        const petCtx = petCanvas.getContext("2d");
 
                         const squareSize = Math.max(width, height);
-                        catCanvas.width = squareSize;
-                        catCanvas.height = squareSize;
+                        petCanvas.width = squareSize;
+                        petCanvas.height = squareSize;
 
                         const offsetX = (squareSize - width) / 2;
                         const offsetY = (squareSize - height) / 2;
 
-                        catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
+                        petCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
 
-                        catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
-                        catImagesContainer.appendChild(catCanvas);
+                        petCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                        petImagesContainer.appendChild(petCanvas);
                     });
 
-                    Object.keys(detectedCats).forEach((identifier) => {
-                        if (now - detectedCats[identifier].timestamp <= retentionTime) {
-                            if (!(identifier in newDetectedCats)) {
-                                const { bbox } = detectedCats[identifier];
-                                const [x, y, width, height] = bbox;
+                    previousPetCount = currentPetCount; // Update the previous count
 
-                                const catCanvas = document.createElement("canvas");
-                                const catCtx = catCanvas.getContext("2d");
-
-                                const squareSize = Math.max(width, height);
-                                catCanvas.width = squareSize;
-                                catCanvas.height = squareSize;
-
-                                const offsetX = (squareSize - width) / 2;
-                                const offsetY = (squareSize - height) / 2;
-
-                                catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
-
-                                catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
-                                catImagesContainer.appendChild(catCanvas);
-                            }
-                        }
-                    });
-
-                    // Update the dictionary with new detected cats
-                    Object.assign(detectedCats, newDetectedCats);
+                    requestAnimationFrame(detectFrame);
+                } catch (error) {
+                    logError(`Error during detection: ${error}`);
                 }
-
-                requestAnimationFrame(detectFrame);
-            } catch (error) {
-                logError(`Error during detection: ${error}`);
             }
+
+            detectFrame();
         }
 
-        detectFrame();
-    }
-
-    setupWebcam().then((isSuccess) => {
-        if (isSuccess) {
-            detectObjects();
-        } else {
-            logError("Webcam setup failed.");
-        }
-    });
-</script>
-
-
-    
+        setupWebcam().then((isSuccess) => {
+            if (isSuccess) {
+                detectObjects();
+            } else {
+                logError("Webcam setup failed.");
+            }
+        });
+    </script>
 </body>
+
 </html>
