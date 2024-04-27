@@ -34,22 +34,26 @@
             logError(`${message} at ${source}:${lineno}:${colno}`);
         };
 
-        async function setupWebcam() {
-            const webcam = document.getElementById("webcam");
-            try {
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    webcam.srcObject = stream;
-                    return true;
-                } else {
-                    logError("Webcam not supported.");
-                    return false;
-                }
-            } catch (error) {
-                logError(`Error accessing webcam: ${error}`);
-                return false;
-            }
+     async function setupWebcam() {
+    const webcam = document.getElementById("webcam");
+    try {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { exact: "environment" }, // This requests the back camera
+                },
+            });
+            webcam.srcObject = stream;
+            return true;
+        } else {
+            logError("Webcam not supported.");
+            return false;
         }
+    } catch (error) {
+        logError(`Error accessing webcam: ${error}`);
+        return false;
+    }
+}
 
         async function detectObjects() {
             const webcam = document.getElementById("webcam");
