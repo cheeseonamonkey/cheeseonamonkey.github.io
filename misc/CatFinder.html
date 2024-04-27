@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Webcam Object Detection</title>
@@ -9,29 +8,30 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
 <body class="flex flex-col h-screen bg-stone-100">
     <div class="flex-grow flex justify-center items-center p-4">
-        <!-- Adjust the video to maintain aspect ratio and take up most of the screen -->
-        <video id="webcam" autoplay playsinline
-            class="roudned-sm shadow w-full h-auto max-w-full max-h-96 md:max-h-[80vh] lg:max-h-[85vh] rounded-lg border border-gray-300 shadow-md"></video>
+        <video id="webcam" autoplay playsinline class="w-full h-auto max-h-96 md:max-h-[80vh] lg:max-h-[85vh] rounded-lg border border-gray-300 shadow-md"></video>
         <canvas id="canvas" class="hidden"></canvas>
     </div>
 
-    <h3 class="underline bold ">Identified cats:</h3>
-    <div id="cat-images"
-        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg">
-
-    </div>
+    <h3 class="underline bold">Identified cats:</h3>
+    <div id="cat-images" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg"></div>
 
     <script>
         async function setupWebcam() {
             const webcam = document.getElementById("webcam");
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                webcam.srcObject = stream;
-            } else {
-                console.error("Webcam not supported.");
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    webcam.srcObject = stream;
+                    return true;
+                } else {
+                    console.error("Webcam not supported.");
+                    return false;
+                }
+            } catch (error) {
+                console.error("Error accessing webcam:", error);
+                return false;
             }
         }
 
@@ -41,8 +41,8 @@
             const ctx = canvas.getContext("2d");
             const model = await cocoSsd.load();
             const catImagesContainer = document.getElementById("cat-images");
-            let lastDetectionTime = 0;
             const detectionInterval = 300;
+            let lastDetectionTime = 0;
 
             async function detectFrame() {
                 const now = Date.now();
@@ -51,14 +51,16 @@
                     canvas.width = webcam.videoWidth;
                     canvas.height = webcam.videoHeight;
                     ctx.drawImage(webcam, 0, 0);
+
                     const predictions = await model.detect(canvas);
-                    const cats = predictions.filter(pred => pred.class === "cat");
+                    const cats = predictions.filter((pred) => pred.class === "cat");
 
                     if (cats.length > 0) {
                         catImagesContainer.innerHTML = "";
                         cats.forEach((cat) => {
                             const { bbox } = cat;
                             const [x, y, width, height] = bbox;
+
                             const catCanvas = document.createElement("canvas");
                             const catCtx = catCanvas.getContext("2d");
 
@@ -83,8 +85,11 @@
             detectFrame();
         }
 
-        setupWebcam().then(detectObjects);
+        setupWebcam().then((isSuccess) => {
+            if (isSuccess) {
+                detectObjects();
+            }
+        });
     </script>
 </body>
-
 </html>
