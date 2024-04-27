@@ -14,7 +14,7 @@
         <canvas id="canvas" class="hidden"></canvas>
     </div>
 
-    <h3 class="underline font-bold">Identified cats:</h3>
+    <h3 class="underline bold">Identified cats:</h3>
     <div id="cat-images" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg"></div>
 
     <!-- Error Logging Area -->
@@ -80,27 +80,28 @@
                         const predictions = await model.detect(canvas);
                         const cats = predictions.filter((pred) => pred.class === "cat");
 
-                        catImagesContainer.innerHTML = ""; // Clear previous content
+                        if (cats.length > 0) {
+                            catImagesContainer.innerHTML = "";
+                            cats.forEach((cat) => {
+                                const { bbox } = cat;
+                                const [x, y, width, height] = bbox;
 
-                        cats.forEach((cat) => {
-                            const { bbox } = cat;
-                            const [x, y, width, height] = bbox;
+                                const catCanvas = document.createElement("canvas");
+                                const catCtx = catCanvas.getContext("2d");
 
-                            const catCanvas = document.createElement("canvas");
-                            const catCtx = catCanvas.getContext("2d");
+                                const squareSize = Math.max(width, height);
+                                catCanvas.width = squareSize;
+                                catCanvas.height = squareSize;
 
-                            const squareSize = Math.max(width, height);
-                            catCanvas.width = squareSize;
-                            catCanvas.height = squareSize;
+                                const offsetX = (squareSize - width) / 2;
+                                const offsetY = (squareSize - height) / 2;
 
-                            const offsetX = (squareSize - width) / 2;
-                            const offsetY = (squareSize - height) / 2;
+                                catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
 
-                            catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
-
-                            catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
-                            catImagesContainer.appendChild(catCanvas);
-                        });
+                                catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                                catImagesContainer.appendChild(catCanvas);
+                            });
+                        }
                     }
 
                     requestAnimationFrame(detectFrame);
