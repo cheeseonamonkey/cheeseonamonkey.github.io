@@ -17,7 +17,23 @@
     <h3 class="underline bold">Identified cats:</h3>
     <div id="cat-images" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg"></div>
 
+    <!-- Error Logging Area -->
+    <div id="error-log" class="p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg mt-4"></div>
+
     <script>
+        // Function to log errors to the error area
+        function logError(error) {
+            const errorLog = document.getElementById("error-log");
+            const errorMsg = document.createElement("div");
+            errorMsg.innerText = `Error: ${error}`;
+            errorLog.appendChild(errorMsg);
+        }
+
+        // Global error handler for uncaught errors
+        window.onerror = function(message, source, lineno, colno, error) {
+            logError(`${message} at ${source}:${lineno}:${colno}`);
+        };
+
         async function setupWebcam() {
             const webcam = document.getElementById("webcam");
             try {
@@ -26,11 +42,11 @@
                     webcam.srcObject = stream;
                     return true;
                 } else {
-                    console.error("Webcam not supported.");
+                    logError("Webcam not supported.");
                     return false;
                 }
             } catch (error) {
-                console.error("Error accessing webcam:", error);
+                logError(`Error accessing webcam: ${error}`);
                 return false;
             }
         }
@@ -39,47 +55,59 @@
             const webcam = document.getElementById("webcam");
             const canvas = document.getElementById("canvas");
             const ctx = canvas.getContext("2d");
-            const model = await cocoSsd.load();
             const catImagesContainer = document.getElementById("cat-images");
+            let model;
+
+            try {
+                model = await cocoSsd.load();
+            } catch (error) {
+                logError(`Error loading COCO-SSD model: ${error}`);
+                return;
+            }
+
             const detectionInterval = 300;
             let lastDetectionTime = 0;
 
             async function detectFrame() {
-                const now = Date.now();
-                if (now - lastDetectionTime >= detectionInterval) {
-                    lastDetectionTime = now;
-                    canvas.width = webcam.videoWidth;
-                    canvas.height = webcam.videoHeight;
-                    ctx.drawImage(webcam, 0, 0);
+                try {
+                    const now = Date.now();
+                    if (now - lastDetectionTime >= detectionInterval) {
+                        lastDetectionTime = now;
+                        canvas.width = webcam.videoWidth;
+                        canvas.height = webcam.videoHeight;
+                        ctx.drawImage(webcam, 0, 0);
 
-                    const predictions = await model.detect(canvas);
-                    const cats = predictions.filter((pred) => pred.class === "cat");
+                        const predictions = await model.detect(canvas);
+                        const cats = predictions.filter((pred) => pred.class === "cat");
 
-                    if (cats.length > 0) {
-                        catImagesContainer.innerHTML = "";
-                        cats.forEach((cat) => {
-                            const { bbox } = cat;
-                            const [x, y, width, height] = bbox;
+                        if (cats.length > 0) {
+                            catImagesContainer.innerHTML = "";
+                            cats.for each((cat) => {
+                                const { bbox } = cat;
+                                const [x, y, width, height] = bbox;
 
-                            const catCanvas = document.createElement("canvas");
-                            const catCtx = catCanvas.getContext("2d");
+                                const catCanvas = document.createElement("canvas");
+                                const catCtx = catCanvas.getContext("2d");
 
-                            const squareSize = Math.max(width, height);
-                            catCanvas.width = squareSize;
-                            catCanvas.height = squareSize;
+                                const squareSize = Math.max(width, height);
+                                catCanvas.width = squareSize;
+                                catCanvas.height = squareSize;
 
-                            const offsetX = (squareSize - width) / 2;
-                            const offsetY = (squareSize - height) / 2;
+                                const offsetX = (squareSize - width) / 2;
+                                const offsetY = (squareSize - height) / 2;
 
-                            catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
+                                catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
 
-                            catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
-                            catImagesContainer.appendChild(catCanvas);
-                        });
+                                catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                                catImagesContainer.appendChild(catCanvas);
+                            });
+                        }
                     }
-                }
 
-                requestAnimationFrame(detectFrame);
+                    requestAnimationFrame(detectFrame);
+                } catch (error) {
+                    logError(`Error during detection: ${error}`);
+                }
             }
 
             detectFrame();
@@ -88,6 +116,8 @@
         setupWebcam().then((isSuccess) => {
             if (isSuccess) {
                 detectObjects();
+            } else {
+                logError("Webcam setup failed.");
             }
         });
     </script>
