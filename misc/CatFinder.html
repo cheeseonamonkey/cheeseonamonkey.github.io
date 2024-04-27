@@ -24,6 +24,7 @@
 
     <div id="error-log" class="p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg mt-4"></div>
 
+
     <script>
         function logError(error) {
             const errorLog = document.getElementById("error-log");
@@ -40,18 +41,26 @@
             const webcam = document.getElementById("webcam");
             try {
                 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-                const constraints = { video: isMobile ? { facingMode: { exact: "environment" } } : { video: true } };
+                const constraints = {
+                    video: isMobile
+                        ? { facingMode: { exact: "environment" } }
+                        : { video: true },
+                };
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 webcam.srcObject = stream;
                 return true;
             } catch (error) {
                 if (error.name === 'OverconstrainedError') {
                     try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: true,
+                        });
                         webcam.srcObject = stream;
                         return true;
                     } catch (fallbackError) {
-                        logError(`Error with default webcam setup: ${fallbackError}`);
+                        logError(
+                            `Error with default webcam setup: ${fallbackError}`
+                        );
                     }
                 } else {
                     logError(`Error accessing webcam: ${error}`);
@@ -59,6 +68,73 @@
                 return false;
             }
         }
+
+        function calculateEmbedding(petCanvas) {
+            function cropImageEdges(canvas, margin) {
+                const ctx = canvas.getContext("2d");
+                const mWidth = canvas.width * margin;
+                const mHeight = canvas.height * margin;
+                const newWidth = canvas.width - 2 * mWidth;
+                const newHeight = canvas.height - 2 * mHeight;
+
+                const croppedCanvas = document.createElement("canvas");
+                croppedCanvas.width = newWidth;
+                croppedCanvas.height = newHeight;
+                const croppedCtx = croppedCanvas.getContext("2d");
+
+                croppedCtx.drawImage(
+                    canvas,
+                    mWidth, mHeight,
+                    newWidth, newHeight,
+                    0, 0,
+                    newWidth, newHeight
+                );
+
+                return croppedCanvas;
+            }
+
+            // chop 7% off of the edges
+            const croppedCanvas = cropImageEdges(petCanvas, 0.07);
+            const ctx = croppedCanvas.getContext("2d");
+            const data = ctx.getImageData(0, 0, croppedCanvas.width, croppedCanvas.height).data;
+
+            const colorHistogram = new Array(30).fill(0);
+            const redChannel = [];
+            const greenChannel = [];
+            const blueChannel = [];
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+
+                colorHistogram[Math.floor((r / 256) * 10)]++;
+                colorHistogram[Math.floor((g / 256) * 10) + 10]++;
+                colorHistogram[Math.floor((b / 256) * 10) + 20]++;
+
+                redChannel.push(r);
+                greenChannel.push(g);
+                blueChannel.push(b);
+            }
+
+            function calculateMeanAndStd(channel) {
+                const mean = channel.reduce((sum, val) => sum + val, 0) / channel.length;
+                const variance = channel.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / channel.length;
+                return { mean, stdDev: Math.sqrt(variance) };
+            }
+
+            const meanStdRed = calculateMeanAndStd(redChannel);
+            const meanStdGreen = calculateMeanAndStd(greenChannel);
+            const meanStdBlue = calculateMeanAndStd(blueChannel);
+
+            return {
+                colorHistogram,
+                meanRed: meanStdRed.mean, stdRed: meanStdRed.stdDev,
+                meanGreen: meanStdGreen.mean, stdGreen: meanStdGreen.stdDev,
+                meanBlue: meanStdBlue.mean, stdBlue: meanStdBlue.stdDev,
+            };
+        }
+
 
         async function detectObjects() {
             const webcam = document.getElementById("webcam");
@@ -77,8 +153,6 @@
             const detectionInterval = 350; // Detection interval in ms
             let lastDetectionTime = 0;
 
-            let previousPetCount = 0; // To track the previous count of detected pets
-
             async function detectFrame() {
                 const now = Date.now();
                 if (now - lastDetectionTime < detectionInterval) {
@@ -94,45 +168,49 @@
 
                 try {
                     const predictions = await model.detect(canvas);
-                    const pets = predictions.filter((pred) => pred.class === "cat" || pred.class === "dog");
+                    const pets = predictions.filter(
+                        (pred) => pred.class === "cat" || pred.class === "dog"
+                    );
 
-                    const currentPetCount = pets.length;
+                    if (pets.length > 0) {
+                        // If pets are detected, update the images
+                        petImagesContainer.innerHTML = ""; // Clear the container
 
-                    if (currentPetCount < previousPetCount) {
-                        // If the count decreases, pause for 1 second
-                        setTimeout(() => {
-                            previousPetCount = currentPetCount;
-                            detectFrame(); // Resume detection after 1 second
-                        }, 1000);
-                        return; // Exit early to avoid recursive calls during the sleep
+                        pets.forEach((pet) => {
+                            const { bbox, score } = pet;
+                            const [x, y, width, height] = bbox;
+
+                            const petCanvas = document.createElement("canvas");
+                            const petCtx = petCanvas.getContext("2d");
+
+                            const squareSize = Math.max(width, height);
+                            petCanvas.width = squareSize;
+                            petCanvas.height = squareSize;
+
+                            const offsetX = (squareSize - width) / 2;
+                            const offsetY = (squareSize - height) / 2;
+
+                            petCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
+
+                            petCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                            petImagesContainer.appendChild(petCanvas);
+
+                            const embedding = calculateEmbedding(petCanvas);
+                            embedding.certaintyPercentage = (score * 100).toFixed(2); // Add the certainty percentage
+
+                            const txtEmbedding = document.createElement("p");
+                            let strEmbeddingText = `Embedding: ${JSON.stringify(
+                                embedding
+                            )}`;
+                            strEmbeddingText = strEmbeddingText.replace(/,[\s"]/g, ',\n').trim();
+                            txtEmbedding.innerHTML = strEmbeddingText;
+                            txtEmbedding.className = "text-xs font-mono text-gray-700 text-center mt-1";
+
+                            petImagesContainer.appendChild(txtEmbedding);
+                        });
                     }
 
-                    // Clear the container and re-draw the detected pets
-                    petImagesContainer.innerHTML = "";
-
-                    pets.forEach((pet) => {
-                        const { bbox } = pet;
-                        const [x, y, width, height] = bbox;
-
-                        const petCanvas = document.createElement("canvas");
-                        const petCtx = petCanvas.getContext("2d");
-
-                        const squareSize = Math.max(width, height);
-                        petCanvas.width = squareSize;
-                        petCanvas.height = squareSize;
-
-                        const offsetX = (squareSize - width) / 2;
-                        const offsetY = (squareSize - height) / 2;
-
-                        petCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
-
-                        petCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
-                        petImagesContainer.appendChild(petCanvas);
-                    });
-
-                    previousPetCount = currentPetCount; // Update the previous count
-
-                    requestAnimationFrame(detectFrame);
+                    requestAnimationFrame(detectFrame); // Continue detection
                 } catch (error) {
                     logError(`Error during detection: ${error}`);
                 }
@@ -149,6 +227,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>
