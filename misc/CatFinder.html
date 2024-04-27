@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Webcam Object Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col h-screen bg-stone-100">
+    <div class="flex-grow flex justify-center items-center p-4">
+        <!-- Adjust the video to maintain aspect ratio and take up most of the screen -->
+        <video id="webcam" autoplay playsinline
+            class="roudned-sm shadow w-full h-auto max-w-full max-h-96 md:max-h-[80vh] lg:max-h-[85vh] rounded-lg border border-gray-300 shadow-md"></video>
+        <canvas id="canvas" class="hidden"></canvas>
+    </div>
+
+    <h3 class="underline bold ">Identified cats:</h3>
+    <div id="cat-images"
+        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-4 bg-white border border-gray-300 shadow-md rounded-lg">
+
+    </div>
+
+    <script>
+        async function setupWebcam() {
+            const webcam = document.getElementById("webcam");
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                webcam.srcObject = stream;
+            } else {
+                console.error("Webcam not supported.");
+            }
+        }
+
+        async function detectObjects() {
+            const webcam = document.getElementById("webcam");
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const model = await cocoSsd.load();
+            const catImagesContainer = document.getElementById("cat-images");
+            let lastDetectionTime = 0;
+            const detectionInterval = 300;
+
+            async function detectFrame() {
+                const now = Date.now();
+                if (now - lastDetectionTime >= detectionInterval) {
+                    lastDetectionTime = now;
+                    canvas.width = webcam.videoWidth;
+                    canvas.height = webcam.videoHeight;
+                    ctx.drawImage(webcam, 0, 0);
+                    const predictions = await model.detect(canvas);
+                    const cats = predictions.filter(pred => pred.class === "cat");
+
+                    if (cats.length > 0) {
+                        catImagesContainer.innerHTML = "";
+                        cats.forEach((cat) => {
+                            const { bbox } = cat;
+                            const [x, y, width, height] = bbox;
+                            const catCanvas = document.createElement("canvas");
+                            const catCtx = catCanvas.getContext("2d");
+
+                            const squareSize = Math.max(width, height);
+                            catCanvas.width = squareSize;
+                            catCanvas.height = squareSize;
+
+                            const offsetX = (squareSize - width) / 2;
+                            const offsetY = (squareSize - height) / 2;
+
+                            catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
+
+                            catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                            catImagesContainer.appendChild(catCanvas);
+                        });
+                    }
+                }
+
+                requestAnimationFrame(detectFrame);
+            }
+
+            detectFrame();
+        }
+
+        setupWebcam().then(detectObjects);
+    </script>
+</body>
+
+</html>
