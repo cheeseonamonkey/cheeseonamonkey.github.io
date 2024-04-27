@@ -21,73 +21,116 @@
     <div id="error-log" class="p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg mt-4"></div>
 
     <script>
-        // Function to log errors to the error area
-        function logError(error) {
-            const errorLog = document.getElementById("error-log");
-            const errorMsg = document.createElement("div");
-            errorMsg.innerText = `Error: ${error}`;
-            errorLog.appendChild(errorMsg);
-        }
+    function logError(error) {
+        const errorLog = document.getElementById("error-log");
+        const errorMsg = document.createElement("div");
+        errorMsg.innerText = `Error: ${error}`;
+        errorLog.appendChild(errorMsg);
+    }
 
-        // Global error handler for uncaught errors
-        window.onerror = function(message, source, lineno, colno, error) {
-            logError(`${message} at ${source}:${lineno}:${colno}`);
-        };
+    window.onerror = function(message, source, lineno, colno, error) {
+        logError(`${message} at ${source}:${lineno}:${colno}`);
+    };
 
-     async function setupWebcam() {
-    const webcam = document.getElementById("webcam");
-    try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: { exact: "environment" }, // This requests the back camera
-                },
-            });
-            webcam.srcObject = stream;
-            return true;
-        } else {
-            logError("Webcam not supported.");
+    async function setupWebcam() {
+        const webcam = document.getElementById("webcam");
+        try {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { exact: "environment" },
+                    },
+                });
+                webcam.srcObject = stream;
+                return true;
+            } else {
+                logError("Webcam not supported.");
+                return false;
+            }
+        } catch (error) {
+            logError(`Error accessing webcam: ${error}`);
             return false;
         }
-    } catch (error) {
-        logError(`Error accessing webcam: ${error}`);
-        return false;
     }
-}
 
-        async function detectObjects() {
-            const webcam = document.getElementById("webcam");
-            const canvas = document.getElementById("canvas");
-            const ctx = canvas.getContext("2d");
-            const catImagesContainer = document.getElementById("cat-images");
-            let model;
+    async function detectObjects() {
+        const webcam = document.getElementById("webcam");
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const catImagesContainer = document.getElementById("cat-images");
+        let model;
 
+        try {
+            model = await cocoSsd.load();
+        } catch (error) {
+            logError(`Error loading COCO-SSD model: ${error}`);
+            return;
+        }
+
+        const detectionInterval = 350; // Detection interval in ms
+        let lastDetectionTime = 0;
+
+        // Dictionary to track detected cats
+        const detectedCats = {};
+
+        async function detectFrame() {
             try {
-                model = await cocoSsd.load();
-            } catch (error) {
-                logError(`Error loading COCO-SSD model: ${error}`);
-                return;
-            }
+                const now = Date.now();
+                if (now - lastDetectionTime >= detectionInterval) {
+                    lastDetectionTime = now;
+                    canvas.width = webcam.videoWidth;
+                    canvas.height = webcam.videoHeight;
+                    ctx.drawImage(webcam, 0, 0);
 
-            const detectionInterval = 550;
-            let lastDetectionTime = 0;
+                    const predictions = await model.detect(canvas);
+                    const cats = predictions.filter((pred) => pred.class === "cat");
 
-            async function detectFrame() {
-                try {
-                    const now = Date.now();
-                    if (now - lastDetectionTime >= detectionInterval) {
-                        lastDetectionTime = now;
-                        canvas.width = webcam.videoWidth;
-                        canvas.height = webcam.videoHeight;
-                        ctx.drawImage(webcam, 0, 0);
+                    // Update detected cats
+                    const newDetectedCats = {};
 
-                        const predictions = await model.detect(canvas);
-                        const cats = predictions.filter((pred) => pred.class === "cat");
+                    cats.forEach((cat) => {
+                        const { bbox } = cat;
+                        const [x, y, width, height] = bbox;
 
-                        if (cats.length > 0) {
-                            catImagesContainer.innerHTML = "";
-                            cats.forEach((cat) => {
-                                const { bbox } = cat;
+                        // Generate a unique identifier for the cat based on its bounding box
+                        const identifier = `${Math.round(x)}-${Math.round(y)}-${Math.round(width)}-${Math.round(height)}`;
+
+                        // Update the timestamp for the detected cat
+                        newDetectedCats[identifier] = {
+                            timestamp: now,
+                            bbox,
+                        };
+                    });
+
+                    // Keep cats in the view for at least:
+                    const retentionTime = 800;
+
+                    catImagesContainer.innerHTML = "";
+
+                    Object.keys(newDetectedCats).forEach((identifier) => {
+                        const { bbox } = newDetectedCats[identifier];
+                        const [x, y, width, height] = bbox;
+
+                        const catCanvas = document.createElement("canvas");
+                        const catCtx = catCanvas.getContext("2d");
+
+                        const squareSize = Math.max(width, height);
+                        catCanvas.width = squareSize;
+                        catCanvas.height = squareSize;
+
+                        const offsetX = (squareSize - width) / 2;
+                        const offsetY = (squareSize - height) / 2;
+
+                        catCtx.drawImage(canvas, x, y, width, height, offsetX, offsetY, width, height);
+
+                        catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
+                        catImagesContainer.appendChild(catCanvas);
+                    });
+
+                    Object.keys(detectedCats).forEach((identifier) => {
+                        if (now - detectedCats[identifier].timestamp <= retentionTime) {
+                            if (!(identifier in newDetectedCats)) {
+                                const { bbox } = detectedCats[identifier];
                                 const [x, y, width, height] = bbox;
 
                                 const catCanvas = document.createElement("canvas");
@@ -104,26 +147,33 @@
 
                                 catCanvas.className = "border border-gray-300 rounded-lg shadow-md w-full";
                                 catImagesContainer.appendChild(catCanvas);
-                            });
+                            }
                         }
-                    }
+                    });
 
-                    requestAnimationFrame(detectFrame);
-                } catch (error) {
-                    logError(`Error during detection: ${error}`);
+                    // Update the dictionary with new detected cats
+                    Object.assign(detectedCats, newDetectedCats);
                 }
-            }
 
-            detectFrame();
+                requestAnimationFrame(detectFrame);
+            } catch (error) {
+                logError(`Error during detection: ${error}`);
+            }
         }
 
-        setupWebcam().then((isSuccess) => {
-            if (isSuccess) {
-                detectObjects();
-            } else {
-                logError("Webcam setup failed.");
-            }
-        });
-    </script>
+        detectFrame();
+    }
+
+    setupWebcam().then((isSuccess) => {
+        if (isSuccess) {
+            detectObjects();
+        } else {
+            logError("Webcam setup failed.");
+        }
+    });
+</script>
+
+
+    
 </body>
 </html>
