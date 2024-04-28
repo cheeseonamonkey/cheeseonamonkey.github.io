@@ -70,48 +70,40 @@
         }
 
         function calculateEmbedding(petCanvas) {
-            function cropImageEdges(canvas, margin) {
+            function cropCircleFromCenter(canvas, proportion) {
                 const ctx = canvas.getContext("2d");
-                const mWidth = canvas.width * margin;
-                const mHeight = canvas.height * margin;
-                const newWidth = canvas.width - 2 * mWidth;
-                const newHeight = canvas.height - 2 * mHeight;
+                const { width, height } = canvas;
+                const area = width * height;
+                const radius = Math.sqrt(area * proportion / Math.PI);
+                const centerX = width / 2;
+                const centerY = height / 2;
 
-                const croppedCanvas = document.createElement("canvas");
-                croppedCanvas.width = newWidth;
-                croppedCanvas.height = newHeight;
-                const croppedCtx = croppedCanvas.getContext("2d");
+                const circularCanvas = document.createElement("canvas");
+                circularCanvas.width = width;
+                circularCanvas.height = height;
+                const circularCtx = circularCanvas.getContext("2d");
 
-                croppedCtx.drawImage(
-                    canvas,
-                    mWidth, mHeight,
-                    newWidth, newHeight,
-                    0, 0,
-                    newWidth, newHeight
-                );
+                circularCtx.beginPath();
+                circularCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                circularCtx.clip();
+                circularCtx.drawImage(canvas, 0, 0);
 
-                return croppedCanvas;
+                return circularCanvas;
             }
 
-            // chop 7% off of the edges
-            const croppedCanvas = cropImageEdges(petCanvas, 0.07);
-            const ctx = croppedCanvas.getContext("2d");
-            const data = ctx.getImageData(0, 0, croppedCanvas.width, croppedCanvas.height).data;
+            const circularCanvas = cropCircleFromCenter(petCanvas, 0.75);
+            const data = circularCanvas.getContext("2d").getImageData(0, 0, circularCanvas.width, circularCanvas.height).data;
 
-            const colorHistogram = new Array(30).fill(0);
+            const colorHistogram = Array(30).fill(0);
             const redChannel = [];
             const greenChannel = [];
             const blueChannel = [];
 
             for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-
-                colorHistogram[Math.floor((r / 256) * 10)]++;
-                colorHistogram[Math.floor((g / 256) * 10) + 10]++;
-                colorHistogram[Math.floor((b / 256) * 10) + 20]++;
-
+                const r = data[i], g = data[i + 1], b = data[i + 2];
+                colorHistogram[Math.floor(r / 26)]++;
+                colorHistogram[Math.floor(g / 26) + 10]++;
+                colorHistogram[Math.floor(b / 26) + 20]++;
                 redChannel.push(r);
                 greenChannel.push(g);
                 blueChannel.push(b);
@@ -119,21 +111,21 @@
 
             function calculateMeanAndStd(channel) {
                 const mean = channel.reduce((sum, val) => sum + val, 0) / channel.length;
-                const variance = channel.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / channel.length;
+                const variance = channel.reduce((sum, val) => sum + (val - mean) ** 2, 0) / channel.length;
                 return { mean, stdDev: Math.sqrt(variance) };
             }
 
-            const meanStdRed = calculateMeanAndStd(redChannel);
-            const meanStdGreen = calculateMeanAndStd(greenChannel);
-            const meanStdBlue = calculateMeanAndStd(blueChannel);
-
             return {
                 colorHistogram,
-                meanRed: meanStdRed.mean, stdRed: meanStdRed.stdDev,
-                meanGreen: meanStdGreen.mean, stdGreen: meanStdGreen.stdDev,
-                meanBlue: meanStdBlue.mean, stdBlue: meanStdBlue.stdDev,
+                meanRed: calculateMeanAndStd(redChannel).mean,
+                stdRed: calculateMeanAndStd(redChannel).stdDev,
+                meanGreen: calculateMeanAndStd(greenChannel).mean,
+                stdGreen: calculateMeanAndStd(greenChannel).stdDev,
+                meanBlue: calculateMeanAndStd(blueChannel).mean,
+                stdBlue: calculateMeanAndStd(blueChannel).stdDev,
             };
         }
+
 
 
         async function detectObjects() {
