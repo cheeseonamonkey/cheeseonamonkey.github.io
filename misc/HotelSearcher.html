@@ -104,26 +104,25 @@
             const children = $('children').value;
             const ages = $('childAge').value;
             
-            // Update nights
             const nights = Math.round((new Date(cout) - new Date(cin)) / 86400000);
             $('nights').textContent = nights > 0 ? `(${nights} night${nights !== 1 ? 's' : ''})` : '';
             
-            // Update URL with hash params
             location.hash = new URLSearchParams({location: loc, checkin: cin, checkout: cout, adults, children, childAge: ages});
             
-            // Generate links
-            const locEnc = encodeURIComponent(loc);
-            const locPath = loc.replace(/,/g, '').replace(/\s+/g, ',');
+            const enc = encodeURIComponent;
+            const compact = cin.replace(/-/g, '');
+            const compactOut = cout.replace(/-/g, '');
+            const pathLoc = loc.replace(/,\s*/g, ',').replace(/\s+/g, ',');
             const age = ages.split(',')[0]?.trim() || '0';
+            const ageParams = ages.split(',').filter(a => a.trim()).map(a => `age=${a.trim()}`).join('&') || 'age=0';
             
             const links = [
-                { name: 'Booking.com', url: `https://www.booking.com/searchresults.html?ss=${locEnc}&checkin=${cin}&checkout=${cout}&group_adults=${adults}&group_children=${children}&age=${age}&order=price`, note: '✓ Sorted by price' },
-                { name: 'KAYAK', url: `https://www.kayak.com/hotels/${locPath}/${cin}/${cout}/${adults}adults?sort=price_a`, note: '✓ Sorted by price' },
-                { name: 'Priceline', url: `https://www.priceline.com/relax/in/${locPath}/from/${cin.replace(/-/g, '')}/to/${cout.replace(/-/g, '')}/rooms/1/adults/${adults}/children/${ages}?sortby=PRICE`, note: '✓ Sorted by price' },
-                { name: 'Hotwire', url: `https://www.hotwire.com/Hotel-Search?startDate=${cin}&endDate=${cout}&destination=${locEnc}&rooms=${adults}&sort=PRICE_LOW_TO_HIGH`, note: '✓ Sorted by price' },
-                { name: 'Expedia', url: `https://www.expedia.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&rooms=1&adults=${adults}&sort=PRICE_LOW_TO_HIGH`, note: '✓ Sorted by price' },
-                { name: 'Google Travel', url: `https://www.google.com/travel/hotels/${locEnc}?checkin=${cin}&checkout=${cout}&adults=${adults}`, note: 'Sort in UI' },
-                { name: 'Hotels.com', url: `https://www.hotels.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&adults=${adults}&rooms=1`, note: 'Sort in UI' }
+                { name: 'Booking.com', url: `https://www.booking.com/searchresults.html?ss=${enc(loc)}&checkin=${cin}&checkout=${cout}&group_adults=${adults}&group_children=${children}&${ageParams}&order=price`, note: '✓ Sorted by price' },
+                { name: 'KAYAK', url: `https://www.kayak.com/hotels/${enc(pathLoc)}/${cin}/${cout}/${adults}adults?sort=price_a`, note: '✓ Sorted by price' },
+                { name: 'Priceline', url: `https://www.priceline.com/relax/in/${enc(pathLoc)}/from/${compact}/to/${compactOut}/rooms/1/adults/${adults}/children/${ages || '0'}?sortby=PRICE`, note: '✓ Sorted by price' },
+                { name: 'Expedia', url: `https://www.expedia.com/Hotel-Search?destination=${enc(loc)}&startDate=${cin}&endDate=${cout}&rooms=1&adults=${adults}`, note: 'Sort in UI' },
+                { name: 'Hotels.com', url: `https://www.hotels.com/Hotel-Search?destination=${enc(loc)}&startDate=${cin}&endDate=${cout}&adults=${adults}&rooms=1`, note: 'Sort in UI' },
+                { name: 'Google Travel', url: `https://www.google.com/travel/hotels/${enc(loc)}?checkin=${cin}&checkout=${cout}&adults=${adults}`, note: 'Sort in UI' }
             ];
             
             const visited = JSON.parse(localStorage.hotelVisited || '[]');
@@ -134,7 +133,6 @@
                 </div>`
             ).join('');
             
-            // Add click listeners
             document.querySelectorAll('.link-item').forEach(el => {
                 el.querySelector('a').onclick = () => {
                     const name = links[el.dataset.idx].name;
@@ -145,7 +143,6 @@
             });
         }
         
-        // Init from hash params
         const p = new URLSearchParams(location.hash.slice(1));
         $('location').value = p.get('location') || 'Midvale, UT';
         $('adults').value = p.get('adults') || '1';
