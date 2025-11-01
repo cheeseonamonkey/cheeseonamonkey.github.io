@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,132 +8,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * { -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Rubik', sans-serif;
-            max-width: 650px;
-            margin: 0 auto;
-            padding: 15px;
-            background: #f5f5f5;
-        }
-        
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-        
-        h1 {
-            margin: 0 0 15px 0;
-            font-size: 20px;
-            font-weight: 600;
-            color: #222;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            font-size: 14px;
-            font-family: inherit;
-            box-sizing: border-box;
-        }
-        
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            margin-top: 5px;
-            transition: 0.15s;
-        }
-        
+        body { font-family: 'Rubik', sans-serif; max-width: 650px; margin: 0 auto; padding: 15px; background: #f5f5f5; }
+        .container { background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        h1 { margin: 0 0 15px 0; font-size: 20px; font-weight: 600; color: #222; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        label { display: block; margin-bottom: 4px; font-size: 13px; font-weight: 500; color: #555; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 10px 14px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 14px; margin-top: 5px; transition: 0.15s; }
         button:hover { background: #0056b3; }
         button:active { background: #004494; transform: scale(0.98); }
-        
-        .preset-btn {
-            background: #6c757d;
-            padding: 6px 12px;
-            font-size: 12px;
-            margin: 0 4px 0 0;
-        }
-        
+        .preset-btn { background: #6c757d; padding: 6px 12px; font-size: 12px; margin: 0 4px 0 0; }
         .preset-btn:hover { background: #545b62; }
-        
-        .results {
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .results.show { display: block; }
-        
-        .results h2 {
-            font-size: 15px;
-            font-weight: 600;
-            margin: 0 0 10px 0;
-        }
-        
-        .link-item {
-            margin-bottom: 8px;
-            padding: 10px;
-            background: #fafafa;
-            border-radius: 3px;
-            border-left: 3px solid #007bff;
-            transition: all 0.15s;
-            cursor: pointer;
-        }
-        
-        .link-item:hover {
-            background: #f0f5ff;
-            border-left-color: #0056b3;
-        }
-        
-        .link-item.visited {
-            background: #f0f0f0;
-            border-left-color: #999;
-            opacity: 0.7;
-        }
-        
-        .link-item a {
-            color: #007bff;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            display: block;
-        }
-        
+        .results { margin-top: 20px; }
+        .results h2 { font-size: 15px; font-weight: 600; margin: 0 0 10px 0; }
+        .link-item { margin-bottom: 8px; padding: 10px; background: #fafafa; border-radius: 3px; border-left: 3px solid #007bff; transition: all 0.15s; }
+        .link-item:hover { background: #f0f5ff; border-left-color: #0056b3; }
+        .link-item.visited { background: #f0f0f0; border-left-color: #999; opacity: 0.7; }
+        .link-item a { color: #007bff; text-decoration: none; font-size: 14px; font-weight: 500; display: block; }
         .link-item a:visited { color: #999; }
         .link-item a:hover { text-decoration: underline; }
-        
-        .note {
-            font-size: 11px;
-            color: #888;
-            margin-top: 3px;
-        }
-        
-        .link-item.visited .note { color: #aaa; }
-        
+        .note { font-size: 11px; color: #888; margin-top: 3px; }
         @media (max-width: 500px) {
             body { padding: 10px; }
             .container { padding: 15px; }
@@ -146,41 +41,41 @@
         
         <div class="form-group">
             <label>Location</label>
-            <input type="text" id="location" value="Midvale, UT" oninput="generateLinks()">
+            <input type="text" id="location" oninput="update()">
         </div>
         
         <div class="form-row">
             <div>
                 <label>Arrival</label>
-                <input type="date" id="checkin" onchange="updateNights(); generateLinks()">
+                <input type="date" id="checkin" onchange="update()">
             </div>
             <div>
-                <label>Departure <span id="nights" style="color: #999;"></span></label>
-                <input type="date" id="checkout" onchange="updateNights(); generateLinks()">
+                <label>Departure <span id="nights"></span></label>
+                <input type="date" id="checkout" onchange="update()">
             </div>
         </div>
         
         <div style="margin-bottom: 8px;">
-            <button onclick="setDates(1, 1)" class="preset-btn">1 night</button>
-            <button onclick="setDates(1, 2)" class="preset-btn">2 nights</button>
-            <button onclick="setDates(1, 3)" class="preset-btn">3 nights</button>
-            <button onclick="setDates(1, 7)" class="preset-btn">7 nights</button>
+            <button onclick="setDates(0, 1)" class="preset-btn">Tonight</button>
+            <button onclick="setDates(0, 2)" class="preset-btn">2 nights</button>
+            <button onclick="setDates(0, 3)" class="preset-btn">3 nights</button>
+            <button onclick="setDates(0, 7)" class="preset-btn">7 nights</button>
         </div>
         
         <div class="form-row">
             <div>
                 <label>Adults</label>
-                <input type="number" id="adults" value="1" min="1" onchange="generateLinks()">
+                <input type="number" id="adults" min="1" onchange="update()">
             </div>
             <div>
                 <label>Children</label>
-                <input type="number" id="children" value="1" min="0" onchange="generateLinks()">
+                <input type="number" id="children" min="0" onchange="update()">
             </div>
         </div>
         
         <div class="form-group" style="margin-bottom: 0;">
             <label>Child Age(s)</label>
-            <input type="text" id="childAge" value="4" placeholder="e.g., 4 or 4,7,10" oninput="generateLinks()">
+            <input type="text" id="childAge" placeholder="e.g., 4 or 4,7,10" oninput="update()">
         </div>
         
         <div id="results" class="results">
@@ -192,115 +87,79 @@
     <script>
         const $ = id => document.getElementById(id);
         
-        function getParams() {
-            const p = new URLSearchParams(location.search);
-            return {
-                location: p.get('location') || 'Midvale, UT',
-                checkin: p.get('checkin'),
-                checkout: p.get('checkout'),
-                adults: p.get('adults') || '1',
-                children: p.get('children') || '1',
-                childAge: p.get('childAge') || '4'
-            };
+        function setDates(from, nights) {
+            const cin = new Date();
+            cin.setDate(cin.getDate() + from);
+            const cout = new Date(cin);
+            cout.setDate(cin.getDate() + nights);
+            $('checkin').value = cin.toISOString().split('T')[0];
+            $('checkout').value = cout.toISOString().split('T')[0];
+            update();
         }
         
-        function setDates(daysFromNow, nights) {
-            const checkin = new Date();
-            checkin.setDate(checkin.getDate() + daysFromNow);
-            const checkout = new Date(checkin);
-            checkout.setDate(checkin.getDate() + nights);
-            
-            $('checkin').value = checkin.toISOString().split('T')[0];
-            $('checkout').value = checkout.toISOString().split('T')[0];
-            
-            updateNights();
-            generateLinks();
-        }
-        
-        function initDates() {
-            const params = getParams();
-            $('location').value = params.location;
-            $('adults').value = params.adults;
-            $('children').value = params.children;
-            $('childAge').value = params.childAge;
-            
-            const today = new Date().toISOString().split('T')[0];
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const checkin = params.checkin || tomorrow.toISOString().split('T')[0];
-            
-            const afterTomorrow = new Date(tomorrow);
-            afterTomorrow.setDate(tomorrow.getDate() + 2);
-            const checkout = params.checkout || afterTomorrow.toISOString().split('T')[0];
-            
-            $('checkin').value = checkin;
-            $('checkout').value = checkout;
-            $('checkin').min = today;
-            $('checkout').min = today;
-        }
-        
-        function updateNights() {
-            const nights = Math.round((new Date($('checkout').value) - new Date($('checkin').value)) / 86400000);
-            $('nights').textContent = nights > 0 ? `(${nights} night${nights !== 1 ? 's' : ''})` : '';
-        }
-        
-        function markVisited(url) {
-            const visited = JSON.parse(localStorage.getItem('hotelVisited') || '[]');
-            if (!visited.includes(url)) {
-                visited.push(url);
-                localStorage.setItem('hotelVisited', JSON.stringify(visited));
-            }
-            updateCardStates();
-        }
-        
-        function updateCardStates() {
-            const visited = JSON.parse(localStorage.getItem('hotelVisited') || '[]');
-            document.querySelectorAll('.link-item').forEach(item => {
-                const url = item.querySelector('a').href;
-                item.classList.toggle('visited', visited.includes(url));
-            });
-        }
-        
-        function generateLinks() {
+        function update() {
             const loc = $('location').value;
             const cin = $('checkin').value;
             const cout = $('checkout').value;
             const adults = $('adults').value;
             const children = $('children').value;
-            const childAges = $('childAge').value;
+            const ages = $('childAge').value;
             
-            const cinFmt = cin.replace(/-/g, '');
-            const coutFmt = cout.replace(/-/g, '');
+            // Update nights
+            const nights = Math.round((new Date(cout) - new Date(cin)) / 86400000);
+            $('nights').textContent = nights > 0 ? `(${nights} night${nights !== 1 ? 's' : ''})` : '';
+            
+            // Update URL
+            history.replaceState(null, '', '?' + new URLSearchParams({location: loc, checkin: cin, checkout: cout, adults, children, childAge: ages}));
+            
+            // Generate links
             const locEnc = encodeURIComponent(loc);
             const locPath = loc.replace(/,/g, '').replace(/\s+/g, ',');
-            const firstAge = childAges.split(',')[0]?.trim() || '0';
+            const age = ages.split(',')[0]?.trim() || '0';
             
             const links = [
-                { name: 'Booking.com', url: `https://www.booking.com/searchresults.html?ss=${locEnc}&checkin=${cin}&checkout=${cout}&group_adults=${adults}&group_children=${children}&age=${firstAge}&order=price`, note: '✓ Sorted by price' },
+                { name: 'Booking.com', url: `https://www.booking.com/searchresults.html?ss=${locEnc}&checkin=${cin}&checkout=${cout}&group_adults=${adults}&group_children=${children}&age=${age}&order=price`, note: '✓ Sorted by price' },
                 { name: 'KAYAK', url: `https://www.kayak.com/hotels/${locPath}/${cin}/${cout}/${adults}adults?sort=price_a`, note: '✓ Sorted by price' },
-                { name: 'Priceline', url: `https://www.priceline.com/relax/in/${locPath}/from/${cinFmt}/to/${coutFmt}/rooms/1/adults/${adults}/children/${childAges}?sortby=PRICE`, note: '✓ Sorted by price' },
+                { name: 'Priceline', url: `https://www.priceline.com/relax/in/${locPath}/from/${cin.replace(/-/g, '')}/to/${cout.replace(/-/g, '')}/rooms/1/adults/${adults}/children/${ages}?sortby=PRICE`, note: '✓ Sorted by price' },
                 { name: 'Hotwire', url: `https://www.hotwire.com/Hotel-Search?startDate=${cin}&endDate=${cout}&destination=${locEnc}&rooms=${adults}&sort=PRICE_LOW_TO_HIGH`, note: '✓ Sorted by price' },
-                { name: 'CheapOair', url: `https://www.cheapoair.com/hotels/listing?location=${locEnc}&checkin=${cin}&checkout=${cout}&rooms=1&adults=${adults}`, note: 'Sort in UI' },
-                { name: 'OneTravel', url: `https://www.onetravel.com/hotels?location=${locEnc}&checkin=${cin}&checkout=${cout}&rooms=1&adults=${adults}`, note: 'Sort in UI' },
-                { name: 'HotelTonight', url: `https://www.hoteltonight.com/s/${locEnc}?checkInDate=${cin}&checkOutDate=${cout}`, note: 'Sort in UI' },
+                { name: 'Expedia', url: `https://www.expedia.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&rooms=1&adults=${adults}&sort=PRICE_LOW_TO_HIGH`, note: '✓ Sorted by price' },
                 { name: 'Google Travel', url: `https://www.google.com/travel/hotels/${locEnc}?checkin=${cin}&checkout=${cout}&adults=${adults}`, note: 'Sort in UI' },
-                { name: 'Hotels.com', url: `https://www.hotels.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&adults=${adults}&rooms=1`, note: 'Sort in UI' },
-                { name: 'Expedia', url: `https://www.expedia.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&rooms=1&adults=${adults}&sort=PRICE_LOW_TO_HIGH`, note: '✓ Sorted by price' }
+                { name: 'Hotels.com', url: `https://www.hotels.com/Hotel-Search?destination=${locEnc}&startDate=${cin}&endDate=${cout}&adults=${adults}&rooms=1`, note: 'Sort in UI' }
             ];
             
-            $('linksList').innerHTML = links.map(link => 
-                `<div class="link-item"><a href="${link.url}" target="_blank" onclick="markVisited('${link.url}')">${link.name}</a><div class="note">${link.note}</div></div>`
+            const visited = JSON.parse(localStorage.hotelVisited || '[]');
+            $('linksList').innerHTML = links.map((l, i) => 
+                `<div class="link-item ${visited.includes(l.name) ? 'visited' : ''}" data-idx="${i}">
+                    <a href="${l.url}" target="_blank">${l.name}</a>
+                    <div class="note">${l.note}</div>
+                </div>`
             ).join('');
             
-            updateCardStates();
-            $('results').classList.add('show');
+            // Add click listeners
+            document.querySelectorAll('.link-item').forEach(el => {
+                el.querySelector('a').onclick = () => {
+                    const name = links[el.dataset.idx].name;
+                    const v = JSON.parse(localStorage.hotelVisited || '[]');
+                    if (!v.includes(name)) localStorage.hotelVisited = JSON.stringify([...v, name]);
+                    el.classList.add('visited');
+                };
+            });
         }
         
-        window.onload = () => {
-            initDates();
-            updateNights();
-            generateLinks();
-        };
+        // Init
+        const p = new URLSearchParams(location.search);
+        $('location').value = p.get('location') || 'Midvale, UT';
+        $('adults').value = p.get('adults') || '1';
+        $('children').value = p.get('children') || '1';
+        $('childAge').value = p.get('childAge') || '4';
+        
+        const today = new Date().toISOString().split('T')[0];
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        $('checkin').value = p.get('checkin') || today;
+        $('checkout').value = p.get('checkout') || tomorrow;
+        $('checkin').min = $('checkout').min = today;
+        
+        update();
     </script>
 </body>
 </html>
