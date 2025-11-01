@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,8 +108,8 @@
             const nights = Math.round((new Date(cout) - new Date(cin)) / 86400000);
             $('nights').textContent = nights > 0 ? `(${nights} night${nights !== 1 ? 's' : ''})` : '';
             
-            // Update URL
-            history.replaceState(null, '', '?' + new URLSearchParams({location: loc, checkin: cin, checkout: cout, adults, children, childAge: ages}));
+            // Update URL with hash params
+            location.hash = new URLSearchParams({location: loc, checkin: cin, checkout: cout, adults, children, childAge: ages});
             
             // Generate links
             const locEnc = encodeURIComponent(loc);
@@ -146,8 +145,8 @@
             });
         }
         
-        // Init
-        const p = new URLSearchParams(location.search);
+        // Init from hash params
+        const p = new URLSearchParams(location.hash.slice(1));
         $('location').value = p.get('location') || 'Midvale, UT';
         $('adults').value = p.get('adults') || '1';
         $('children').value = p.get('children') || '1';
