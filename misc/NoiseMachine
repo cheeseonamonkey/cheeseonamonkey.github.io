@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Active Noise Cancellation</title>
+<style>
+body { margin: 0; padding: 20px; font-family: monospace; background: #1a1a1a; color: #0f0; }
+canvas { border: 1px solid #0f0; background: #000; width: 100%; height: 300px; display: block; }
+button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0f0; border: none; color: #000; margin: 5px; }
+button:disabled { opacity: 0.5; }
+.tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #333; margin: 5px 5px 10px 0; }
+.tab.active { background: #0f0; color: #000; }
+.view { display: none; }
+.view.active { display: block; }
+.ctrl { margin: 10px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ctrl label { min-width: 100px; }
+input[type=range] { width: 200px; }
+select { background: #0f0; border: none; padding: 5px; font-family: monospace; }
+#status { margin: 15px 0; font-size: 18px; font-weight: bold; }
+#status.rec::before { content: "● "; color: #f00; animation: blink 1s infinite; }
+#status.proc { color: #ff0; }
+@keyframes blink { 50% { opacity: 0.3; } }
+.info { color: #666; font-size: 11px; margin: 4px 0; }
+.data { background: #000; color: #0f0; border: 1px solid #0f0; padding: 8px; margin: 8px 0; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+.legend { display: flex; gap: 15px; margin: 8px 0; font-size: 12px; }
+.legend span::before { content: "■ "; }
+.legend .amb::before { color: #f00; }
+.legend .inv::before { color: #0f0; }
+.legend .out::before { color: #ff0; }
+</style>
+</head>
+<body>
+<h2>Active Noise Cancellation</h2>
+
+<div>
+  <button id="rec">Start Recording</button>
+  <button id="stop-rec" disabled>Stop Recording</button>
+  <button id="play" disabled>Play Noise</button>
+  <button id="stop" disabled>Stop</button>
+  <span id="status"></span>
+</div>
+
+<div>
+  <span class="tab active" data-v="live">Live</span>
+  <span class="tab" data-v="analysis">Analysis</span>
+  <span class="tab" data-v="settings">Settings</span>
+  <span class="tab" data-v="data">Data</span>
+</div>
+
+<div id="live" class="view active">
+  <div class="info">Real-time frequency spectrum</div>
+  <canvas id="c1"></canvas>
+</div>
+
+<div id="analysis" class="view">
+  <div class="info">Cancellation profile (inverts ambient frequencies)</div>
+  <div class="legend"><span class="amb">Ambient (recorded)</span><span class="inv">Inverse (target)</span><span class="out">Output (shaped)</span></div>
+  <canvas id="c2"></canvas>
+</div>
+
+<div id="settings" class="view">
+  <div class="ctrl"><label>Volume:</label><input type="range" id="vol" min="0" max="100" value="40"><span id="vol-v">40%</span></div>
+  <div class="ctrl"><label>Cancel Strength:</label><input type="range" id="boost" min="0" max="100" value="85"><span id="boost-v">85%</span></div>
+  <div class="ctrl"><label>Transient Adapt:</label><input type="range" id="trans" min="0" max="100" value="70"><span id="trans-v">70%</span></div>
+  <div class="ctrl"><label>Noise Type:</label><select id="noise"><option value="white">White</option><option value="pink" selected>Pink</option><option value="brown">Brown</option></select></div>
+  <div class="ctrl"><label>Bands:</label><input type="range" id="bands" min="16" max="128" step="16" value="64"><span id="bands-v">64</span></div>
+  <div class="ctrl"><label>Smoothing:</label><input type="range" id="smooth" min="0" max="10" value="6"><span id="smooth-v">6</span></div>
+  <div class="ctrl"><label>Floor:</label><input type="range" id="floor" min="0" max="50" value="8"><span id="floor-v">8%</span></div>
+  <div class="ctrl"><label>Ceiling:</label><input type="range" id="ceil" min="50" max="150" value="120"><span id="ceil-v">120%</span></div>
+</div>
+
+<div id="data" class="view">
+  <strong>Cancellation Profile:</strong>
+  <div class="data" contenteditable id="prof-data"></div>
+  <strong>Analysis Metrics:</strong>
+  <div class="data" id="metrics"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0/dist/tf.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let B = 64, S = { ctx: null, a: null, src: null, gain: null, filt: null, prof: null, inverse: null, meta: null, stream: null, iv: null, samp: [], rec: false, play: false };
+
+const noise = {
+  white: () => Math.random() * 2 - 1,
+  pink: (() => { let b = [0,0,0,0,0,0,0]; return () => { let w = Math.random() * 2 - 1; b[0] = .99886*b[0] + w*.0555179; b[1] = .99332*b[1] + w*.0750759; b[2] = .969*b[2] + w*.153852; b[3] = .8665*b[3] + w*.3104856; b[4] = .55*b[4] + w*.5329522; b[5] = -.7616*b[5] - w*.016898; b[6] = .5*b[6] + w*.5362; return (b[0]+b[1]+b[2]+b[3]+b[4]+b[5]+b[6])*.11; }})(),
+  brown: (() => { let l = 0; return () => (l = (l + Math.random()*2-1)*.98)*3.5; })()
+};
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => { document.querySelectorAll('.tab, .view').forEach(e => e.classList.remove('active')); t.classList.add('active'); $('#'+t.dataset.v).classList.add('active'); if (t.dataset.v === 'analysis') draw('analysis'); });
+
+const btn = (s) => s.split(',').forEach(b => { const [id, st] = b.trim().split(':'); $(`#${id}`).disabled = st === '0'; });
+
+$('#rec').onclick = async () => {
+  try {
+    S.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    S.ctx = S.ctx || new AudioContext();
+    const src = S.ctx.createMediaStreamSource(S.stream);
+    S.a = S.ctx.createAnalyser(); S.a.fftSize = 4096; src.connect(S.a);
+    S.samp = []; S.rec = true;
+    const fd = new Uint8Array(S.a.frequencyBinCount);
+    S.iv = setInterval(() => { S.a.getByteFrequencyData(fd); S.samp.push(new Uint8Array(fd)); }, 50);
+    $('#status').textContent = 'RECORDING'; $('#status').className = 'rec';
+    btn('rec:0, stop-rec:1, play:0'); viz();
+  } catch (e) { alert(e.message); $('#status').textContent = 'Error'; $('#status').className = ''; }
+};
+
+$('#stop-rec').onclick = () => {
+  clearInterval(S.iv); S.stream?.getTracks().forEach(t => t.stop());
+  S.a?.disconnect(); S.rec = false; btn('stop-rec:0');
+  $('#status').textContent = 'Processing (ML analysis: ~5s)...'; $('#status').className = 'proc';
+  setTimeout(async () => {
+    const result = await analyze(S.samp);
+    S.prof = result.prof; S.inverse = result.inverse; S.meta = result.meta;
+    $('#prof-data').textContent = JSON.stringify([...S.inverse].map(v => +v.toFixed(3)));
+    $('#metrics').textContent = `Samples: ${S.meta.samples} (${S.meta.duration}s)\nDominant Freqs: ${S.meta.dominant}\nNoise Floor: ${S.meta.floor}dB\nPeak Energy: ${S.meta.peakE}dB\nSpectral Flux: ${S.meta.flux}\nRecommended Cancel: ${S.meta.cancel}%`;
+    $('#status').textContent = 'Ready'; $('#status').className = '';
+    btn('rec:1, play:1'); draw('analysis');
+  }, 50);
+};
+
+$('#play').onclick = () => {
+  S.ctx = S.ctx || new AudioContext();
+  const sr = S.ctx.sampleRate, buf = S.ctx.createBuffer(1, sr*2, sr), d = buf.getChannelData(0);
+  const gen = noise[$('#noise').value]; for (let i = 0; i < d.length; i++) d[i] = gen();
+  S.src = S.ctx.createBufferSource(); S.src.buffer = buf; S.src.loop = true;
+  S.filt = []; let chain = S.src, nyq = sr/2;
+  const gains = calcGains();
+  for (let i = 0; i < B; i++) {
+    const f = S.ctx.createBiquadFilter();
+    f.type = 'peaking'; f.frequency.value = (nyq/B)*(i+.5); f.Q.value = 1.2; f.gain.value = gains[i];
+    chain.connect(f); S.filt.push(f); chain = f;
+  }
+  S.gain = S.ctx.createGain(); S.gain.gain.value = $('#vol').value/100;
+  S.a = S.ctx.createAnalyser(); S.a.fftSize = 4096;
+  chain.connect(S.gain); S.gain.connect(S.a); S.a.connect(S.ctx.destination);
+  S.src.start(); S.play = true; btn('play:0, stop:1, rec:0, stop-rec:0'); viz();
+};
+
+$('#stop').onclick = () => { S.src?.stop(); S.gain?.disconnect(); S.filt?.forEach(f => f.disconnect()); S.play = false; btn('play:1, stop:0, rec:1'); };
+
+['vol','boost','trans','floor','ceil','smooth','bands'].forEach(id => $(`#${id}`).oninput = function() {
+  $(`#${id}-v`).textContent = this.value + (['vol','boost','trans','floor','ceil'].includes(id) ? '%' : '');
+  if (id === 'vol' && S.gain) S.gain.gain.value = this.value/100;
+  else if (id === 'bands') B = +this.value;
+  else if (S.filt) { const g = calcGains(); S.filt.forEach((f,i) => f.gain.value = g[i]); draw('analysis'); }
+});
+
+$('#prof-data').oninput = function() { try { S.inverse = new Float32Array(JSON.parse(this.textContent)); B = S.inverse.length; draw('analysis'); } catch(e) {} };
+
+function smooth(a, r) {
+  const o = new Float32Array(a.length);
+  for (let i = 0; i < a.length; i++) { let s = 0, c = 0; for (let j = Math.max(0, i-r); j <= Math.min(a.length-1, i+r); j++) { s += a[j]; c++; } o[i] = s / c; }
+  return o;
+}
+
+function calcGains() {
+  const boost = $('#boost').value/100, trans = $('#trans').value/100;
+  const floor = $('#floor').value/100, ceil = $('#ceil').value/100;
+  return S.inverse.map((v, i) => {
+    const tBoost = S.meta?.transient?.[i] || 0;
+    let g = v * boost + tBoost * trans * (1 - S.prof[i]); // boost transients in weak bands
+    g = Math.max(floor, Math.min(ceil, g));
+    return g * 20;
+  });
+}
+
+async function analyze(samp) {
+  if (!samp.length) return { prof: new Float32Array(B), inverse: new Float32Array(B), meta: {} };
+  
+  const p = new Float32Array(B), bs = samp[0].length / B;
+  const mins = new Float32Array(B).fill(255), maxs = new Float32Array(B), variance = new Float32Array(B);
+  
+  // Multi-pass spectral analysis
+  samp.forEach(s => {
+    for (let i = 0; i < B; i++) {
+      let sum = 0; for (let j = 0; j < bs; j++) sum += s[i*bs+j|0];
+      const avg = sum/bs;
+      p[i] += avg/255; mins[i] = Math.min(mins[i], avg); maxs[i] = Math.max(maxs[i], avg);
+    }
+  });
+  
+  const means = p.map(v => v/samp.length);
+  
+  // Temporal variance (transient detection)
+  samp.forEach(s => {
+    for (let i = 0; i < B; i++) {
+      let sum = 0; for (let j = 0; j < bs; j++) sum += s[i*bs+j|0];
+      variance[i] += Math.pow(sum/bs/255 - means[i], 2);
+    }
+  });
+  const stddev = variance.map(v => Math.sqrt(v/samp.length));
+  
+  // Spectral subtraction (noise floor removal)
+  const subtracted = means.map((v, i) => Math.max(0, v - mins[i]/255 * 0.25));
+  
+  // TensorFlow spectral gating
+  const tensor = tf.tensor1d(subtracted);
+  const gated = tf.mul(tensor, tf.sigmoid(tf.mul(tensor, 8))); // soft gate
+  const gatedArr = await gated.array();
+  tensor.dispose(); gated.dispose();
+  
+  // Apply smoothing
+  const smoothed = smooth(new Float32Array(gatedArr), parseInt($('#smooth').value));
+  
+  // Log compression
+  const compressed = smoothed.map(v => Math.log1p(v*20));
+  const max = Math.max(...compressed, 0.001);
+  const normalized = compressed.map(v => v/max);
+  
+  // INVERT for active cancellation - boost weak, suppress strong
+  const inverted = normalized.map(v => 1 - v);
+  const invertedSmooth = smooth(inverted, 3); // extra smoothing on inverse
+  
+  // Transient boost
+  const maxStd = Math.max(...stddev, 0.001);
+  const transient = stddev.map(v => v/maxStd);
+  
+  // Metrics
+  const mean = normalized.reduce((a,b) => a+b) / normalized.length;
+  const peakIdx = normalized.indexOf(Math.max(...normalized));
+  const dominant = `${Math.round((peakIdx/B)*20000)}Hz`;
+  const floorDb = 20 * Math.log10(Math.min(...normalized) + 0.001);
+  const peakDb = 20 * Math.log10(Math.max(...normalized));
+  
+  // Spectral flux (change over time)
+  let flux = 0;
+  for (let i = 1; i < samp.length; i++) {
+    for (let j = 0; j < B; j++) {
+      let sum1 = 0, sum2 = 0;
+      for (let k = 0; k < bs; k++) { sum1 += samp[i-1][j*bs+k|0]; sum2 += samp[i][j*bs+k|0]; }
+      flux += Math.abs(sum2/bs - sum1/bs);
+    }
+  }
+  flux = (flux / (samp.length * B * 255) * 100).toFixed(1);
+  
+  const cancel = Math.round(85 + (parseFloat(flux) > 5 ? 10 : 0));
+  
+  return {
+    prof: normalized,
+    inverse: invertedSmooth,
+    meta: {
+      transient, samples: samp.length, duration: (samp.length*0.05).toFixed(1),
+      dominant, floor: floorDb.toFixed(1), peakE: peakDb.toFixed(1), flux, cancel
+    }
+  };
+}
+
+function viz() {
+  if (!S.rec && !S.play) return;
+  const fd = new Uint8Array(S.a.frequencyBinCount);
+  S.a.getByteFrequencyData(fd); draw('live', fd);
+  requestAnimationFrame(viz);
+}
+
+function draw(mode, data) {
+  const c = $(mode === 'live' ? '#c1' : '#c2'), x = c.getContext('2d');
+  const w = c.width = c.offsetWidth, h = c.height = c.offsetHeight;
+  x.fillStyle = '#000'; x.fillRect(0,0,w,h);
+  
+  if (mode === 'live' && data) {
+    const bs = data.length / B, bw = w/B;
+    for (let i = 0; i < B; i++) {
+      let sum = 0; for (let j = 0; j < bs; j++) sum += data[i*bs+j|0];
+      const avg = sum/bs, bh = avg/255*h, hue = S.rec ? 0 : 120;
+      x.fillStyle = `hsl(${hue+avg},100%,50%)`; x.fillRect(i*bw, h-bh, bw-1, bh);
+    }
+  } else if (mode === 'analysis' && S.prof && S.inverse) {
+    const bw = w/B, gains = calcGains();
+    // Ambient (red bars)
+    x.fillStyle = 'rgba(255,0,0,0.5)'; for (let i = 0; i < B; i++) x.fillRect(i*bw, h-S.prof[i]*h, bw-1, S.prof[i]*h);
+    // Inverse (green line)
+    x.strokeStyle = '#0f0'; x.lineWidth = 2; x.beginPath();
+    for (let i = 0; i < B; i++) { const px = i*bw+bw/2, py = h-S.inverse[i]*h; i ? x.lineTo(px,py) : x.moveTo(px,py); }
+    x.stroke();
+    // Output (yellow line)
+    x.strokeStyle = '#ff0'; x.lineWidth = 3; x.beginPath();
+    for (let i = 0; i < B; i++) { const px = i*bw+bw/2, py = h-Math.min(1, gains[i]/20)*h; i ? x.lineTo(px,py) : x.moveTo(px,py); }
+    x.stroke();
+  }
+}
+</script>
+</body>
+</html>
