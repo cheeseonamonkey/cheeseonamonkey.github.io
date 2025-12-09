@@ -36,7 +36,7 @@ input[type=range]{accent-color:#6366f1}
   top:-20px;
   left:-26px;
   color:#cbd5e1;
-  font-size:11.5px;
+  font-size:15px;
   font-weight:400;
   font-style:italic;
   opacity:0;
@@ -50,13 +50,13 @@ input[type=range]{accent-color:#6366f1}
     0 0 1px rgba(255,255,255,.35),
     1px 0 rgba(255,140,140,.22),
    -1px 0 rgba(120,255,255,.22);
-  transition:opacity 1.2s ease,filter 1.2s ease;
+  transition:opacity 1.0s ease,filter 1.0 ease;
 }
 
 .card.show::before{opacity:.92}
 .card.fade::before{opacity:0;filter:blur(2px)}
 
-.card.q::before{animation:g 0.9s steps(1,end)}
+.card.q::before{animation:g 0.8s steps(1,end)}
 
 @keyframes g{
   0%{transform:rotate(var(--r)) translate(0,0)}
@@ -117,7 +117,7 @@ const run=(base,frames)=>{
 
   fadeTimer=setTimeout(()=>{
     c.classList.add("fade");
-  },2000+Math.random()*1000); // 3–5s dissolve window
+  },2000+Math.random()*800); // 3–5s dissolve window
 };
 
 addEventListener("DOMContentLoaded",()=>{
