@@ -15,11 +15,17 @@ html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-app
 html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:#0a0f1a;color:#e5e7eb}
 .card{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:16px}
-input[type=range]{accent-color:#6366f1}
-.tip-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#374151;font-size:10px;cursor:help;flex-shrink:0}
-.tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#374151;color:#d1d5db;padding:8px 10px;font-size:11px;border-radius:6px;white-space:pre-line;z-index:20;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+input[type=range]{accent-color:#6366f1;height:28px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px}
+.tip-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#374151;font-size:10px;cursor:help;flex-shrink:0}
+.tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#374151;color:#d1d5db;padding:8px 10px;font-size:11px;border-radius:6px;white-space:pre-line;z-index:20;min-width:160px;max-width:220px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#374151}
 .tip-wrap:hover .tip,.tip-wrap:focus .tip{display:block}
+.tip-left .tip{left:0;transform:none}.tip-left .tip::after{left:10px;transform:none}
+.tip-right .tip{left:auto;right:0;transform:none}.tip-right .tip::after{left:auto;right:10px;transform:none}
+.res-btn{background:#1f2937;border:1px solid #374151;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer}
+.res-btn:hover{background:#374151}
 </style>
 </head>
 
@@ -40,7 +46,12 @@ input[type=range]{accent-color:#6366f1}
   <!-- AUDIO -->
   <div>
     <div class="flex justify-between items-center">
-      <span class="text-sm font-medium">Audio</span>
+      <span class="text-sm font-medium flex gap-1 items-center">Audio
+        <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">Audio bitrate in kbps.
+48 = low quality, small
+128 = good (default)
+192 = high quality, larger</span></span>
+      </span>
       <label class="text-xs flex gap-1 items-center"><input id="muteAudio" type="checkbox"> Remove</label>
     </div>
     <div id="audioBitrateRow">
@@ -48,7 +59,7 @@ input[type=range]{accent-color:#6366f1}
         <span>Bitrate</span>
         <span><span id="audioBitrateLabel">128</span> kbps</span>
       </div>
-      <input id="audioBitrate" type="range" min="48" max="192" step="16" value="128" class="w-full">
+      <input id="audioBitrate" type="range" min="48" max="192" step="48" value="128" class="w-full">
     </div>
     <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio will be removed</p>
   </div>
@@ -57,79 +68,80 @@ input[type=range]{accent-color:#6366f1}
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">Resolution
-        <span class="tip-wrap" tabindex="0">?<span class="tip">Downscales via FFmpeg scale filter.
+        <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">Downscales via FFmpeg.
 Even dimensions enforced.
-Lower = smaller file, less detail.</span></span>
+Lower = smaller file.</span></span>
       </span>
-      <span><span id="resolutionPercentLabel">100</span>% | <span id="resolutionActualLabel">Original</span></span>
+      <span id="resolutionActualLabel">Original</span>
     </div>
-    <input id="resolutionPercent" type="range" min="25" max="100" step="5" value="100" class="w-full">
+    <input id="resolutionPercent" type="range" min="10" max="100" step="5" value="100" class="w-full">
+    <div id="resButtons" class="hidden flex gap-1 mt-2 flex-wrap">
+      <button class="res-btn" data-h="144">144p</button>
+      <button class="res-btn" data-h="240">240p</button>
+      <button class="res-btn" data-h="480">480p</button>
+      <button class="res-btn" data-h="720">720p</button>
+      <button class="res-btn" data-h="1080">1080p</button>
+    </div>
   </div>
 
   <!-- CRF -->
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">CRF
-        <span class="tip-wrap" tabindex="0">?<span class="tip">Constant Rate Factor (quality).
+        <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">Constant Rate Factor.
 18 = near lossless, large
-23 = good quality (default)
-28 = smaller, visible loss
-35+ = very compressed</span></span>
+24 = good (default)
+30 = smaller, visible loss
+38+ = very compressed</span></span>
       </span>
-      <span id="crfLabel">23</span>
+      <span id="crfLabel">24</span>
     </div>
-    <input id="crf" type="range" min="18" max="40" step="1" value="23" class="w-full">
+    <input id="crf" type="range" min="18" max="42" step="2" value="24" class="w-full">
   </div>
 
   <!-- SPEED -->
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">Speed
-        <span class="tip-wrap" tabindex="0">?<span class="tip">Speed up video via setpts.
+        <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">Speed up video playback.
 Audio adjusted via atempo.
-Reduces duration proportionally.</span></span>
+Reduces duration.</span></span>
       </span>
       <span><span id="speedLabel">1.00</span>x</span>
     </div>
     <input id="speed" type="range" min="100" max="175" step="5" value="100" class="w-full">
   </div>
 
-  <!-- FORMAT + OPTIONS -->
-  <div class="grid grid-cols-2 gap-2 text-xs">
-    <div class="flex gap-1 items-center text-[11px] text-gray-400">
-      <span class="tip-wrap" tabindex="0">?<span class="tip">MP4/H.264: Fast, universal.
-WebM/VP9: Smaller, slower encode.</span></span>
-      Format
-    </div>
-    <select id="outputFormat" class="bg-gray-900 border border-gray-700 rounded px-2 py-1">
+  <!-- FORMAT -->
+  <div class="flex gap-2 text-xs items-center">
+    <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">MP4/H.264: Fast, universal.
+WebM/VP9: Smaller, slower.</span></span>
+    <span class="text-[11px] text-gray-400">Format</span>
+    <select id="outputFormat" class="bg-gray-900 border border-gray-700 rounded px-2 py-1 ml-auto">
       <option value="mp4">MP4 (H.264)</option>
       <option value="webm">WebM (VP9)</option>
-    </select>
-
-    <div class="flex gap-1 items-center text-[11px] text-gray-400">
-      <span class="tip-wrap" tabindex="0">?<span class="tip">Encode speed vs compression.
-Ultrafast: quick, larger output
-Medium: balanced
-Slow: smaller output, slow</span></span>
-      Preset
-    </div>
-    <select id="preset" class="bg-gray-900 border border-gray-700 rounded px-2 py-1">
-      <option value="ultrafast">Ultrafast</option>
-      <option value="fast">Fast</option>
-      <option value="medium" selected>Medium</option>
-      <option value="slow">Slow</option>
     </select>
   </div>
 
   <!-- CHECKBOXES -->
   <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-300">
-    <label class="flex gap-1 items-center"><input id="fastStart" type="checkbox" checked> Fast start (web)</label>
-    <label class="flex gap-1 items-center"><input id="stripMeta" type="checkbox"> Strip metadata</label>
+    <label class="flex gap-1 items-center">
+      <input id="fastStart" type="checkbox" checked> Fast start
+      <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">Moves moov atom to start.
+Enables streaming before
+full download. Recommended.</span></span>
+    </label>
+    <label class="flex gap-1 items-center">
+      <input id="stripMeta" type="checkbox"> Strip metadata
+      <span class="tip-wrap tip-right" tabindex="0">?<span class="tip">Removes EXIF, GPS, camera
+info, timestamps, etc.
+Good for privacy.</span></span>
+    </label>
   </div>
 
   <!-- ESTIMATE -->
   <div id="estimateRow" class="hidden text-xs text-gray-400 bg-gray-800/50 rounded px-3 py-2">
-    Est. output: <span id="estimateLabel"></span>
+    Est: <span id="estimateLabel"></span>
     <span class="text-gray-500">(<span id="estimateReduction"></span>)</span>
   </div>
 
@@ -140,8 +152,8 @@ Slow: smaller output, slow</span></span>
   </button>
 
   <div class="flex items-center gap-3">
-    <div class="flex-1 h-2 bg-gray-700 rounded overflow-hidden">
-      <div id="progressBar" class="h-2 bg-indigo-500 transition-all" style="width:0%"></div>
+    <div class="flex-1 h-3 bg-gray-700 rounded overflow-hidden">
+      <div id="progressBar" class="h-3 bg-indigo-500 transition-all" style="width:0%"></div>
     </div>
     <span id="progressLabel" class="text-xs w-10 text-right text-gray-400">0%</span>
   </div>
@@ -162,31 +174,31 @@ Slow: smaller output, slow</span></span>
 const $=id=>document.getElementById(id),
 els={file:$("fileInput"),fileInfo:$("fileInfo"),ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),
 mute:$("muteAudio"),abRow:$("audioBitrateRow"),abHint:$("audioMutedHint"),rp:$("resolutionPercent"),
-rpLbl:$("resolutionPercentLabel"),rLab:$("resolutionActualLabel"),crf:$("crf"),crfLbl:$("crfLabel"),
-speed:$("speed"),speedLbl:$("speedLabel"),fmt:$("outputFormat"),preset:$("preset"),
-fastStart:$("fastStart"),stripMeta:$("stripMeta"),btn:$("compressBtn"),spin:$("spinner"),
-bar:$("progressBar"),barLbl:$("progressLabel"),status:$("status"),preview:$("preview"),
-dl:$("downloadLink"),probe:$("probeVideo"),sizeInfo:$("sizeInfo"),
-estRow:$("estimateRow"),estLbl:$("estimateLabel"),estRed:$("estimateReduction")};
+rLab:$("resolutionActualLabel"),resBtn:$("resButtons"),crf:$("crf"),crfLbl:$("crfLabel"),
+speed:$("speed"),speedLbl:$("speedLabel"),fmt:$("outputFormat"),fastStart:$("fastStart"),
+stripMeta:$("stripMeta"),btn:$("compressBtn"),spin:$("spinner"),bar:$("progressBar"),
+barLbl:$("progressLabel"),status:$("status"),preview:$("preview"),dl:$("downloadLink"),
+probe:$("probeVideo"),sizeInfo:$("sizeInfo"),estRow:$("estimateRow"),estLbl:$("estimateLabel"),
+estRed:$("estimateReduction")};
 
 let ffmpeg=null,ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
 
 const setStatus=s=>els.status.textContent=s,
 setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%"},
 fmtSize=b=>b<1e6?(b/1e3).toFixed(1)+" KB":(b/1e6).toFixed(2)+" MB",
-updateBtn=()=>els.btn.disabled=!ffReady||!currentFile;
+updateBtn=()=>els.btn.disabled=!ffReady||!currentFile,
+calcRes=p=>({w:Math.floor(meta.w*p/100/2)*2,h:Math.floor(meta.h*p/100/2)*2});
 
 function updateResLabel(){
-  const p=+els.rp.value;els.rpLbl.textContent=p;
-  els.rLab.textContent=meta.w?`${Math.floor(meta.w*p/100/2)*2}x${Math.floor(meta.h*p/100/2)*2}`:"Original";
+  const p=+els.rp.value,r=calcRes(p);
+  els.rLab.textContent=meta.w?`${p}% | ${r.w}x${r.h}`:"Original";
   updateEstimate();
 }
 
 function updateEstimate(){
   if(!currentFile){els.estRow.classList.add("hidden");return;}
   const rp=+els.rp.value/100,crf=+els.crf.value,speed=+els.speed.value/100;
-  const resF=rp*rp,crfF=Math.pow(2,(23-crf)/6),durF=1/speed;
-  const est=Math.max(currentFile.size*resF*crfF*durF*0.85,currentFile.size*0.05);
+  const est=Math.max(currentFile.size*rp*rp*Math.pow(2,(24-crf)/6)/speed*0.85,currentFile.size*0.05);
   els.estLbl.textContent=fmtSize(est);
   const red=((1-est/currentFile.size)*100).toFixed(0);
   els.estRed.textContent=red>0?`~${red}% smaller`:`~${Math.abs(red)}% larger`;
@@ -210,11 +222,11 @@ function buildArgs(input,out,o){
   const args=["-y","-i",input];
   if(vf.length)args.push("-vf",vf.join(","));
   if(af.length)args.push("-af",af.join(","));
-  if(o.mute)args.push("-an");else args.push("-b:a",o.bitrate+"k");
+  o.mute?args.push("-an"):args.push("-b:a",o.bitrate+"k");
   args.push("-c:v",o.fmt==="webm"?"libvpx-vp9":"libx264","-crf",o.crf);
-  if(o.fmt==="mp4"){args.push("-preset",o.preset);if(o.fastStart)args.push("-movflags","+faststart");}
+  if(o.fmt==="mp4"&&o.fastStart)args.push("-movflags","+faststart");
   if(o.stripMeta)args.push("-map_metadata","-1");
-  args.push(out);return args;
+  return args.concat(out);
 }
 
 async function compress(){
@@ -224,8 +236,7 @@ async function compress(){
   els.dl.classList.add("hidden");els.sizeInfo.classList.add("hidden");
   
   const o={mute:els.mute.checked,bitrate:+els.ab.value,rp:+els.rp.value,crf:+els.crf.value,
-    speed:+els.speed.value/100,fmt:els.fmt.value,preset:els.preset.value,
-    fastStart:els.fastStart.checked,stripMeta:els.stripMeta.checked},
+    speed:+els.speed.value/100,fmt:els.fmt.value,fastStart:els.fastStart.checked,stripMeta:els.stripMeta.checked},
     out="out."+o.fmt;
   try{
     ffmpeg.FS("writeFile",currentFile.name,new Uint8Array(await currentFile.arrayBuffer()));
@@ -252,9 +263,18 @@ els.file.onchange=e=>{
   currentFile=f;meta={w:0,h:0};
   els.fileInfo.textContent=`${f.name} (${fmtSize(f.size)})`;
   const u=URL.createObjectURL(f);els.probe.src=u;
-  els.probe.onloadedmetadata=()=>{meta.w=els.probe.videoWidth;meta.h=els.probe.videoHeight;URL.revokeObjectURL(u);updateResLabel();};
+  els.probe.onloadedmetadata=()=>{
+    meta.w=els.probe.videoWidth;meta.h=els.probe.videoHeight;
+    URL.revokeObjectURL(u);updateResLabel();els.resBtn.classList.remove("hidden");
+  };
   els.probe.onerror=()=>{setStatus("Invalid video");currentFile=null;URL.revokeObjectURL(u);};
   updateBtn();updateEstimate();
+};
+
+els.resBtn.onclick=e=>{
+  const h=+e.target.dataset.h;if(!h||!meta.h)return;
+  els.rp.value=Math.max(10,Math.min(100,Math.round(h/meta.h*100/5)*5));
+  updateResLabel();
 };
 
 els.ab.oninput=()=>els.abLbl.textContent=els.ab.value;
