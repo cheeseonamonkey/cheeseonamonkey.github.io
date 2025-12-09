@@ -48,7 +48,68 @@ input[type="range"] {
 
 </style>
 
-<style>body::after{content:attr(data-q);position:fixed;top:12px;left:12px;color:#6b7280;font-size:11px;opacity:.8;transition:.25s ease;cursor:pointer;display:inline-block;animation:glitch .3s ease-in-out;}@keyframes glitch{0%{transform:skew(0deg);}25%{transform:skew(10deg);}50%{transform:skew(-10deg);}75%{transform:skew(5deg);}100%{transform:skew(0deg);}}</style><script>document.addEventListener("DOMContentLoaded",()=>{const q=["Less is learned.","Seek structure, not size.","The simplest form wins.","Meaning survives compression.","Find the pattern behind the noise.","Complexity dissolves under insight."],scr=a=>{let b=a.split("");for(let i=0;i<Math.min(4,b.length);i++){let x=Math.random()*b.length|0;b[x]=String.fromCharCode(97+Math.random()*26|0)}return b.join("")},u=()=>{let s=q[Math.random()*q.length|0];if(Math.random()<.9)s=scr(s);document.body.setAttribute("data-q",s);document.body.style.animation="none";void document.body.offsetWidth;document.body.style.animation="glitch .25s"};u();document.body.onclick=u});</script>
+<style>
+body::after{
+  content:attr(data-q);
+  position:fixed;
+  top:12px;
+  left:12px;
+  color:#9ca3af;
+  font-size:11px;
+  opacity:.9;
+  font-family:"Spline Sans Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  pointer-events:none;
+  white-space:pre;
+  display:inline-block;
+  transform-origin:left top;
+}
+body.q-glitch::after{
+  animation:q-glitch .18s ease-out;
+}
+@keyframes q-glitch{
+  0%{transform:translate(0,0) skewX(0deg);}
+  25%{transform:translate(1px,-1px) skewX(6deg);}
+  50%{transform:translate(-1px,1px) skewX(-6deg);}
+  75%{transform:translate(1px,0) skewX(3deg);}
+ 100%{transform:translate(0,0) skewX(0deg);}
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{const QUOTES=[
+  "Less is learned.",
+  "Seek structure, not size.",
+  "The simplest form wins.",
+  "Meaning survives compression.",
+  "Find the pattern behind the noise.",
+  "Complexity dissolves under insight."
+];
+const pick=()=>QUOTES[Math.floor(Math.random()*QUOTES.length)];
+const glitch=t=>{
+  const chars=t.split(""), idx=[];
+  for(let i=0;i<chars.length;i++) if(/[A-Za-z]/.test(chars[i])) idx.push(i);
+  const swaps=Math.min(6,Math.max(2,Math.floor(idx.length/4)));
+  for(let s=0;s<swaps;s++){
+    const a=idx[Math.floor(Math.random()*idx.length)];
+    const b=idx[Math.floor(Math.random()*idx.length)];
+    [chars[a],chars[b]]=[chars[b],chars[a]];
+  }
+  return chars.join("");
+};
+const show=()=>{
+  const base=pick();
+  const g=glitch(base);
+  const b=document.body;
+  b.classList.remove("q-glitch");
+  void b.offsetWidth;           // restart animation
+  b.setAttribute("data-q",g);   // show glitched
+  b.classList.add("q-glitch");
+  setTimeout(()=>b.setAttribute("data-q",base),120); // settle to clean
+};
+show();
+document.addEventListener("click",show);
+});
+</script>
 
   
 </head>
