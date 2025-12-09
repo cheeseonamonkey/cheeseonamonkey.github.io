@@ -45,25 +45,11 @@ input[type="range"] {
   accent-color: #6366f1;
 }
 
-body::after {
-  content: "Less is learned.\ASeek structure, not size.\AThe simplest form wins.\AMeaning survives compression.";
-  white-space: pre;
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  color: #6b7280;
-  font-size: 11px;
-  opacity: 0.6;
-  animation: cycle 16s steps(4) infinite;
-}
 
-@keyframes cycle {
-  0% { content: "Less is learned."; }
-  25% { content: "Seek structure, not size."; }
-  50% { content: "The simplest form wins."; }
-  75% { content: "Meaning survives compression."; }
-}
 </style>
+
+  <style>body::after{content:attr(data-q);position:fixed;top:12px;left:12px;color:#6b7280;font-size:11px;opacity:.6;transform:rotate(-2deg);cursor:pointer}</style><script>const q=["Less is learned.","Seek structure, not size.","The simplest form wins.","Meaning survives compression.","Find the pattern behind the noise.","Complexity dissolves under insight."],u=()=>document.body.setAttribute("data-q",q[Math.random()*q.length|0]);u();document.body.onclick=u;</script>
+
 </head>
 
 <body class="p-4 max-w-md mx-auto space-y-4">
