@@ -48,7 +48,7 @@ input[type="range"] {
 
 </style>
 
-<style>body::after{content:attr(data-q);position:fixed;top:12px;left:12px;color:#6b7280;font-size:11px;opacity:.6;transform:rotate(-2deg);cursor:pointer;}</style><script>const qs=["Less is learned.","Seek structure, not size.","The simplest form wins.","Meaning survives compression.","Find the pattern behind the noise.","Complexity dissolves under insight."];const g=s=>{let a=s.split("");for(let i=0;i<3;i++){let x=Math.random()*a.length|0,y=Math.random()*a.length|0;[a[x],a[y]]=[a[y],a[x]];}return a.join("")};const set=()=>{let q=qs[Math.random()*qs.length|0];if(Math.random()<.4)q=g(q);document.body.setAttribute("data-q",q)};set();document.body.onclick=set;</script>
+<style>body::after{content:attr(data-q);position:fixed;top:12px;left:12px;color:#6b7280;font-size:11px;opacity:.75;transform:rotate(-2deg) scale(1);transition:.35s ease;cursor:pointer}</style><script>document.addEventListener("DOMContentLoaded",()=>{const qs=["Less is learned.","Seek structure, not size.","The simplest form wins.","Meaning survives compression.","Find the pattern behind the noise.","Complexity dissolves under insight."],m=s=>{s=s.split("");for(let i=0;i<3;i++){let a=Math.random()*s.length|0,b=Math.random()*s.length|0;[s[a],s[b]]=[s[b],s[a]]}return s.join("")},fx=()=>{let e=document.body;e.style.opacity=.2;e.style.transform="rotate("+((Math.random()*4-2).toFixed(1))+"deg) scale(.9)";setTimeout(()=>{e.style.opacity=.75;e.style.transform="rotate("+((Math.random()*4-2).toFixed(1))+"deg) scale(1)"},50)},u=()=>{let q=qs[Math.random()*qs.length|0];if(Math.random()<.35)q=m(q);document.body.setAttribute("data-q",q);fx()};u();document.body.onclick=u});</script>
 
 </head>
 
