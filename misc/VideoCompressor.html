@@ -16,8 +16,9 @@
 html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
 html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:#0a0f1a;color:#e5e7eb}
-.card{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:16px}
+.card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:16px}
 input[type=range]{accent-color:#6366f1}
+.tip{font-size:10px;color:#9ca3af}
 </style>
 </head>
 
@@ -26,23 +27,23 @@ input[type=range]{accent-color:#6366f1}
 <h1 class="text-xl font-semibold">Video Compressor</h1>
 <p class="text-xs text-gray-400">Local processing. Mobile-friendly.</p>
 
-<!-- INPUT -->
 <div class="card space-y-3">
+
+  <!-- FILE -->
   <div>
     <label class="text-xs text-gray-400">Source video</label>
-    <input id="fileInput" type="file" accept="video/*" class="mt-1 text-sm text-gray-100">
+    <input id="fileInput" type="file" accept="video/*" class="mt-1 text-sm">
     <p id="fileInfo" class="text-xs text-gray-500 mt-1">No file selected.</p>
   </div>
 
   <!-- AUDIO -->
-  <div class="space-y-2">
+  <div>
     <div class="flex justify-between items-center">
-      <span class="text-sm font-medium">Audio</span>
+      <span class="text-sm">Audio</span>
       <label class="text-xs flex items-center gap-1">
         <input id="muteAudio" type="checkbox"> Remove
       </label>
     </div>
-
     <div id="audioBitrateRow">
       <div class="flex justify-between text-[11px] text-gray-400">
         <span>Bitrate</span>
@@ -50,8 +51,8 @@ input[type=range]{accent-color:#6366f1}
       </div>
       <input id="audioBitrate" type="range" min="48" max="192" step="16" value="128" class="w-full">
     </div>
-
     <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio removed</p>
+    <p class="tip">AAC/Opus encode only. No passthrough.</p>
   </div>
 
   <!-- RESOLUTION -->
@@ -61,12 +62,12 @@ input[type=range]{accent-color:#6366f1}
       <span><span id="resolutionPercentLabel">100</span>% · <span id="resolutionActualLabel">Original</span></span>
     </div>
     <input id="resolutionPercent" type="range" min="25" max="100" step="5" value="100" class="w-full">
-
     <div class="flex gap-2 text-xs mt-2">
       <button id="resPreset480" class="flex-1 border rounded py-1">480p</button>
       <button id="resPreset720" class="flex-1 border rounded py-1">720p</button>
       <button id="resPreset1080" class="flex-1 border rounded py-1">1080p</button>
     </div>
+    <p class="tip">Scale keeps even dimensions for codec safety.</p>
   </div>
 
   <!-- SPEED -->
@@ -75,10 +76,11 @@ input[type=range]{accent-color:#6366f1}
       <span>Speed</span>
       <span><span id="speedLabel">1.00</span>x</span>
     </div>
-    <input id="speed" type="range" min="1" max="3" step="0.05" value="1" class="w-full">
+    <input id="speed" type="range" min="0" max="9" step="1" value="0" class="w-full">
+    <p class="tip">Snapped atempo/setpts steps. Audio stays synced.</p>
   </div>
 
-  <!-- FORMAT + COMPRESSION -->
+  <!-- FORMAT -->
   <div class="grid grid-cols-2 gap-2 text-xs">
     <select id="outputFormat" class="bg-gray-900 border rounded px-2 py-1">
       <option value="mp4">MP4 (H.264)</option>
@@ -118,7 +120,9 @@ input[type=range]{accent-color:#6366f1}
 <video id="probeVideo" class="hidden"></video>
 
 <script>
-const $=id=>document.getElementById(id);
+const SPEED_STEPS=[1.05,1.1,1.15,1.2,1.3,1.4,1.55,1.75,1.8,2.0];
+
+const $=x=>document.getElementById(x);
 const els={
 file:$("fileInput"),fileInfo:$("fileInfo"),
 ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),mute:$("muteAudio"),
@@ -133,31 +137,31 @@ status:$("status"),preview:$("preview"),dl:$("downloadLink"),
 probe:$("probeVideo")
 };
 
+let ffmpeg=null,ffReady=false,currentFile=null,meta={ready:false,w:0,h:0};
+
 const setStatus=s=>els.status.textContent=s;
 const setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%"};
 
-let ffmpeg=null,ffReady=false,ffLoading=false,currentFile=null,meta={ready:false,w:0,h:0};
-
 async function preloadFF(){
- if(ffLoading||ffReady)return;
- ffLoading=true;setStatus("Loading FFmpeg…");
- const{createFFmpeg}=await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
- ffmpeg=createFFmpeg({log:false,corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"});
- ffmpeg.setProgress(({ratio})=>setProgress(ratio*100));
- await ffmpeg.load();
- ffReady=true;ffLoading=false;setStatus("Ready.");
+ try{
+  setStatus("Loading FFmpeg…");
+  const{createFFmpeg}=await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
+  ffmpeg=createFFmpeg({log:false,corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"});
+  ffmpeg.setProgress(({ratio})=>setProgress(ratio*100));
+  await ffmpeg.load();
+  ffReady=true;
+  setStatus("Ready.");
+ }catch(e){
+  console.error(e);
+  setStatus("FFmpeg failed to load.");
+ }
 }
-requestIdleCallback(preloadFF,{timeout:1500});
+requestIdleCallback(preloadFF,{timeout:1200});
 
-function getOpts(){
- return{
-  mute:els.mute.checked,
-  bitrate:+els.ab.value,
-  rp:+els.rp.value,
-  speed:+els.speed.value,
-  fmt:els.fmt.value,
-  comp:els.comp.value
- };
+function updateSpeed(){
+ const v=SPEED_STEPS[+els.speed.value];
+ els.speedLbl.textContent=v.toFixed(2);
+ return v;
 }
 
 function updateRes(){
@@ -168,6 +172,17 @@ function updateRes(){
  }
 }
 
+function getOpts(){
+ return{
+  mute:els.mute.checked,
+  bitrate:+els.ab.value,
+  rp:+els.rp.value,
+  speed:updateSpeed(),
+  fmt:els.fmt.value,
+  comp:els.comp.value
+ };
+}
+
 function buildArgs(input,out,o){
  const vf=[],af=[];
  if(o.rp!==100)vf.push(`scale=trunc(iw*${o.rp/100}/2)*2:trunc(ih*${o.rp/100}/2)*2`);
@@ -176,23 +191,30 @@ function buildArgs(input,out,o){
  if(vf.length)args.push("-vf",vf.join(","));
  if(af.length)args.push("-af",af.join(","));
  if(o.mute)args.push("-an");else args.push("-b:a",o.bitrate+"k");
- if(o.fmt==="webm"){const crf={fast:28,balanced:32,strong:38,max:42}[o.comp];args.push("-c:v","libvpx-vp9","-crf",crf,"-b:v","0");}
- else{const crf={fast:20,balanced:23,strong:28,max:32}[o.comp];args.push("-c:v","libx264","-crf",crf);}
- args.push(out);return args;
+ const crf={fast:20,balanced:23,strong:28,max:32}[o.comp];
+ args.push("-c:v","libx264","-crf",crf,out);
+ return args;
 }
 
 async function compress(){
- if(!currentFile){alert("Pick a file first");return;}
- if(!ffReady)await preloadFF();
- els.btn.disabled=true;els.spin.classList.remove("hidden");setProgress(0);setStatus("Compressing…");
+ if(!currentFile)return alert("Pick a file.");
+ if(!ffReady)return alert("FFmpeg still loading.");
+ els.btn.disabled=true;els.spin.classList.remove("hidden");
+ setProgress(0);setStatus("Compressing…");
+
  ffmpeg.FS("writeFile",currentFile.name,new Uint8Array(await currentFile.arrayBuffer()));
- const o=getOpts(),out="out."+o.fmt,args=buildArgs(currentFile.name,out,o);
+ const o=getOpts(),out="out.mp4",args=buildArgs(currentFile.name,out,o);
  await ffmpeg.run(...args);
  const data=ffmpeg.FS("readFile",out);
- const blob=new Blob([data],{type:"video/"+o.fmt});
- const url=URL.createObjectURL(blob);
- els.preview.src=url;els.dl.href=url;els.dl.download=out;els.dl.classList.remove("hidden");
- els.spin.classList.add("hidden");els.btn.disabled=false;setProgress(100);setStatus("Done.");
+ const url=URL.createObjectURL(new Blob([data],{type:"video/mp4"}));
+
+ els.preview.src=url;
+ els.dl.href=url;
+ els.dl.download=out;
+ els.dl.classList.remove("hidden");
+
+ els.spin.classList.add("hidden");els.btn.disabled=false;
+ setProgress(100);setStatus("Done.");
 }
 
 els.file.onchange=e=>{
@@ -209,7 +231,7 @@ els.rp.oninput=updateRes;
 els.r480.onclick=()=>{els.rp.value=45;updateRes()};
 els.r720.onclick=()=>{els.rp.value=70;updateRes()};
 els.r1080.onclick=()=>{els.rp.value=100;updateRes()};
-els.speed.oninput=()=>els.speedLbl.textContent=(+els.speed.value).toFixed(2);
+els.speed.oninput=updateSpeed;
 els.btn.onclick=compress;
 </script>
 </body>
