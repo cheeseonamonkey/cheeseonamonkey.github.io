@@ -75,41 +75,10 @@ body.q-glitch::after{
 }
 </style>
 
-<script>
-document.addEventListener("DOMContentLoaded",()=>{const QUOTES=[
-  "Less is learned.",
-  "Seek structure, not size.",
-  "The simplest form wins.",
-  "Meaning survives compression.",
-  "Find the pattern behind the noise.",
-  "Complexity dissolves under insight."
-];
-const pick=()=>QUOTES[Math.floor(Math.random()*QUOTES.length)];
-const glitch=t=>{
-  const chars=t.split(""), idx=[];
-  for(let i=0;i<chars.length;i++) if(/[A-Za-z]/.test(chars[i])) idx.push(i);
-  const swaps=Math.min(6,Math.max(2,Math.floor(idx.length/4)));
-  for(let s=0;s<swaps;s++){
-    const a=idx[Math.floor(Math.random()*idx.length)];
-    const b=idx[Math.floor(Math.random()*idx.length)];
-    [chars[a],chars[b]]=[chars[b],chars[a]];
-  }
-  return chars.join("");
-};
-const show=()=>{
-  const base=pick();
-  const g=glitch(base);
-  const b=document.body;
-  b.classList.remove("q-glitch");
-  void b.offsetWidth;           // restart animation
-  b.setAttribute("data-q",g);   // show glitched
-  b.classList.add("q-glitch");
-  setTimeout(()=>b.setAttribute("data-q",base),120); // settle to clean
-};
-show();
-document.addEventListener("click",show);
-});
-</script>
+
+<style>body::after{content:attr(data-q);position:fixed;top:18px;left:18px;color:#d1d5db;font-size:13px;font-weight:600;opacity:.95;font-family:"Spline Sans Mono",ui-monospace,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;pointer-events:none;white-space:pre;display:inline-block;transform-origin:left top;text-shadow:1px 0 rgba(255,70,70,.5),-1px 0 rgba(0,255,255,.4),0 0 2px rgba(255,255,255,.15)}body.q-glitch::after{animation:q-glitch .6s steps(1,end)}@keyframes q-glitch{0%{transform:translate(0,0) skewX(0deg)}15%{transform:translate(2px,-2px) skewX(12deg)}30%{transform:translate(-2px,2px) skewX(-14deg)}45%{transform:translate(2px,0) skewX(8deg) scale(1.03)}60%{transform:translate(-2px,-2px) skewX(-8deg)}80%{transform:translate(2px,1px) skewX(4deg)}100%{transform:translate(0,0) skewX(0deg) scale(1)}}</style><script>document.addEventListener("DOMContentLoaded",()=>{const Q=["Less is learned.","Seek structure, not size.","The simplest form wins.","Meaning survives compression.","Find the pattern behind the noise.","Complexity dissolves under insight."];let t=0;const pick=()=>Q[Math.random()*Q.length|0],gl=t=>{let a=t.split(""),i=[];for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);for(let s=0;s<Math.min(10,Math.max(3,Math.floor(i.length/3)));s++){let x=i[Math.random()*i.length|0],y=i[Math.random()*i.length|0];[a[x],a[y]]=[a[y],a[x]]}return a.join("")},seq=b=>{const e=document.body,n=++t;e.classList.remove("q-glitch"),void e.offsetWidth,e.classList.add("q-glitch");let f=0;const F=6,S=80,h=()=>{if(n!==t)return;f<F?(e.setAttribute("data-q",gl(b)),f++,setTimeout(h,S)):e.setAttribute("data-q",b)};h()},go=()=>seq(pick());go(),document.addEventListener("click",go)});</script>
+
+
 
   
 </head>
