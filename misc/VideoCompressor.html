@@ -7,50 +7,48 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400&family=Exo+2:ital,wght@1,500&display=swap');
+  body{background:#0a0f1a;color:#e5e7eb;font-family:"Rubik",sans-serif;position:relative}
+  .card{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:16px}
+  .tip{position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#1f2937;padding:8px 10px;font-size:10px;font-weight:600;border-radius:6px;white-space:pre-line;max-width:280px;display:none;font-family:"Spline Sans Mono",monospace;line-height:1.3;z-index:10}
+  .tip-wrap:hover .tip{display:block}
+  input[type=range]{accent-color:#6366f1}
+  </style>
 
-  body {
-    background: #0a0f1a;
-    color: #e5e7eb;
-    font-family: "Rubik", sans-serif;
+  <style>
+  body::after{
+    content:attr(data-q);
+    position:absolute;
+    top:10px;
+    right:-30px;
+    color:#e5e7eb;
+    font-size:13px;
+    font-weight:600;
+    font-style:italic;
+    opacity:.95;
+    font-family:"Exo 2",sans-serif;
+    pointer-events:none;
+    white-space:pre;
+    display:inline-block;
+    transform-origin:left center;
+    text-shadow:1px 0 rgba(255,90,90,.5),-1px 0 rgba(0,255,255,.4),0 0 3px rgba(255,255,255,.18)
   }
-
-  .card {
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 8px;
-    padding: 16px;
-  }
-
-  .tip {
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #1f2937;
-    padding: 8px 10px;
-    font-size: 10px;
-    font-weight: semibold;
-    border-radius: 6px;
-    white-space: pre-line;
-    max-width: 280px;
-    display: none;
-    font-family: "Spline Sans Mono", monospace;
-    line-height: 1.3;
-    z-index: 10;
-  }
-
-  .tip-wrap:hover .tip { display: block; }
-
-  input[type="range"] {
-    accent-color: #6366f1;
+  body.q::after{animation:g .7s steps(1,end)}
+  @keyframes g{
+    0%{transform:rotate(var(--r)) translate(0,0)}
+    15%{transform:rotate(var(--r)) translate(2px,-2px) skewX(14deg)}
+    30%{transform:rotate(var(--r)) translate(-3px,3px) skewX(-16deg)}
+    45%{transform:rotate(var(--r)) translate(2px,0) skewX(10deg) scale(1.04)}
+    60%{transform:rotate(var(--r)) translate(-2px,-2px) skewX(-10deg)}
+    80%{transform:rotate(var(--r)) translate(2px,1px) skewX(5deg)}
+    100%{transform:rotate(var(--r)) translate(0,0) skewX(0) scale(1)}
   }
   </style>
 
-<style>@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@1,500&display=swap');body::after{content:attr(data-q);position:fixed;top:18px;left:18px;color:#e5e7eb;font-size:13px;font-weight:600;font-style:italic;opacity:.95;font-family:"Exo 2",sans-serif;pointer-events:none;white-space:pre;display:inline-block;transform-origin:left top;text-shadow:1px 0 rgba(255,90,90,.5),-1px 0 rgba(0,255,255,.4),0 0 3px rgba(255,255,255,.18)}body.q::after{animation:g .7s steps(1,end)}@keyframes g{0%{transform:translate(0,0)}15%{transform:translate(2px,-2px) skewX(14deg)}30%{transform:translate(-3px,3px) skewX(-16deg)}45%{transform:translate(2px,0) skewX(10deg) scale(1.04)}60%{transform:translate(-2px,-2px) skewX(-10deg)}80%{transform:translate(2px,1px) skewX(5deg)}100%{transform:translate(0,0) skewX(0) scale(1)}}</style><script>(()=>{let _=['"Less is learned."','"Seek structure, not size."','"The simplest form wins."','"Meaning survives compression."','"Find the pattern behind the noise."','"Complexity dissolves under insight."','"Premature optimization is the root of all evil."','"Fast is better than clever."','"Cache is a lie we agree to believe."','"Determinism beats raw speed."','"Undefined behavior is still behavior."','"Entropy always gets a vote."','"There is no cloud, only other people’s computers."','"It worked yesterday."','"Weeks of coding can save you hours of planning."','"The bug is always in the last place you look."','"Hardware is just software that drank too much coffee."','"Everything is a race condition if you’re brave enough."','"Real programmers measure twice, deploy once."'],$=0,ƒ=()=>_[Math.random()*_.length|0],ψ=t=>{let a=[...t],i=[];for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);for(let s=0;s<Math.min(12,Math.max(4,Math.floor(i.length/3)));s++){let m=i[Math.random()*i.length|0],n=i[Math.random()*i.length|0];[a[m],a[n]]=[a[n],a[m]]}return a.join("")},Ω=(b,d)=>{let e=document.body,n=++$,f=0,F=d|0,S=90;(e.classList.remove("q"),void e.offsetWidth,e.classList.add("q")),(function h(){if(n!=$)return;f<F?(e.setAttribute("data-q",ψ(b)),f++,setTimeout(h,S)):e.setAttribute("data-q",b)})()},R=()=>Ω(ƒ(),7),L=()=>Ω(ƒ(),11);addEventListener("DOMContentLoaded",L);addEventListener("click",R)})();</script>
-
-
+  <script>(()=>{let _=['"Less is learned."','"Seek structure, not size."','"The simplest form wins."','"Meaning survives compression."','"Find the pattern behind the noise."','"Complexity dissolves under insight."','"Premature optimization is the root of all evil."','"Fast is better than clever."','"Cache is a lie we agree to believe."','"Determinism beats raw speed."','"Undefined behavior is still behavior."','"Entropy always gets a vote."','"There is no cloud, only other people’s computers."','"It worked yesterday."','"Weeks of coding can save you hours of planning."','"The bug is always in the last place you look."','"Hardware is just software that drank too much coffee."','"Everything is a race condition if you’re brave enough."','"Real programmers measure twice, deploy once."'],$=0,ƒ=()=>_[Math.random()*_.length|0],ψ=t=>{let a=[...t],i=[];for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);for(let s=0;s<Math.min(12,Math.max(4,Math.floor(i.length/3)));s++){let m=i[Math.random()*i.length|0],n=i[Math.random()*i.length|0];[a[m],a[n]]=[a[n],a[m]]}return a.join("")},Ω=(b,d)=>{let e=document.body,n=++$,f=0,F=d|0,S=90;e.style.setProperty("--r",(10+Math.random()*25).toFixed(1)+"deg"),e.classList.remove("q"),void e.offsetWidth,e.classList.add("q");(function h(){if(n!=$)return;f<F?(e.setAttribute("data-q",ψ(b)),f++,setTimeout(h,S)):e.setAttribute("data-q",b)})()},R=()=>Ω(ƒ(),7),L=()=>Ω(ƒ(),11);addEventListener("DOMContentLoaded",L);addEventListener("click",R)})();</script>
 </head>
+
+  
 
 <body class="p-4 max-w-md mx-auto space-y-4">
 
