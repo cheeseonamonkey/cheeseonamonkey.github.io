@@ -56,15 +56,15 @@ input[type=range]{accent-color:#6366f1}
 .card.show::before{opacity:.92}
 .card.fade::before{opacity:0;filter:blur(2px)}
 
-.card.q::before{animation:g 1.6s steps(1,end)}
+.card.q::before{animation:g 0.9s steps(1,end)}
 
 @keyframes g{
   0%{transform:rotate(var(--r)) translate(0,0)}
   15%{transform:rotate(var(--r)) translate(2px,-2px) skewX(12deg)}
   30%{transform:rotate(var(--r)) translate(-2.5px,2.5px) skewX(-14deg)}
   45%{transform:rotate(var(--r)) translate(2px,0) skewX(9deg) scale(1.04)}
-  65%{transform:rotate(var(--r)) translate(-2px,-2px) skewX(-9deg)}
-  82%{transform:rotate(var(--r)) translate(1.5px,1px) skewX(5deg)}
+  62%{transform:rotate(var(--r)) translate(-2px,-2px) skewX(-9deg)}
+  83%{transform:rotate(var(--r)) translate(1.5px,1px) skewX(5deg)}
   100%{transform:rotate(var(--r)) translate(0,0) skewX(0) scale(1)}
 }
 </style>
@@ -108,7 +108,7 @@ const run=(base,frames)=>{
 
   const step=()=> {
     if(n!==tick) return;
-    let delay=90+f*40;        // progressively slows
+    let delay=60+f*35;        // progressively slows
     f<frames
       ? (c.setAttribute("data-q",glitch(base)),f++,setTimeout(step,delay))
       : c.setAttribute("data-q",base);
@@ -117,11 +117,11 @@ const run=(base,frames)=>{
 
   fadeTimer=setTimeout(()=>{
     c.classList.add("fade");
-  },3200+Math.random()*1800); // 3–5s dissolve window
+  },3000+Math.random()*1800); // 3–5s dissolve window
 };
 
 addEventListener("DOMContentLoaded",()=>{
-  run(pick(),16); // longer intro
+  run(pick(),10); // longer intro
   document.querySelector(".card").addEventListener("click",()=>run(pick(),8));
 });
 
