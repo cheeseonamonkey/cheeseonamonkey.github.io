@@ -5,286 +5,212 @@
 <title>Video Compressor</title>
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0a0f1a">
 
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-html{touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial}
+html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:#0a0f1a;color:#e5e7eb}
-.card{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:14px}
+.card{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:16px}
 input[type=range]{accent-color:#6366f1}
 </style>
-
-<script>
-(()=>{
-
-/* ---------- QUOTES (LIGHTWEIGHT) --------- */
-const Q=[
-"Less is learned.","Seek structure, not size.","Simple beats clever.",
-"Meaning survives compression.","Find the signal.","Entropy always wins."
-];
-const showQuote=()=>{
-  const el=document.createElement("div");
-  el.textContent=Q[Math.random()*Q.length|0];
-  el.style="position:fixed;top:10px;right:10px;font-size:11px;opacity:.7";
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),3500);
-};
-addEventListener("DOMContentLoaded",showQuote);
-
-/* ---------- CORE --------- */
-
-const $=id=>document.getElementById(id);
-let ffmpeg=null,ffReady=false,currentFile=null,lastURL=null;
-const meta={ready:false,w:0,h:0};
-
-const log=m=>{logOutput.textContent+=m+"\n";logOutput.scrollTop=99999};
-const status=s=>statusLabel.textContent=s;
-const prog=p=>{
-  p=Math.max(0,Math.min(100,p));
-  bar.style.width=p+"%"; barLabel.textContent=p|0;
-};
-
-const fmt=x=>{
-  if(!x) return "–";
-  const u=["B","KB","MB","GB"]; let i=0;
-  while(x>=1024&&i<u.length-1){x/=1024;i++}
-  return (x>10?x.toFixed(0):x.toFixed(1))+" "+u[i];
-};
-
-/* ---------- FFmpeg Loader (NON-BLOCKING) ---------- */
-
-async function loadFF(){
-  if(ffReady) return;
-  status("Loading engine…");
-
-  const db=await new Promise(r=>{
-    const req=indexedDB.open("ffmpeg-cache",1);
-    req.onupgradeneeded=e=>e.target.result.createObjectStore("core");
-    req.onsuccess=e=>r(e.target.result);
-  });
-
-  const get=k=>new Promise(r=>{
-    const s=db.transaction("core").objectStore("core").get(k);
-    s.onsuccess=e=>r(e.target.result);
-  });
-
-  let wasm=await get("wasm");
-  if(!wasm){
-    wasm=await fetch("https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.wasm").then(r=>r.arrayBuffer());
-    db.transaction("core","readwrite").objectStore("core").put(wasm,"wasm");
-  }
-
-  const {createFFmpeg}=await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
-
-  ffmpeg=createFFmpeg({
-    corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
-    wasmBinary:wasm
-  });
-
-  ffmpeg.setLogger(({message})=>log(message));
-  ffmpeg.setProgress(({ratio})=>prog(ratio*100));
-
-  await ffmpeg.load();
-
-  // warm-up
-  await ffmpeg.run("-version").catch(()=>{});
-
-  ffReady=true;
-  status("Ready.");
-}
-
-/* preload ASAP without freezing */
-requestIdleCallback(loadFF);
-document.addEventListener("visibilitychange",()=>!ffReady&&loadFF());
-
-const cleanFS=()=>{
-  if(!ffReady) return;
-  try{ ffmpeg.FS("readdir",".").forEach(f=>![".",".."].includes(f)&&ffmpeg.FS("unlink",f)); }catch{}
-};
-
-/* ---------- OPTIONS ---------- */
-
-const opts=()=>({
-  mute: mute.checked,
-  bitrate:+audioBitrate.value,
-  rp:+resPercent.value,
-  speed:+speed.value,
-  fmt: outputFormat.value,
-  comp: compressionLevel.value,
-  color:+colorSlider.value
-});
-
-/* ---------- SIZE ESTIMATE ---------- */
-
-function estimate(){
-  if(!currentFile) return;
-  const o=opts();
-  let s=currentFile.size;
-  const durF=1/o.speed;
-  const areaF=o.rp/100**2;
-  const compF={fast:1.1,balanced:1,strong:.7,max:.5}[o.comp];
-  const audioF=o.mute?.9:1;
-  const colorF=o.color==1?.9:o.color==2?.8:1;
-
-  const est=s*durF*areaF*compF*audioF*colorF;
-  estSize.textContent=fmt(est);
-}
-
-/* ---------- COMMAND ---------- */
-
-function args(inf,outf,o){
-  const vf=[],af=[];
-  const sc=o.rp/100;
-  if(sc!==1) vf.push(`scale=trunc(iw*${sc}/2)*2:trunc(ih*${sc}/2)*2`);
-  if(o.speed!==1){
-    vf.push(`setpts=PTS/${o.speed}`);
-    if(!o.mute) af.push(`atempo=${Math.min(o.speed,2)}`);
-  }
-  if(o.color===1) vf.push("lut=r=bitand(val\\,240):g=bitand(val\\,240):b=bitand(val\\,240)");
-  if(o.color===2) vf.push("lut=r=bitand(val\\,192):g=bitand(val\\,192):b=bitand(val\\,192)");
-
-  const a=["-y","-i",inf];
-  if(vf.length) a.push("-vf",vf.join(","));
-  if(af.length) a.push("-af",af.join(","));
-  o.mute?a.push("-an"):a.push("-b:a",o.bitrate+"k");
-
-  if(o.fmt==="webm"){
-    const crf={fast:28,balanced:32,strong:38,max:42}[o.comp];
-    a.push("-c:v","libvpx-vp9","-b:v","0","-crf",crf,"-c:a","libopus");
-  } else {
-    const crf={fast:20,balanced:23,strong:28,max:32}[o.comp];
-    a.push("-c:v","libx264","-preset","medium","-crf",crf,"-movflags","faststart","-c:a","aac");
-  }
-  a.push(outf); return a;
-}
-
-/* ---------- MAIN ---------- */
-
-async function compress(){
-  if(!currentFile) return;
-
-  compressBtn.disabled=true;
-  spinner.classList.remove("hidden");
-  prog(0);
-  status("Preparing…");
-
-  await loadFF();
-  cleanFS();
-
-  const input=currentFile.name;
-  ffmpeg.FS("writeFile",input,new Uint8Array(await currentFile.arrayBuffer()));
-
-  const o=opts();
-  const out=input.replace(/\..+$/,"_compressed."+o.fmt);
-  const cmd=args(input,out,o);
-
-  log("$ ffmpeg "+cmd.join(" "));
-  status("Compressing…");
-
-  try{
-    await ffmpeg.run(...cmd);
-    const data=ffmpeg.FS("readFile",out);
-    const blob=new Blob([data.buffer],{type:"video/"+o.fmt});
-
-    lastURL&&URL.revokeObjectURL(lastURL);
-    lastURL=URL.createObjectURL(blob);
-
-    preview.src=lastURL;
-    downloadLink.href=lastURL;
-    downloadLink.download=out;
-    downloadLink.classList.remove("hidden");
-
-    compSize.textContent=fmt(data.length);
-    prog(100);
-    status("Done.");
-  }catch(e){
-    log("ERROR: "+e);
-    status("Failed.");
-  }finally{
-    spinner.classList.add("hidden");
-    compressBtn.disabled=false;
-    cleanFS();
-  }
-}
-
-/* ---------- EVENTS ---------- */
-
-fileInput.onchange=e=>{
-  currentFile=e.target.files[0];
-  fileInfo.textContent=currentFile.name+" • "+fmt(currentFile.size);
-  origSize.textContent=fmt(currentFile.size);
-  const u=URL.createObjectURL(currentFile);
-  probeVideo.src=u;
-  probeVideo.onloadedmetadata=()=>{
-    meta.ready=true;
-    URL.revokeObjectURL(u);
-    estimate();
-  };
-};
-
-[audioBitrate,resPercent,speed,compressionLevel,colorSlider].forEach(e=>e.oninput=estimate);
-mute.onchange=estimate;
-compressBtn.onclick=e=>{e.preventDefault();compress()};
-
-})();
-</script>
 </head>
 
-<body class="p-4 max-w-md mx-auto space-y-3">
+<body class="p-4 max-w-md mx-auto space-y-4">
 
-<h1 class="text-lg font-semibold">Video Compressor</h1>
+<h1 class="text-xl font-semibold">Video Compressor</h1>
+<p class="text-xs text-gray-400">Local processing. Mobile-friendly.</p>
 
-<div class="card space-y-2">
-  <input id="fileInput" type="file" accept="video/*">
-  <p id="fileInfo" class="text-xs text-gray-400"></p>
-
-  <label><input id="mute" type="checkbox"> Mute</label>
-  <input id="audioBitrate" type="range" min="48" max="192" step="16" value="128">
-
-  <input id="resPercent" type="range" min="25" max="100" step="5" value="100">
-  <input id="speed" type="range" min="1" max="3" step="0.05" value="1">
-
-  <select id="outputFormat">
-    <option value="mp4">MP4</option>
-    <option value="webm">WebM</option>
-  </select>
-
-  <select id="compressionLevel">
-    <option value="fast">Fast</option>
-    <option value="balanced" selected>Balanced</option>
-    <option value="strong">Strong</option>
-    <option value="max">Max</option>
-  </select>
-
-  <input id="colorSlider" type="range" min="0" max="2">
-
-  <button id="compressBtn" class="bg-indigo-600 w-full rounded py-2">Compress</button>
-  <div class="h-2 bg-gray-700 rounded overflow-hidden">
-    <div id="bar" class="h-2 bg-indigo-500"></div>
+<!-- INPUT -->
+<div class="card space-y-3">
+  <div>
+    <label class="text-xs text-gray-400">Source video</label>
+    <input id="fileInput" type="file" accept="video/*" class="mt-1 text-sm text-gray-100">
+    <p id="fileInfo" class="text-xs text-gray-500 mt-1">No file selected.</p>
   </div>
-  <p id="barLabel" class="text-xs">0%</p>
-  <p id="statusLabel" class="text-xs text-gray-400">Idle</p>
+
+  <!-- AUDIO -->
+  <div class="space-y-2">
+    <div class="flex justify-between items-center">
+      <span class="text-sm font-medium">Audio</span>
+      <label class="text-xs flex items-center gap-1">
+        <input id="muteAudio" type="checkbox"> Remove
+      </label>
+    </div>
+
+    <div id="audioBitrateRow">
+      <div class="flex justify-between text-[11px] text-gray-400">
+        <span>Bitrate</span>
+        <span><span id="audioBitrateLabel">128</span> kbps</span>
+      </div>
+      <input id="audioBitrate" type="range" min="48" max="192" step="16" value="128" class="w-full">
+    </div>
+
+    <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio removed</p>
+  </div>
+
+  <!-- RESOLUTION -->
+  <div>
+    <div class="flex justify-between text-[11px] text-gray-400">
+      <span>Resolution</span>
+      <span><span id="resolutionPercentLabel">100</span>% · <span id="resolutionActualLabel">Original</span></span>
+    </div>
+    <input id="resolutionPercent" type="range" min="25" max="100" step="5" value="100" class="w-full">
+
+    <div class="flex gap-2 text-xs mt-2">
+      <button id="resPreset480" class="flex-1 border rounded py-1">480p</button>
+      <button id="resPreset720" class="flex-1 border rounded py-1">720p</button>
+      <button id="resPreset1080" class="flex-1 border rounded py-1">1080p</button>
+    </div>
+  </div>
+
+  <!-- SPEED -->
+  <div>
+    <div class="flex justify-between text-[11px] text-gray-400">
+      <span>Speed</span>
+      <span><span id="speedLabel">1.00</span>x</span>
+    </div>
+    <input id="speed" type="range" min="1" max="3" step="0.05" value="1" class="w-full">
+  </div>
+
+  <!-- FORMAT + COMPRESSION -->
+  <div class="grid grid-cols-2 gap-2 text-xs">
+    <select id="outputFormat" class="bg-gray-900 border rounded px-2 py-1">
+      <option value="mp4">MP4 (H.264)</option>
+      <option value="webm">WebM (VP9)</option>
+    </select>
+
+    <select id="compressionLevel" class="bg-gray-900 border rounded px-2 py-1">
+      <option value="fast">Fast</option>
+      <option value="balanced" selected>Balanced</option>
+      <option value="strong">Strong</option>
+      <option value="max">Max</option>
+    </select>
+  </div>
+
+  <!-- ACTION -->
+  <button id="compressBtn" class="w-full bg-indigo-600 rounded py-2 text-sm font-semibold flex justify-center gap-2">
+    <span>Compress</span>
+    <span id="spinner" class="hidden h-4 w-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></span>
+  </button>
+
+  <div class="flex items-center gap-3">
+    <div class="flex-1 h-2 bg-gray-700 rounded overflow-hidden">
+      <div id="progressBar" class="h-2 bg-indigo-500" style="width:0%"></div>
+    </div>
+    <span id="progressLabel" class="text-xs w-10 text-right text-gray-400">0%</span>
+  </div>
+
+  <p id="status" class="text-xs text-gray-400">Idle.</p>
 </div>
 
+<!-- RESULT -->
 <div class="card space-y-2">
-  <video id="preview" controls></video>
-  <a id="downloadLink" class="hidden bg-emerald-600 text-center block py-2 rounded">Download</a>
-
-  <div class="text-xs">
-    Original: <span id="origSize">–</span><br>
-    Estimated: <span id="estSize">–</span><br>
-    Final: <span id="compSize">–</span>
-  </div>
+  <video id="preview" class="w-full bg-black rounded" controls playsinline></video>
+  <a id="downloadLink" class="hidden w-full text-center bg-emerald-600 py-2 rounded text-sm font-semibold block">Download</a>
 </div>
-
-<details class="card">
-  <summary>FFmpeg Log</summary>
-  <pre id="logOutput" class="text-[10px]"></pre>
-</details>
 
 <video id="probeVideo" class="hidden"></video>
 
+<script>
+const $=id=>document.getElementById(id);
+const els={
+file:$("fileInput"),fileInfo:$("fileInfo"),
+ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),mute:$("muteAudio"),
+abRow:$("audioBitrateRow"),abHint:$("audioMutedHint"),
+rp:$("resolutionPercent"),rpLbl:$("resolutionPercentLabel"),
+rLab:$("resolutionActualLabel"),r480:$("resPreset480"),r720:$("resPreset720"),r1080:$("resPreset1080"),
+speed:$("speed"),speedLbl:$("speedLabel"),
+fmt:$("outputFormat"),comp:$("compressionLevel"),
+btn:$("compressBtn"),spin:$("spinner"),
+bar:$("progressBar"),barLbl:$("progressLabel"),
+status:$("status"),preview:$("preview"),dl:$("downloadLink"),
+probe:$("probeVideo")
+};
+
+const setStatus=s=>els.status.textContent=s;
+const setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%"};
+
+let ffmpeg=null,ffReady=false,ffLoading=false,currentFile=null,meta={ready:false,w:0,h:0};
+
+async function preloadFF(){
+ if(ffLoading||ffReady)return;
+ ffLoading=true;setStatus("Loading FFmpeg…");
+ const{createFFmpeg}=await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
+ ffmpeg=createFFmpeg({log:false,corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"});
+ ffmpeg.setProgress(({ratio})=>setProgress(ratio*100));
+ await ffmpeg.load();
+ ffReady=true;ffLoading=false;setStatus("Ready.");
+}
+requestIdleCallback(preloadFF,{timeout:1500});
+
+function getOpts(){
+ return{
+  mute:els.mute.checked,
+  bitrate:+els.ab.value,
+  rp:+els.rp.value,
+  speed:+els.speed.value,
+  fmt:els.fmt.value,
+  comp:els.comp.value
+ };
+}
+
+function updateRes(){
+ const p=+els.rp.value;els.rpLbl.textContent=p;
+ if(meta.ready){
+  const s=p/100,w=2*Math.round(meta.w*s/2),h=2*Math.round(meta.h*s/2);
+  els.rLab.textContent=h+"p";
+ }
+}
+
+function buildArgs(input,out,o){
+ const vf=[],af=[];
+ if(o.rp!==100)vf.push(`scale=trunc(iw*${o.rp/100}/2)*2:trunc(ih*${o.rp/100}/2)*2`);
+ if(o.speed!==1){vf.push(`setpts=PTS/${o.speed}`);if(!o.mute)af.push(`atempo=${Math.min(2,o.speed)}`);}
+ const args=["-y","-i",input];
+ if(vf.length)args.push("-vf",vf.join(","));
+ if(af.length)args.push("-af",af.join(","));
+ if(o.mute)args.push("-an");else args.push("-b:a",o.bitrate+"k");
+ if(o.fmt==="webm"){const crf={fast:28,balanced:32,strong:38,max:42}[o.comp];args.push("-c:v","libvpx-vp9","-crf",crf,"-b:v","0");}
+ else{const crf={fast:20,balanced:23,strong:28,max:32}[o.comp];args.push("-c:v","libx264","-crf",crf);}
+ args.push(out);return args;
+}
+
+async function compress(){
+ if(!currentFile){alert("Pick a file first");return;}
+ if(!ffReady)await preloadFF();
+ els.btn.disabled=true;els.spin.classList.remove("hidden");setProgress(0);setStatus("Compressing…");
+ ffmpeg.FS("writeFile",currentFile.name,new Uint8Array(await currentFile.arrayBuffer()));
+ const o=getOpts(),out="out."+o.fmt,args=buildArgs(currentFile.name,out,o);
+ await ffmpeg.run(...args);
+ const data=ffmpeg.FS("readFile",out);
+ const blob=new Blob([data],{type:"video/"+o.fmt});
+ const url=URL.createObjectURL(blob);
+ els.preview.src=url;els.dl.href=url;els.dl.download=out;els.dl.classList.remove("hidden");
+ els.spin.classList.add("hidden");els.btn.disabled=false;setProgress(100);setStatus("Done.");
+}
+
+els.file.onchange=e=>{
+ currentFile=e.target.files[0];
+ els.fileInfo.textContent=currentFile.name;
+ const u=URL.createObjectURL(currentFile);
+ els.probe.src=u;
+ els.probe.onloadedmetadata=()=>{meta.ready=true;meta.w=els.probe.videoWidth;meta.h=els.probe.videoHeight;URL.revokeObjectURL(u);updateRes();}
+};
+
+els.ab.oninput=()=>els.abLbl.textContent=els.ab.value;
+els.mute.onchange=()=>{els.abRow.classList.toggle("hidden",els.mute.checked);els.abHint.classList.toggle("hidden",!els.mute.checked)};
+els.rp.oninput=updateRes;
+els.r480.onclick=()=>{els.rp.value=45;updateRes()};
+els.r720.onclick=()=>{els.rp.value=70;updateRes()};
+els.r1080.onclick=()=>{els.rp.value=100;updateRes()};
+els.speed.oninput=()=>els.speedLbl.textContent=(+els.speed.value).toFixed(2);
+els.btn.onclick=compress;
+</script>
 </body>
 </html>
