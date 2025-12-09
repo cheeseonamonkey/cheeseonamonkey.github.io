@@ -168,26 +168,53 @@ Good for privacy.</span></span>
   <a id="downloadLink" class="hidden w-full text-center bg-emerald-600 py-2 rounded text-sm font-semibold block">Download</a>
 </div>
 
+<!-- ERROR LOG (persistent, subtle) -->
+<div id="errorBox" class="card space-y-1 text-[11px] text-red-300 bg-red-900/10 border-red-700/40 hidden">
+  <div class="font-semibold text-red-200">Errors (most recent first)</div>
+  <pre id="errorText" class="whitespace-pre-wrap break-all text-red-200/90"></pre>
+</div>
+
 <video id="probeVideo" class="hidden"></video>
 
 <script>
 const $=id=>document.getElementById(id),
-els={file:$("fileInput"),fileInfo:$("fileInfo"),ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),
-mute:$("muteAudio"),abRow:$("audioBitrateRow"),abHint:$("audioMutedHint"),rp:$("resolutionPercent"),
-rLab:$("resolutionActualLabel"),resBtn:$("resButtons"),crf:$("crf"),crfLbl:$("crfLabel"),
-speed:$("speed"),speedLbl:$("speedLabel"),fmt:$("outputFormat"),fastStart:$("fastStart"),
-stripMeta:$("stripMeta"),btn:$("compressBtn"),spin:$("spinner"),bar:$("progressBar"),
-barLbl:$("progressLabel"),status:$("status"),preview:$("preview"),dl:$("downloadLink"),
-probe:$("probeVideo"),sizeInfo:$("sizeInfo"),estRow:$("estimateRow"),estLbl:$("estimateLabel"),
-estRed:$("estimateReduction")};
+els={
+  file:$("fileInput"),fileInfo:$("fileInfo"),ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),
+  mute:$("muteAudio"),abRow:$("audioBitrateRow"),abHint:$("audioMutedHint"),rp:$("resolutionPercent"),
+  rLab:$("resolutionActualLabel"),resBtn:$("resButtons"),crf:$("crf"),crfLbl:$("crfLabel"),
+  speed:$("speed"),speedLbl:$("speedLabel"),fmt:$("outputFormat"),fastStart:$("fastStart"),
+  stripMeta:$("stripMeta"),btn:$("compressBtn"),spin:$("spinner"),bar:$("progressBar"),
+  barLbl:$("progressLabel"),status:$("status"),preview:$("preview"),dl:$("downloadLink"),
+  probe:$("probeVideo"),sizeInfo:$("sizeInfo"),estRow:$("estimateRow"),estLbl:$("estimateLabel"),
+  estRed:$("estimateReduction"),errBox:$("errorBox"),errText:$("errorText")
+};
 
 let ffmpeg=null,ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
+const errorLines=[];
 
-const setStatus=s=>els.status.textContent=s,
-setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%"},
-fmtSize=b=>b<1e6?(b/1e3).toFixed(1)+" KB":(b/1e6).toFixed(2)+" MB",
-updateBtn=()=>els.btn.disabled=!ffReady||!currentFile,
-calcRes=p=>({w:Math.floor(meta.w*p/100/2)*2,h:Math.floor(meta.h*p/100/2)*2});
+const setStatus=s=>els.status.textContent=s;
+const setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%";};
+const fmtSize=b=>b<1e6?(b/1e3).toFixed(1)+" KB":(b/1e6).toFixed(2)+" MB";
+const updateBtn=()=>els.btn.disabled=!ffReady||!currentFile;
+const calcRes=p=>({w:Math.floor(meta.w*p/100/2)*2,h:Math.floor(meta.h*p/100/2)*2});
+
+function formatError(err){
+  if(!err)return "Unknown error";
+  if(err.message)return err.message;
+  if(typeof err==="string")return err;
+  try{return JSON.stringify(err);}catch{return String(err);}
+}
+
+function logError(context,err){
+  const msg=formatError(err);
+  const line=`[${new Date().toLocaleTimeString()}] ${context}: ${msg}`;
+  errorLines.unshift(line);
+  if(errorLines.length>50)errorLines.pop();
+  els.errText.textContent=errorLines.join("\n\n");
+  els.errBox.classList.remove("hidden");
+  console.error(context,err);
+  setStatus(`Error in ${context}: ${msg}`);
+}
 
 function updateResLabel(){
   const p=+els.rp.value,r=calcRes(p);
@@ -207,18 +234,28 @@ function updateEstimate(){
 
 (async()=>{
   try{
-    if(!window.FFmpeg)throw new Error("FFmpeg script not loaded");
-    ffmpeg=FFmpeg.createFFmpeg({log:false,corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"});
+    if(!window.FFmpeg)throw new Error("FFmpeg script not loaded (window.FFmpeg undefined)");
+    ffmpeg=FFmpeg.createFFmpeg({
+      log:false,
+      corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"
+    });
     ffmpeg.setProgress(({ratio})=>setProgress(Math.max(0,ratio*100)));
     await ffmpeg.load();
-    ffReady=true;setStatus("Ready.");updateBtn();
-  }catch(e){console.error(e);setStatus("FFmpeg failed. Refresh or try different browser.");}
+    ffReady=true;
+    setStatus("FFmpeg loaded. Ready.");
+    updateBtn();
+  }catch(e){
+    logError("FFmpeg load",e);
+  }
 })();
 
 function buildArgs(input,out,o){
   const vf=[],af=[];
   if(o.rp!==100)vf.push(`scale=trunc(iw*${o.rp/100}/2)*2:trunc(ih*${o.rp/100}/2)*2`);
-  if(o.speed!==1){vf.push(`setpts=PTS/${o.speed}`);if(!o.mute)af.push(`atempo=${o.speed}`);}
+  if(o.speed!==1){
+    vf.push(`setpts=PTS/${o.speed}`);
+    if(!o.mute)af.push(`atempo=${o.speed}`);
+  }
   const args=["-y","-i",input];
   if(vf.length)args.push("-vf",vf.join(","));
   if(af.length)args.push("-af",af.join(","));
@@ -231,54 +268,92 @@ function buildArgs(input,out,o){
 
 async function compress(){
   if(!currentFile||!ffReady)return;
-  els.btn.disabled=true;els.spin.classList.remove("hidden");setProgress(0);setStatus("Compressing...");
+  els.btn.disabled=true;
+  els.spin.classList.remove("hidden");
+  setProgress(0);
+  setStatus("Compressing...");
+
   if(prevUrl){URL.revokeObjectURL(prevUrl);prevUrl=null;}
-  els.dl.classList.add("hidden");els.sizeInfo.classList.add("hidden");
-  
-  const o={mute:els.mute.checked,bitrate:+els.ab.value,rp:+els.rp.value,crf:+els.crf.value,
-    speed:+els.speed.value/100,fmt:els.fmt.value,fastStart:els.fastStart.checked,stripMeta:els.stripMeta.checked},
-    out="out."+o.fmt;
+  els.dl.classList.add("hidden");
+  els.sizeInfo.classList.add("hidden");
+
+  const o={
+    mute:els.mute.checked,
+    bitrate:+els.ab.value,
+    rp:+els.rp.value,
+    crf:+els.crf.value,
+    speed:+els.speed.value/100,
+    fmt:els.fmt.value,
+    fastStart:els.fastStart.checked,
+    stripMeta:els.stripMeta.checked
+  };
+  const out="out."+o.fmt;
+
   try{
-    ffmpeg.FS("writeFile",currentFile.name,new Uint8Array(await currentFile.arrayBuffer()));
+    const buf=new Uint8Array(await currentFile.arrayBuffer());
+    ffmpeg.FS("writeFile",currentFile.name,buf);
     await ffmpeg.run(...buildArgs(currentFile.name,out,o));
     const data=ffmpeg.FS("readFile",out);
-    try{ffmpeg.FS("unlink",currentFile.name);ffmpeg.FS("unlink",out);}catch{}
+    try{ffmpeg.FS("unlink",currentFile.name);}catch(e){logError("FS unlink input",e);}
+    try{ffmpeg.FS("unlink",out);}catch(e){logError("FS unlink output",e);}
     const blob=new Blob([data],{type:"video/"+o.fmt});
     prevUrl=URL.createObjectURL(blob);
-    els.preview.src=prevUrl;els.dl.href=prevUrl;els.dl.download=out;els.dl.classList.remove("hidden");
+    els.preview.src=prevUrl;
+    els.dl.href=prevUrl;
+    els.dl.download=out;
+    els.dl.classList.remove("hidden");
     const diff=((1-blob.size/currentFile.size)*100).toFixed(0);
     els.sizeInfo.textContent=`${fmtSize(currentFile.size)} -> ${fmtSize(blob.size)} (${diff>0?diff+"% smaller":Math.abs(diff)+"% larger"})`;
     els.sizeInfo.classList.remove("hidden");
-    setProgress(100);setStatus("Done.");
+    setProgress(100);
+    setStatus("Done.");
   }catch(e){
-    console.error(e);setStatus("Error: "+(e.message||"Compression failed"));
-    try{ffmpeg.FS("unlink",currentFile.name);}catch{}
-    try{ffmpeg.FS("unlink",out);}catch{}
+    logError("Compression",e);
+    try{ffmpeg.FS("unlink",currentFile.name);}catch(_){}
+    try{ffmpeg.FS("unlink",out);}catch(_){}
   }
-  els.spin.classList.add("hidden");updateBtn();
+  els.spin.classList.add("hidden");
+  updateBtn();
 }
 
 els.file.onchange=e=>{
-  const f=e.target.files[0];if(!f)return;
-  currentFile=f;meta={w:0,h:0};
+  const f=e.target.files[0];
+  if(!f)return;
+  currentFile=f;
+  meta={w:0,h:0};
   els.fileInfo.textContent=`${f.name} (${fmtSize(f.size)})`;
-  const u=URL.createObjectURL(f);els.probe.src=u;
+
+  const u=URL.createObjectURL(f);
+  els.probe.src=u;
   els.probe.onloadedmetadata=()=>{
-    meta.w=els.probe.videoWidth;meta.h=els.probe.videoHeight;
-    URL.revokeObjectURL(u);updateResLabel();els.resBtn.classList.remove("hidden");
+    meta.w=els.probe.videoWidth;
+    meta.h=els.probe.videoHeight;
+    URL.revokeObjectURL(u);
+    updateResLabel();
+    els.resBtn.classList.remove("hidden");
   };
-  els.probe.onerror=()=>{setStatus("Invalid video");currentFile=null;URL.revokeObjectURL(u);};
-  updateBtn();updateEstimate();
+  els.probe.onerror=err=>{
+    logError("Video metadata probe",err||"onloadedmetadata failed");
+    currentFile=null;
+    URL.revokeObjectURL(u);
+    updateBtn();
+  };
+  updateBtn();
+  updateEstimate();
 };
 
 els.resBtn.onclick=e=>{
-  const h=+e.target.dataset.h;if(!h||!meta.h)return;
+  const h=+e.target.dataset.h;
+  if(!h||!meta.h)return;
   els.rp.value=Math.max(10,Math.min(100,Math.round(h/meta.h*100/5)*5));
   updateResLabel();
 };
 
 els.ab.oninput=()=>els.abLbl.textContent=els.ab.value;
-els.mute.onchange=()=>{els.abRow.classList.toggle("hidden",els.mute.checked);els.abHint.classList.toggle("hidden",!els.mute.checked);};
+els.mute.onchange=()=>{
+  els.abRow.classList.toggle("hidden",els.mute.checked);
+  els.abHint.classList.toggle("hidden",!els.mute.checked);
+};
 els.rp.oninput=updateResLabel;
 els.crf.oninput=()=>{els.crfLbl.textContent=els.crf.value;updateEstimate();};
 els.speed.oninput=()=>{els.speedLbl.textContent=(+els.speed.value/100).toFixed(2);updateEstimate();};
