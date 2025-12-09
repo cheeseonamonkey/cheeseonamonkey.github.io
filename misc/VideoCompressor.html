@@ -6,7 +6,7 @@
 <meta charset="UTF-8">
 <title>Video Compressor</title>
 
-<!-- Mobile / PWA polish -->
+<!-- Mobile / PWA -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,11 +16,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-html{
-  -webkit-overflow-scrolling:touch;
-  touch-action:manipulation;
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-}
+html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
 html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 a,button{cursor:pointer}
 </style>
@@ -43,7 +39,7 @@ input[type=range]{accent-color:#6366f1}
   font-size:12.5px;
   font-weight:400;
   font-style:italic;
-  opacity:.92;
+  opacity:0;
   font-family:"Exo 2",sans-serif;
   pointer-events:auto;
   cursor:pointer;
@@ -54,13 +50,11 @@ input[type=range]{accent-color:#6366f1}
     0 0 1px rgba(255,255,255,.35),
     1px 0 rgba(255,140,140,.22),
    -1px 0 rgba(120,255,255,.22);
-  animation:idle 6s ease-in-out infinite;
+  transition:opacity 1.2s ease,filter 1.2s ease;
 }
 
-@keyframes idle{
-  0%,100%{filter:brightness(1)}
-  50%{filter:brightness(1.08)}
-}
+.card.show::before{opacity:.92}
+.card.fade::before{opacity:0;filter:blur(2px)}
 
 .card.q::before{animation:g 1.6s steps(1,end)}
 
@@ -79,59 +73,63 @@ input[type=range]{accent-color:#6366f1}
 (()=>{
 
 let Q=[
-'"Less is learned."',
-'"Seek structure, not size."',
-'"The simplest form wins."',
-'"Meaning survives compression."',
-'"Find the pattern behind the noise."',
-'"Complexity dissolves under insight."',
-'"Premature optimization is the root of all evil."',
-'"Fast is better than clever."',
-'"Cache is a lie we agree to believe."',
-'"Determinism beats raw speed."',
-'"Undefined behavior is still behavior."',
-'"Entropy always gets a vote."',
-'"There is no cloud, only other people’s computers."',
-'"It worked yesterday."',
-'"Weeks of coding can save you hours of planning."',
+'"Less is learned."','"Seek structure, not size."','"The simplest form wins."',
+'"Meaning survives compression."','"Find the pattern behind the noise."',
+'"Complexity dissolves under insight."','"Premature optimization is the root of all evil."',
+'"Fast is better than clever."','"Cache is a lie we agree to believe."',
+'"Determinism beats raw speed."','"Undefined behavior is still behavior."',
+'"Entropy always gets a vote."','"There is no cloud, only other people’s computers."',
+'"It worked yesterday."','"Weeks of coding can save you hours of planning."',
 '"Everything is a race condition if you’re brave enough."',
 '"Real programmers measure twice, deploy once."'
 ];
 
-let tick=0,
-pick=()=>Q[Math.random()*Q.length|0],
-glitch=x=>{
+let tick=0,fadeTimer=0;
+
+const pick=()=>Q[Math.random()*Q.length|0];
+
+const glitch=x=>{
   let a=[...x],i=[];
   for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);
   for(let s=0;s<Math.min(10,Math.max(3,Math.floor(i.length/3)));s++){
-    let m=i[Math.random()*i.length|0],
-        n=i[Math.random()*i.length|0];
+    let m=i[Math.random()*i.length|0],n=i[Math.random()*i.length|0];
     [a[m],a[n]]=[a[n],a[m]];
   }
   return a.join("");
-},
+};
 
-run=(b,d)=>{
-  let c=document.querySelector(".card"),
-      n=++tick,f=0,F=d|0,S=80;
+const run=(base,frames)=>{
+  let c=document.querySelector(".card"),n=++tick,f=0;
+  clearTimeout(fadeTimer);
+
   c.style.setProperty("--r",(-10-Math.random()*25).toFixed(1)+"deg");
-  c.classList.remove("q");void c.offsetWidth;c.classList.add("q");
-  (function h(){
-    if(n!=tick)return;
-    f<F?(c.setAttribute("data-q",glitch(b)),f++,setTimeout(h,S))
-         :c.setAttribute("data-q",b);
-  })();
+  c.classList.add("show");
+  c.classList.remove("fade","q"); void c.offsetWidth; c.classList.add("q");
+
+  const step=()=> {
+    if(n!==tick) return;
+    let delay=90+f*40;        // progressively slows
+    f<frames
+      ? (c.setAttribute("data-q",glitch(base)),f++,setTimeout(step,delay))
+      : c.setAttribute("data-q",base);
+  };
+  step();
+
+  fadeTimer=setTimeout(()=>{
+    c.classList.add("fade");
+  },3200+Math.random()*1800); // 3–5s dissolve window
 };
 
 addEventListener("DOMContentLoaded",()=>{
-  run(pick(),14);  // extra long intro glitch
-  document.querySelector(".card").addEventListener("click",()=>run(pick(),7));
+  run(pick(),16); // longer intro
+  document.querySelector(".card").addEventListener("click",()=>run(pick(),8));
 });
 
 })();
 </script>
 
 </head>
+
 
 
   
