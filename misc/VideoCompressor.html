@@ -1,43 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
-
 <head>
 
-<meta name="apple-mobile-web-app-capable" content="yes"> 
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> 
-<meta name="format-detection" content="telephone=no"> 
+<meta charset="UTF-8">
+<title>Video Compressor</title>
+
+<!-- Mobile / PWA polish -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0a0f1a">
+
+<script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-  /* --- Advanced CSS Mobile Polish --- */
-  html {
-    /* 1. Ensures native, momentum scrolling on iOS/WebKit devices (very smooth) */
-    -webkit-overflow-scrolling: touch;
-    
-    /* 2. CRUCIAL: Removes the 300ms tap delay, making buttons feel instantaneous */
-    touch-action: manipulation;
-    
-    /* 3. Sets the body font to the native system font (e.g., San Francisco on iOS, Roboto on Android) */
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  }
-  
-  /* 4. Prevents unnecessary text zoom on orientation change */
-  html, body {
-    text-size-adjust: 100%;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  /* 5. A quick fix to ensure clickable elements act like pointers */
-  a, button {
-    cursor: pointer;
-  }
-</style>  
-  
-  
-<title>Video Compressor</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="https://cdn.tailwindcss.com"></script>
+html{
+  -webkit-overflow-scrolling:touch;
+  touch-action:manipulation;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+a,button{cursor:pointer}
+</style>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400&family=Exo+2:ital,wght@1,400&display=swap');
@@ -51,41 +37,102 @@ input[type=range]{accent-color:#6366f1}
 .card::before{
   content:attr(data-q);
   position:absolute;
-  top:-18px;
-  left:-22px;
+  top:-20px;
+  left:-26px;
   color:#cbd5e1;
   font-size:12.5px;
   font-weight:400;
   font-style:italic;
-  opacity:.8;
+  opacity:.92;
   font-family:"Exo 2",sans-serif;
-  pointer-events:none;
+  pointer-events:auto;
+  cursor:pointer;
   white-space:pre;
   transform-origin:center center;
   transform:rotate(var(--r));
   text-shadow:
-    0 0 1px rgba(255,255,255,.25),
-    1px 0 rgba(255,140,140,.18),
-   -1px 0 rgba(120,255,255,.18);
+    0 0 1px rgba(255,255,255,.35),
+    1px 0 rgba(255,140,140,.22),
+   -1px 0 rgba(120,255,255,.22);
+  animation:idle 6s ease-in-out infinite;
+}
+
+@keyframes idle{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.08)}
 }
 
 .card.q::before{animation:g 1.6s steps(1,end)}
 
 @keyframes g{
   0%{transform:rotate(var(--r)) translate(0,0)}
-  15%{transform:rotate(var(--r)) translate(1.5px,-1.5px) skewX(10deg)}
-  30%{transform:rotate(var(--r)) translate(-2px,2px) skewX(-12deg)}
-  45%{transform:rotate(var(--r)) translate(2px,0) skewX(8deg) scale(1.03)}
-  60%{transform:rotate(var(--r)) translate(-1.5px,-1.5px) skewX(-8deg)}
-  80%{transform:rotate(var(--r)) translate(1.5px,1px) skewX(4deg)}
+  15%{transform:rotate(var(--r)) translate(2px,-2px) skewX(12deg)}
+  30%{transform:rotate(var(--r)) translate(-2.5px,2.5px) skewX(-14deg)}
+  45%{transform:rotate(var(--r)) translate(2px,0) skewX(9deg) scale(1.04)}
+  65%{transform:rotate(var(--r)) translate(-2px,-2px) skewX(-9deg)}
+  82%{transform:rotate(var(--r)) translate(1.5px,1px) skewX(5deg)}
   100%{transform:rotate(var(--r)) translate(0,0) skewX(0) scale(1)}
 }
 </style>
 
 <script>
-(()=>{let Q=['"Less is learned."','"Seek structure, not size."','"The simplest form wins."','"Meaning survives compression."','"Find the pattern behind the noise."','"Complexity dissolves under insight."','"Premature optimization is the root of all evil."','"Fast is better than clever."','"Cache is a lie we agree to believe."','"Determinism beats raw speed."','"Undefined behavior is still behavior."','"Entropy always gets a vote."','"There is no cloud, only other people’s computers."','"It worked yesterday."','"Weeks of coding can save you hours of planning."','"The bug is always in the last place you look."','"Hardware is just software that drank too much coffee."','"Everything is a race condition if you’re brave enough."','"Real programmers measure twice, deploy once."'],t=0,p=()=>Q[Math.random()*Q.length|0],g=x=>{let a=[...x],i=[];for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);for(let s=0;s<Math.min(10,Math.max(3,Math.floor(i.length/3)));s++){let m=i[Math.random()*i.length|0],n=i[Math.random()*i.length|0];[a[m],a[n]]=[a[n],a[m]]}return a.join("")},run=(b,d)=>{let c=document.querySelector(".card"),n=++t,f=0,F=d|0,S=90;c.style.setProperty("--r",(-10-Math.random()*25).toFixed(1)+"deg"),c.classList.remove("q"),void c.offsetWidth,c.classList.add("q");(function h(){if(n!=t)return;f<F?(c.setAttribute("data-q",g(b)),f++,setTimeout(h,S)):c.setAttribute("data-q",b)})()},R=()=>run(p(),7),L=()=>run(p(),11);addEventListener("DOMContentLoaded",L);addEventListener("click",R)})();
+(()=>{
+
+let Q=[
+'"Less is learned."',
+'"Seek structure, not size."',
+'"The simplest form wins."',
+'"Meaning survives compression."',
+'"Find the pattern behind the noise."',
+'"Complexity dissolves under insight."',
+'"Premature optimization is the root of all evil."',
+'"Fast is better than clever."',
+'"Cache is a lie we agree to believe."',
+'"Determinism beats raw speed."',
+'"Undefined behavior is still behavior."',
+'"Entropy always gets a vote."',
+'"There is no cloud, only other people’s computers."',
+'"It worked yesterday."',
+'"Weeks of coding can save you hours of planning."',
+'"Everything is a race condition if you’re brave enough."',
+'"Real programmers measure twice, deploy once."'
+];
+
+let tick=0,
+pick=()=>Q[Math.random()*Q.length|0],
+glitch=x=>{
+  let a=[...x],i=[];
+  for(let j=0;j<a.length;j++)/[A-Za-z]/.test(a[j])&&i.push(j);
+  for(let s=0;s<Math.min(10,Math.max(3,Math.floor(i.length/3)));s++){
+    let m=i[Math.random()*i.length|0],
+        n=i[Math.random()*i.length|0];
+    [a[m],a[n]]=[a[n],a[m]];
+  }
+  return a.join("");
+},
+
+run=(b,d)=>{
+  let c=document.querySelector(".card"),
+      n=++tick,f=0,F=d|0,S=80;
+  c.style.setProperty("--r",(-10-Math.random()*25).toFixed(1)+"deg");
+  c.classList.remove("q");void c.offsetWidth;c.classList.add("q");
+  (function h(){
+    if(n!=tick)return;
+    f<F?(c.setAttribute("data-q",glitch(b)),f++,setTimeout(h,S))
+         :c.setAttribute("data-q",b);
+  })();
+};
+
+addEventListener("DOMContentLoaded",()=>{
+  run(pick(),14);  // extra long intro glitch
+  document.querySelector(".card").addEventListener("click",()=>run(pick(),7));
+});
+
+})();
 </script>
+
 </head>
+
 
   
 
