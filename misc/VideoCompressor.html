@@ -234,6 +234,13 @@ function updateEstimate(){
 
 (async()=>{
   try{
+    // Explicit guard to avoid "SharedArrayBuffer is not defined" crashes
+    if(typeof SharedArrayBuffer==="undefined"){
+      const msg="SharedArrayBuffer is disabled in this browser/WebView, so FFmpeg.wasm cannot run here. Try a modern browser with cross-origin isolation (e.g., standalone Chrome/Firefox) or desktop.";
+      logError("FFmpeg load",msg);
+      // Keep button disabled; app becomes read-only UI
+      return;
+    }
     if(!window.FFmpeg)throw new Error("FFmpeg script not loaded (window.FFmpeg undefined)");
     ffmpeg=FFmpeg.createFFmpeg({
       log:false,
