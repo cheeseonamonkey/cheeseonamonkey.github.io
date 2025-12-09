@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -232,17 +233,38 @@ function updateEstimate(){
   els.estRow.classList.remove("hidden");
 }
 
+// FFmpeg init with proper capability check
 (async()=>{
   try{
-    // Explicit guard to avoid "SharedArrayBuffer is not defined" crashes
-    if(typeof SharedArrayBuffer==="undefined"){
-      const msg="SharedArrayBuffer is disabled in this browser/WebView, so FFmpeg.wasm cannot run here. Try a modern browser with cross-origin isolation (e.g., standalone Chrome/Firefox) or desktop.";
-      logError("FFmpeg load",msg);
-      // Keep button disabled; app becomes read-only UI
+    const sabAvailable = typeof SharedArrayBuffer !== "undefined";
+    const coiSupported = typeof crossOriginIsolated !== "undefined";
+    const coi = coiSupported && crossOriginIsolated === true;
+
+    if(!sabAvailable || !coi){
+      // This is *not* fixable from inside the page; needs headers or a different core.
+      const reason = !sabAvailable
+        ? "SharedArrayBuffer is not available in this browser/WebView."
+        : "Page is not cross-origin isolated (crossOriginIsolated=false).";
+
+      const hint = [
+        "ffmpeg.wasm (CDN build) needs SharedArrayBuffer + cross-origin isolation.",
+        "Typical fixes (outside this HTML file):",
+        "- Serve over HTTPS with headers:",
+        "  Cross-Origin-Opener-Policy: same-origin",
+        "  Cross-Origin-Embedder-Policy: require-corp",
+        "- Or open in a full browser (Chrome/Firefox) via a real URL, not an in-app viewer or file://.",
+        "- Or switch this app to a single-thread or ffmpeg.js build."
+      ].join("\n");
+
+      logError("FFmpeg load", reason + "\n\n" + hint);
+      setStatus("FFmpeg not supported in this browser context.");
+      updateBtn(); // keeps Compress disabled
       return;
     }
-    if(!window.FFmpeg)throw new Error("FFmpeg script not loaded (window.FFmpeg undefined)");
-    ffmpeg=FFmpeg.createFFmpeg({
+
+    if(!window.FFmpeg) throw new Error("FFmpeg script not loaded (window.FFmpeg undefined)");
+
+    ffmpeg = FFmpeg.createFFmpeg({
       log:false,
       corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"
     });
