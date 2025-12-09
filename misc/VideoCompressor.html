@@ -5,147 +5,203 @@
 <title>Video Compressor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Spline+Sans+Mono:wght@300;400;500&display=swap');
-body { font-family: "Rubik", sans-serif; } 
-.mono {font-family: "Spline Sans Mono", monospace;}
-</style>
-
 <style>
-  body{background:#0a0f1a;color:#e5e7eb;font-family:sans-serif}
-  .card{background:#111827;border:1px solid #1f2937;border-radius:12px;padding:12px}
-  .tip{position:absolute;bottom:110%;left:50%;transform:translateX(-50%);
-       background:#1f2937;padding:6px 8px;font-size:10px;border-radius:6px;
-       white-space:nowrap;display:none}
-  .tip-wrap:hover .tip{display:block}
-  body:after{content:"Less is learned.";position:absolute;top:8px;left:8px;font-size:12px;color:#6b7280;animation:q 24s infinite}@keyframes q{0%{content:"Less is learned."}16%{content:"Seek structure, not size."}33%{content:"Find the pattern behind the noise."}50%{content:"The simplest form wins."}66%{content:"Meaning survives compression."}83%{content:"Complexity dissolves under insight."}100%{content:"Less is learned."}}
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400&display=swap');
+
+body {
+  background: #0a0f1a;
+  color: #e5e7eb;
+  font-family: "Rubik", sans-serif;
+}
+
+.card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.tip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: semibold;
+  border-radius: 6px;
+  white-space: pre-line;
+  max-width: 280px;
+  display: none;
+  font-family: "Spline Sans Mono", monospace;
+  line-height: 1.3;
+  z-index: 10;
+}
+
+.tip-wrap:hover .tip { display: block; }
+
+input[type="range"] {
+  accent-color: #6366f1;
+}
+
+body::after {
+  content: "Less is learned.\ASeek structure, not size.\AThe simplest form wins.\AMeaning survives compression.";
+  white-space: pre;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  color: #6b7280;
+  font-size: 11px;
+  opacity: 0.6;
+  animation: cycle 16s steps(4) infinite;
+}
+
+@keyframes cycle {
+  0% { content: "Less is learned."; }
+  25% { content: "Seek structure, not size."; }
+  50% { content: "The simplest form wins."; }
+  75% { content: "Meaning survives compression."; }
+}
 </style>
 </head>
 
 <body class="p-4 max-w-md mx-auto space-y-4">
 
 <h1 class="text-xl font-semibold">Video Compressor</h1>
-<p class="text-xs text-gray-400 mb-4">Everything stays local. Mobile-friendly.</p>
+<p class="text-xs text-gray-400">Local processing. Mobile-friendly.</p>
 
 <!-- INPUT -->
 <div class="card space-y-3">
-  <!-- FILE -->
   <div>
     <label class="text-xs text-gray-400">Source video</label>
     <input id="fileInput" type="file" accept="video/*" class="mt-1 text-sm text-gray-100">
-    <p id="fileInfo" class="text-xs text-gray-500">No file selected.</p>
+    <p id="fileInfo" class="text-xs text-gray-500 mt-1">No file selected.</p>
   </div>
 
   <!-- AUDIO -->
   <div class="space-y-2">
-    <div class="flex justify-between">
-      <span class="text-sm font-semibold">Audio</span>
+    <div class="flex justify-between items-center">
+      <span class="text-sm font-medium">Audio</span>
       <label class="text-xs flex items-center gap-1">
-        <input id="muteAudio" type="checkbox">
-        Remove
+        <input id="muteAudio" type="checkbox"> Remove
       </label>
     </div>
     <div id="audioBitrateRow" class="space-y-1">
-      <label class="flex justify-between text-[11px] text-gray-400">
-        <span>Bitrate</span><span><span id="audioBitrateLabel">128</span> kbps</span>
-      </label>
+      <div class="flex justify-between text-[11px] text-gray-400">
+        <span>Bitrate</span>
+        <span><span id="audioBitrateLabel">128</span> kbps</span>
+      </div>
       <input id="audioBitrate" type="range" min="48" max="192" step="16" value="128" class="w-full">
     </div>
-    <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio removed fully.</p>
+    <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio stream removed.</p>
   </div>
 
   <!-- RESOLUTION -->
   <div class="space-y-2">
-    <div class="flex justify-between">
-      <span class="text-sm font-semibold">Resolution</span>
-
+    <div class="flex justify-between items-center">
+      <span class="text-sm font-medium">Resolution</span>
       <span class="relative tip-wrap text-[11px] text-gray-400 cursor-help">
         [?]
-        <span class="tip">Reduces pixel dimensions. Lower = smaller file.</span>
+        <span class="tip">Spatial downsampling via FFmpeg scale filter.
+Dimensions rounded to nearest even integer (H.264/VP9 requirement).
+Reduction = O(n²) file size impact.</span>
       </span>
     </div>
 
-    <label class="flex justify-between text-[11px] text-gray-400">
-      Scale
+    <div class="flex justify-between text-[11px] text-gray-400">
+      <span>Scale</span>
       <span><span id="resolutionPercentLabel">100</span>% · <span id="resolutionActualLabel">Original</span></span>
-    </label>
-
+    </div>
     <input id="resolutionPercent" type="range" min="25" max="100" step="5" value="100" class="w-full">
 
-    <div class="flex justify-between text-[10px]">
-      <button id="resPreset480" class="px-2 py-0.5 border border-gray-600 rounded">480p</button>
-      <button id="resPreset720" class="px-2 py-0.5 border border-gray-600 rounded">720p</button>
-      <button id="resPreset1080" class="px-2 py-0.5 border border-gray-600 rounded">1080p</button>
+    <div class="flex justify-between text-[10px] gap-2">
+      <button id="resPreset480" class="flex-1 px-2 py-1 border border-gray-600 rounded hover:bg-gray-800">480p</button>
+      <button id="resPreset720" class="flex-1 px-2 py-1 border border-gray-600 rounded hover:bg-gray-800">720p</button>
+      <button id="resPreset1080" class="flex-1 px-2 py-1 border border-gray-600 rounded hover:bg-gray-800">1080p</button>
     </div>
   </div>
 
   <!-- SPEED -->
   <div class="space-y-1">
-    <div class="flex justify-between">
-      <span class="text-sm font-semibold">Speed</span>
-
+    <div class="flex justify-between items-center">
+      <span class="text-sm font-medium">Speed</span>
       <span class="relative tip-wrap text-[11px] text-gray-400 cursor-help">
         [?]
-        <span class="tip">>1.0 = faster playback, smaller file.</span>
+        <span class="tip">Temporal compression via setpts/atempo filters.
+setpts=PTS/N drops frames (faster playback).
+atempo adjusts audio pitch/speed.
+Max atempo=2.0 (FFmpeg limit).</span>
       </span>
-
-      <span class="text-xs text-gray-400 ml-auto pl-2"><span id="speedLabel">1.00</span>x</span>
+      <span class="text-xs text-gray-400"><span id="speedLabel">1.00</span>x</span>
     </div>
     <input id="speed" type="range" min="1" max="3" step="0.05" value="1" class="w-full">
   </div>
 
   <!-- FORMAT -->
   <div class="grid grid-cols-2 gap-2 text-xs">
-    <!-- Format -->
     <div>
-      <label class="flex items-center gap-1 text-[11px] text-gray-400">
+      <div class="flex items-center gap-1 text-[11px] text-gray-400 mb-1">
         Format
         <span class="relative tip-wrap cursor-help">[?]
-          <span class="tip">MP4: best compatibility. WebM: often smaller.</span>
+          <span class="tip">H.264 (MP4): Ubiquitous codec, hardware decode.
+VP9 (WebM): Better compression, slower encode.
+Both use YUV 4:2:0 chroma subsampling.</span>
         </span>
-      </label>
-      <select id="outputFormat" class="w-full bg-gray-900 border border-gray-700 rounded px-1 py-1">
+      </div>
+      <select id="outputFormat" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1">
         <option value="mp4">MP4 (H.264)</option>
         <option value="webm">WebM (VP9)</option>
       </select>
     </div>
 
-    <!-- Compression -->
     <div>
-      <label class="flex items-center gap-1 text-[11px] text-gray-400">
+      <div class="flex items-center gap-1 text-[11px] text-gray-400 mb-1">
         Compression
         <span class="relative tip-wrap cursor-help">[?]
-          <span class="tip">Higher compression = smaller file but more artifacts.</span>
+          <span class="tip">CRF (Constant Rate Factor):
+Fast: CRF 20/28 (H.264/VP9)
+Balanced: CRF 23/32
+Strong: CRF 28/38
+Max: CRF 32/42
+Lower CRF = higher bitrate.</span>
         </span>
-      </label>
-      <select id="compressionLevel" class="w-full bg-gray-900 border border-gray-700 rounded px-1 py-1">
-        <option value="fast">Fast (larger)</option>
+      </div>
+      <select id="compressionLevel" class="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1">
+        <option value="fast">Fast</option>
         <option value="balanced" selected>Balanced</option>
         <option value="strong">Strong</option>
-        <option value="max">Max (smallest)</option>
+        <option value="max">Max</option>
       </select>
     </div>
-    <p id="compressionHint" class="col-span-2 text-[11px] text-gray-500">Lossy compression applied.</p>
 
-    <!-- COLOR REDUCTION SLIDER -->
+    <!-- COLOR REDUCTION -->
     <div class="col-span-2 space-y-1">
-      <label class="flex justify-between text-[11px] text-gray-400">
-        Color Reduction
+      <div class="flex justify-between text-[11px] text-gray-400">
+        <div class="flex items-center gap-1">
+          Color Depth
+          <span class="relative tip-wrap cursor-help">[?]
+            <span class="tip">LUT (Lookup Table) quantization:
+256 colors: bitand(val, 240) → 4-bit/channel
+32 colors: bitand(val, 192) → 2-bit/channel
+Reduces entropy, improves compression.</span>
+          </span>
+        </div>
         <span id="colorLabel">Full</span>
-      </label>
+      </div>
       <input id="colorSlider" type="range" min="0" max="2" step="1" value="0" class="w-full">
     </div>
   </div>
 
   <!-- ACTION -->
-  <button id="compressBtn" class="w-full bg-indigo-600 rounded py-2 text-sm font-semibold">
+  <button id="compressBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 rounded py-2 text-sm font-semibold flex items-center justify-center gap-2">
     <span>Compress</span>
-    <span id="spinner" class="hidden ml-2 h-4 w-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></span>
+    <span id="spinner" class="hidden h-4 w-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></span>
   </button>
 
   <div class="flex items-center gap-3">
     <div class="flex-1 h-2 bg-gray-700 rounded overflow-hidden">
-      <div id="progressBar" class="h-2 bg-indigo-500" style="width:0%"></div>
+      <div id="progressBar" class="h-2 bg-indigo-500 transition-all" style="width:0%"></div>
     </div>
     <span id="progressLabel" class="text-xs w-10 text-right text-gray-400">0%</span>
   </div>
@@ -156,275 +212,290 @@ body { font-family: "Rubik", sans-serif; }
 <!-- RESULT -->
 <div class="card space-y-2">
   <video id="preview" class="w-full bg-black rounded" controls playsinline></video>
-  <a id="downloadLink" class="hidden w-full text-center bg-emerald-600 py-2 rounded text-sm font-semibold">Download</a>
+  <a id="downloadLink" class="hidden w-full text-center bg-emerald-600 hover:bg-emerald-700 py-2 rounded text-sm font-semibold block">Download</a>
 
   <dl class="grid grid-cols-2 gap-1 text-[11px] text-gray-400">
     <dt>Original</dt><dd id="metricOriginalName" class="text-right text-gray-200">–</dd>
     <dt>Size</dt><dd id="metricOriginalSize" class="text-right">–</dd>
     <dt>Estimated</dt><dd id="metricEstimatedSize" class="text-right">–</dd>
-    <dt>Est change</dt><dd id="metricEstimatedRatio" class="text-right">–</dd>
+    <dt>Est Δ</dt><dd id="metricEstimatedRatio" class="text-right">–</dd>
     <dt>Compressed</dt><dd id="metricCompressedSize" class="text-right">–</dd>
-    <dt>Change</dt><dd id="metricRatio" class="text-right">–</dd>
+    <dt>Actual Δ</dt><dd id="metricRatio" class="text-right">–</dd>
   </dl>
 </div>
 
 <!-- LOG -->
 <details class="card">
-  <summary class="cursor-pointer text-xs font-semibold">Log</summary>
-  <pre id="logOutput" class="text-[10px] whitespace-pre-wrap max-h-40 overflow-y-auto mt-2"></pre>
+  <summary class="cursor-pointer text-xs font-semibold">FFmpeg Log</summary>
+  <pre id="logOutput" class="text-[10px] font-mono whitespace-pre-wrap max-h-40 overflow-y-auto mt-2 text-gray-300"></pre>
 </details>
 
 <video id="probeVideo" class="hidden"></video>
 
-<!-- SCRIPT -->
 <script>
-/* ---------------- Helpers ---------------- */
-const $=id=>document.getElementById(id);
-const els={
-  file:$("fileInput"), fileInfo:$("fileInfo"),
-  ab:$("audioBitrate"), abLbl:$("audioBitrateLabel"), mute:$("muteAudio"),
-  abRow:$("audioBitrateRow"), abHint:$("audioMutedHint"),
-  rp:$("resolutionPercent"), rpLbl:$("resolutionPercentLabel"),
-  rLab:$("resolutionActualLabel"), r480:$("resPreset480"),
-  r720:$("resPreset720"), r1080:$("resPreset1080"),
-  speed:$("speed"), speedLbl:$("speedLabel"),
-  fmt:$("outputFormat"), comp:$("compressionLevel"),
-  compHint:$("compressionHint"),
-  cSlider:$("colorSlider"), cLabel:$("colorLabel"),
-  btn:$("compressBtn"), spin:$("spinner"),
-  bar:$("progressBar"), barLbl:$("progressLabel"),
-  status:$("status"), preview:$("preview"), dl:$("downloadLink"),
-  mName:$("metricOriginalName"), mSize:$("metricOriginalSize"),
-  mEst:$("metricEstimatedSize"), mEstR:$("metricEstimatedRatio"),
-  mCSize:$("metricCompressedSize"), mCR:$("metricRatio"),
-  log:$("logOutput"), probe:$("probeVideo")
+const $ = id => document.getElementById(id);
+const els = {
+  file: $("fileInput"), fileInfo: $("fileInfo"),
+  ab: $("audioBitrate"), abLbl: $("audioBitrateLabel"), mute: $("muteAudio"),
+  abRow: $("audioBitrateRow"), abHint: $("audioMutedHint"),
+  rp: $("resolutionPercent"), rpLbl: $("resolutionPercentLabel"),
+  rLab: $("resolutionActualLabel"), r480: $("resPreset480"),
+  r720: $("resPreset720"), r1080: $("resPreset1080"),
+  speed: $("speed"), speedLbl: $("speedLabel"),
+  fmt: $("outputFormat"), comp: $("compressionLevel"),
+  cSlider: $("colorSlider"), cLabel: $("colorLabel"),
+  btn: $("compressBtn"), spin: $("spinner"),
+  bar: $("progressBar"), barLbl: $("progressLabel"),
+  status: $("status"), preview: $("preview"), dl: $("downloadLink"),
+  mName: $("metricOriginalName"), mSize: $("metricOriginalSize"),
+  mEst: $("metricEstimatedSize"), mEstR: $("metricEstimatedRatio"),
+  mCSize: $("metricCompressedSize"), mCR: $("metricRatio"),
+  log: $("logOutput"), probe: $("probeVideo")
 };
 
-function log(m){els.log.textContent+=m+"\n";els.log.scrollTop=els.log.scrollHeight;}
-function setStatus(s){els.status.textContent=s}
-function setProgress(p){p=Math.max(0,Math.min(100,p));els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%";}
-function fmt(x){if(!x)return"–";const u=["B","KB","MB","GB"];let i=0;while(x>=1024&&i<u.length-1){x/=1024;i++;}return x.toFixed(x>10?0:1)+" "+u[i];}
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const log = m => { els.log.textContent += m + "\n"; els.log.scrollTop = els.log.scrollHeight; };
+const setStatus = s => els.status.textContent = s;
+const setProgress = p => {
+  p = Math.max(0, Math.min(100, p));
+  els.bar.style.width = p + "%";
+  els.barLbl.textContent = p.toFixed(0) + "%";
+};
 
-let ffmpeg=null, ffLoaded=false, currentFile=null, lastURL=null;
-const meta={ready:false,w:0,h:0};
+const fmt = x => {
+  if (!x) return "–";
+  const u = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  while (x >= 1024 && i < u.length - 1) { x /= 1024; i++; }
+  return x.toFixed(x > 10 ? 0 : 1) + " " + u[i];
+};
 
-/* --------- FFmpeg with IndexedDB caching --------- */
-async function loadFF(){
-  if(ffLoaded) return;
-  setStatus("Loading engine…");
+let ffmpeg = null, ffLoaded = false, currentFile = null, lastURL = null;
+const meta = { ready: false, w: 0, h: 0 };
 
-  const db=await new Promise(res=>{
-    const req=indexedDB.open("ffmpeg-cache",1);
-    req.onupgradeneeded=e=>e.target.result.createObjectStore("core");
-    req.onsuccess=e=>res(e.target.result);
+// FFmpeg loader with IndexedDB cache
+async function loadFF() {
+  if (ffLoaded) return;
+  setStatus("Loading FFmpeg…");
+
+  const db = await new Promise(res => {
+    const req = indexedDB.open("ffmpeg-cache", 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore("core");
+    req.onsuccess = e => res(e.target.result);
   });
 
-  const get=k=>new Promise(r=>{
-    const tx=db.transaction("core");const s=tx.objectStore("core").get(k);
-    s.onsuccess=e=>r(e.target.result);r(null);
+  const get = k => new Promise(r => {
+    const tx = db.transaction("core");
+    const s = tx.objectStore("core").get(k);
+    s.onsuccess = e => r(e.target.result);
+    s.onerror = () => r(null);
   });
 
-  let wasm=await get("wasm");
-  if(!wasm){
-    wasm=await fetch("https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.wasm").then(r=>r.arrayBuffer());
-    const tx=db.transaction("core","readwrite");tx.objectStore("core").put(wasm,"wasm");
+  let wasm = await get("wasm");
+  if (!wasm) {
+    wasm = await fetch("https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.wasm").then(r => r.arrayBuffer());
+    const tx = db.transaction("core", "readwrite");
+    tx.objectStore("core").put(wasm, "wasm");
   }
 
-  const {createFFmpeg}=await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
-  ffmpeg=createFFmpeg({
-    corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
-    wasmBinary:wasm
+  const { createFFmpeg } = await import("https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.mjs");
+  ffmpeg = createFFmpeg({
+    corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
+    wasmBinary: wasm
   });
 
-  ffmpeg.setLogger(({message})=>log(message));
-  ffmpeg.setProgress(({ratio})=>setProgress(ratio*100));
+  ffmpeg.setLogger(({ message }) => log(message));
+  ffmpeg.setProgress(({ ratio }) => setProgress(ratio * 100));
   await ffmpeg.load();
-  ffLoaded=true;
+  ffLoaded = true;
   setStatus("Ready.");
 }
 
-function cleanFS(){
-  if(!ffLoaded) return;
-  try{
-    ffmpeg.FS("readdir",".").forEach(f=>{
-      if(f!="."&&f!="..") ffmpeg.FS("unlink",f);
+const cleanFS = () => {
+  if (!ffLoaded) return;
+  try {
+    ffmpeg.FS("readdir", ".").forEach(f => {
+      if (f !== "." && f !== "..") ffmpeg.FS("unlink", f);
     });
-  }catch{}
-}
+  } catch {}
+};
 
-/* --------- UI updaters --------- */
-function updateAudio(){
-  const m=els.mute.checked;
-  els.abRow.classList.toggle("hidden",m);
-  els.abHint.classList.toggle("hidden",!m);
-}
+// UI updates
+const updateAudio = () => {
+  const m = els.mute.checked;
+  els.abRow.classList.toggle("hidden", m);
+  els.abHint.classList.toggle("hidden", !m);
+};
 
-function updateColor(){
-  const v=parseInt(els.cSlider.value);
-  els.cLabel.textContent=v===0?"Full":v===1?"≈256 colors":"≈32 colors";
-}
+const updateColor = () => {
+  const v = parseInt(els.cSlider.value);
+  els.cLabel.textContent = v === 0 ? "Full" : v === 1 ? "≈256" : "≈32";
+};
 
-function updateRes(){
-  const p=parseInt(els.rp.value)||100;
-  els.rpLbl.textContent=p;
-  if(meta.ready){
-    const sc=p/100;
-    const w=2*Math.round(meta.w*sc/2);
-    const h=2*Math.round(meta.h*sc/2);
-    els.rLab.textContent=h+"p ("+w+"×"+h+")";
-  } else els.rLab.textContent="Scaled";
-}
-
-/* --------- Estimator --------- */
-function estimate(){
-  if(!currentFile){els.mEst.textContent="–";els.mEstR.textContent="–";return;}
-  const o=getOpts();
-  let s=currentFile.size;
-
-  const durF=1/o.speed;
-  let areaF=1;
-  if(meta.ready){
-    const p=o.rp/100; areaF=p*p;
-  }
-  let compF=o.comp==="fast"?1.15:o.comp==="balanced"?1:o.comp==="strong"?0.7:0.5;
-  let audioF=o.mute?0.9:1;
-  let colorF=o.color===1?0.9:o.color===2?0.8:1;
-
-  const est=s*durF*areaF*compF*audioF*colorF;
-  els.mEst.textContent=fmt(est);
-  const r=est/s, pct=Math.abs(1-r)*100;
-  els.mEstR.textContent=`${r<=1?"↓":"↑"} ${pct.toFixed(1)}% (${(r*100).toFixed(1)}%)`;
-}
-
-/* --------- Get options --------- */
-function getOpts(){
-  return {
-    mute:els.mute.checked,
-    bitrate:parseInt(els.ab.value),
-    rp:parseInt(els.rp.value),
-    speed:parseFloat(els.speed.value),
-    fmt:els.fmt.value,
-    comp:els.comp.value,
-    color:parseInt(els.cSlider.value)
-  };
-}
-
-/* --------- Build FFmpeg args --------- */
-function buildArgs(input,output,o){
-  const vf=[], af=[];
-  const sc=o.rp/100;
-  if(sc!==1) vf.push(`scale=trunc(iw*${sc}/2)*2:trunc(ih*${sc}/2)*2`);
-
-  if(o.speed!==1){
-    vf.push(`setpts=PTS/${o.speed}`);
-    if(!o.mute) af.push(`atempo=${o.speed>2?2:o.speed.toFixed(2)}`);
-  }
-
-  if(o.color===1) vf.push("lut=r=bitand(val\\,240):g=bitand(val\\,240):b=bitand(val\\,240)");
-  if(o.color===2) vf.push("lut=r=bitand(val\\,192):g=bitand(val\\,192):b=bitand(val\\,192)");
-
-  const args=["-y","-i",input];
-  if(vf.length) args.push("-vf",vf.join(","));
-  if(af.length) args.push("-af",af.join(","));
-  if(o.mute) args.push("-an");
-  else args.push("-b:a",o.bitrate+"k");
-
-  if(o.fmt==="webm"){
-    const crf=o.comp==="fast"?28:o.comp==="balanced"?32:o.comp==="strong"?38:42;
-    args.push("-c:v","libvpx-vp9","-b:v","0","-crf",crf,"-row-mt","1","-c:a","libopus");
+const updateRes = () => {
+  const p = parseInt(els.rp.value) || 100;
+  els.rpLbl.textContent = p;
+  if (meta.ready) {
+    const sc = p / 100;
+    const w = 2 * Math.round(meta.w * sc / 2);
+    const h = 2 * Math.round(meta.h * sc / 2);
+    els.rLab.textContent = h + "p (" + w + "×" + h + ")";
   } else {
-    const crf=o.comp==="fast"?20:o.comp==="balanced"?23:o.comp==="strong"?28:32;
-    args.push("-c:v","libx264","-preset","medium","-crf",crf,"-movflags","faststart","-c:a","aac");
+    els.rLab.textContent = "Scaled";
+  }
+};
+
+// Size estimator
+const estimate = () => {
+  if (!currentFile) { els.mEst.textContent = "–"; els.mEstR.textContent = "–"; return; }
+  const o = getOpts();
+  let s = currentFile.size;
+
+  const durF = 1 / o.speed;
+  let areaF = 1;
+  if (meta.ready) {
+    const p = o.rp / 100;
+    areaF = p * p;
+  }
+  const compF = { fast: 1.15, balanced: 1, strong: 0.7, max: 0.5 }[o.comp];
+  const audioF = o.mute ? 0.9 : 1;
+  const colorF = o.color === 1 ? 0.9 : o.color === 2 ? 0.8 : 1;
+
+  const est = s * durF * areaF * compF * audioF * colorF;
+  els.mEst.textContent = fmt(est);
+  const r = est / s, pct = Math.abs(1 - r) * 100;
+  els.mEstR.textContent = `${r <= 1 ? "↓" : "↑"} ${pct.toFixed(1)}% (${(r * 100).toFixed(1)}%)`;
+};
+
+const getOpts = () => ({
+  mute: els.mute.checked,
+  bitrate: parseInt(els.ab.value),
+  rp: parseInt(els.rp.value),
+  speed: parseFloat(els.speed.value),
+  fmt: els.fmt.value,
+  comp: els.comp.value,
+  color: parseInt(els.cSlider.value)
+});
+
+// Build FFmpeg command
+const buildArgs = (input, output, o) => {
+  const vf = [], af = [];
+  const sc = o.rp / 100;
+  if (sc !== 1) vf.push(`scale=trunc(iw*${sc}/2)*2:trunc(ih*${sc}/2)*2`);
+
+  if (o.speed !== 1) {
+    vf.push(`setpts=PTS/${o.speed}`);
+    if (!o.mute) af.push(`atempo=${o.speed > 2 ? 2 : o.speed.toFixed(2)}`);
+  }
+
+  if (o.color === 1) vf.push("lut=r=bitand(val\\,240):g=bitand(val\\,240):b=bitand(val\\,240)");
+  if (o.color === 2) vf.push("lut=r=bitand(val\\,192):g=bitand(val\\,192):b=bitand(val\\,192)");
+
+  const args = ["-y", "-i", input];
+  if (vf.length) args.push("-vf", vf.join(","));
+  if (af.length) args.push("-af", af.join(","));
+  if (o.mute) args.push("-an");
+  else args.push("-b:a", o.bitrate + "k");
+
+  if (o.fmt === "webm") {
+    const crf = { fast: 28, balanced: 32, strong: 38, max: 42 }[o.comp];
+    args.push("-c:v", "libvpx-vp9", "-b:v", "0", "-crf", crf, "-row-mt", "1", "-c:a", "libopus");
+  } else {
+    const crf = { fast: 20, balanced: 23, strong: 28, max: 32 }[o.comp];
+    args.push("-c:v", "libx264", "-preset", "medium", "-crf", crf, "-movflags", "faststart", "-c:a", "aac");
   }
   args.push(output);
   return args;
-}
+};
 
-/* --------- Compression pipeline --------- */
-async function compress(){
-  if(!currentFile) return;
+// Main compression
+async function compress() {
+  if (!currentFile) return;
   setStatus("Preparing…");
-  els.btn.disabled=true; els.spin.classList.remove("hidden");
+  els.btn.disabled = true;
+  els.spin.classList.remove("hidden");
   setProgress(0);
 
   await loadFF();
   cleanFS();
 
-  const input=currentFile.name;
-  ffmpeg.FS("writeFile",input,new Uint8Array(await currentFile.arrayBuffer()));
+  const input = currentFile.name;
+  ffmpeg.FS("writeFile", input, new Uint8Array(await currentFile.arrayBuffer()));
 
-  const o=getOpts();
-  const ext=o.fmt==="webm"?"webm":"mp4";
-  const output=input.replace(/\.[^/.]+$/, "_out."+ext);
-  const args=buildArgs(input,output,o);
+  const o = getOpts();
+  const ext = o.fmt === "webm" ? "webm" : "mp4";
+  const output = input.replace(/\.[^/.]+$/, "_compressed." + ext);
+  const args = buildArgs(input, output, o);
 
-  log("ffmpeg "+args.join(" "));
+  log("$ ffmpeg " + args.join(" "));
   setStatus("Compressing…");
 
-  try{
+  try {
     await ffmpeg.run(...args);
-    const data=ffmpeg.FS("readFile",output);
-    const blob=new Blob([data.buffer],{type:o.fmt==="webm"?"video/webm":"video/mp4"});
+    const data = ffmpeg.FS("readFile", output);
+    const blob = new Blob([data.buffer], { type: o.fmt === "webm" ? "video/webm" : "video/mp4" });
 
-    if(lastURL) URL.revokeObjectURL(lastURL);
-    lastURL=URL.createObjectURL(blob);
+    if (lastURL) URL.revokeObjectURL(lastURL);
+    lastURL = URL.createObjectURL(blob);
 
-    els.preview.src=lastURL;
-    els.dl.href=lastURL;
+    els.preview.src = lastURL;
+    els.dl.href = lastURL;
+    els.dl.download = output;
     els.dl.classList.remove("hidden");
 
-    const orig=currentFile.size, comp=data.length;
-    els.mCSize.textContent=fmt(comp);
-    const r=comp/orig,pct=Math.abs(1-r)*100;
-    els.mCR.textContent=`${r<=1?"↓":"↑"} ${pct.toFixed(1)}% (${(r*100).toFixed(1)}%)`;
+    const orig = currentFile.size, comp = data.length;
+    els.mCSize.textContent = fmt(comp);
+    const r = comp / orig, pct = Math.abs(1 - r) * 100;
+    els.mCR.textContent = `${r <= 1 ? "↓" : "↑"} ${pct.toFixed(1)}% (${(r * 100).toFixed(1)}%)`;
 
     setProgress(100);
     setStatus("Done.");
-  } catch(e){
-    log("ERROR: "+e);
+  } catch (e) {
+    log("ERROR: " + e);
     setStatus("Error.");
-  } finally{
+  } finally {
     els.spin.classList.add("hidden");
-    els.btn.disabled=false;
+    els.btn.disabled = false;
     cleanFS();
   }
 }
 
-/* --------- Event wiring --------- */
-els.file.addEventListener("change",e=>{
-  currentFile=e.target.files?.[0]||null;
-  if(!currentFile){els.fileInfo.textContent="No file.";return;}
-  els.fileInfo.textContent=currentFile.name+" • "+fmt(currentFile.size);
-  els.mName.textContent=currentFile.name; els.mSize.textContent=fmt(currentFile.size);
+// Event wiring
+els.file.addEventListener("change", e => {
+  currentFile = e.target.files?.[0] || null;
+  if (!currentFile) { els.fileInfo.textContent = "No file."; return; }
+  els.fileInfo.textContent = currentFile.name + " • " + fmt(currentFile.size);
+  els.mName.textContent = currentFile.name;
+  els.mSize.textContent = fmt(currentFile.size);
 
-  const url=URL.createObjectURL(currentFile);
-  els.probe.src=url;
-  els.probe.onloadedmetadata=()=>{
-    meta.ready=true; meta.w=els.probe.videoWidth; meta.h=els.probe.videoHeight;
+  const url = URL.createObjectURL(currentFile);
+  els.probe.src = url;
+  els.probe.onloadedmetadata = () => {
+    meta.ready = true;
+    meta.w = els.probe.videoWidth;
+    meta.h = els.probe.videoHeight;
     URL.revokeObjectURL(url);
-    updateRes(); estimate();
+    updateRes();
+    estimate();
   };
 });
 
-els.ab.addEventListener("input",()=>{els.abLbl.textContent=els.ab.value;estimate();});
-els.mute.addEventListener("change",()=>{updateAudio();estimate();});
+els.ab.addEventListener("input", () => { els.abLbl.textContent = els.ab.value; estimate(); });
+els.mute.addEventListener("change", () => { updateAudio(); estimate(); });
 
-els.rp.addEventListener("input",()=>{updateRes();estimate();});
-els.r480.addEventListener("click",()=>{els.rp.value=45;updateRes();estimate();});
-els.r720.addEventListener("click",()=>{els.rp.value=70;updateRes();estimate();});
-els.r1080.addEventListener("click",()=>{els.rp.value=100;updateRes();estimate();});
+els.rp.addEventListener("input", () => { updateRes(); estimate(); });
+els.r480.addEventListener("click", () => { els.rp.value = 45; updateRes(); estimate(); });
+els.r720.addEventListener("click", () => { els.rp.value = 70; updateRes(); estimate(); });
+els.r1080.addEventListener("click", () => { els.rp.value = 100; updateRes(); estimate(); });
 
-els.speed.addEventListener("input",()=>{els.speedLbl.textContent=parseFloat(els.speed.value).toFixed(2);estimate();});
+els.speed.addEventListener("input", () => { els.speedLbl.textContent = parseFloat(els.speed.value).toFixed(2); estimate(); });
 
-els.fmt.addEventListener("change",estimate);
-els.comp.addEventListener("change",estimate);
+els.fmt.addEventListener("change", estimate);
+els.comp.addEventListener("change", estimate);
+els.cSlider.addEventListener("input", () => { updateColor(); estimate(); });
 
-els.cSlider.addEventListener("input",()=>{updateColor();estimate();});
+els.btn.addEventListener("click", e => { e.preventDefault(); compress(); });
 
-els.btn.addEventListener("click",e=>{e.preventDefault();compress();});
-
-/* INIT */
+// Init
 updateAudio();
 updateRes();
 updateColor();
