@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +9,8 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0a0f1a">
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"></script>
+<!-- ffmpeg.js (single-thread, no SharedArrayBuffer required) -->
+<script src="https://unpkg.com/ffmpeg.js@4.2.9003/ffmpeg.min.js"></script>
 <style>
 html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
 html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -33,7 +33,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:4px}
 <body class="p-4 max-w-md mx-auto space-y-4">
 
 <h1 class="text-xl font-semibold">Video Compressor</h1>
-<p class="text-xs text-gray-400">Local FFmpeg processing. No upload.</p>
+<p class="text-xs text-gray-400">Local FFmpeg.js processing. No upload.</p>
 
 <div class="card space-y-3">
 
@@ -159,7 +159,7 @@ Good for privacy.</span></span>
     <span id="progressLabel" class="text-xs w-10 text-right text-gray-400">0%</span>
   </div>
 
-  <p id="status" class="text-xs text-gray-400">Loading FFmpeg...</p>
+  <p id="status" class="text-xs text-gray-400">Loading FFmpeg.js...</p>
 </div>
 
 <!-- RESULT -->
@@ -190,7 +190,7 @@ els={
   estRed:$("estimateReduction"),errBox:$("errorBox"),errText:$("errorText")
 };
 
-let ffmpeg=null,ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
+let ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
 const errorLines=[];
 
 const setStatus=s=>els.status.textContent=s;
@@ -233,48 +233,17 @@ function updateEstimate(){
   els.estRow.classList.remove("hidden");
 }
 
-// FFmpeg init with proper capability check
-(async()=>{
+// ffmpeg.js init (no SharedArrayBuffer / COOP/COEP required)
+(function initFfmpegJs(){
   try{
-    const sabAvailable = typeof SharedArrayBuffer !== "undefined";
-    const coiSupported = typeof crossOriginIsolated !== "undefined";
-    const coi = coiSupported && crossOriginIsolated === true;
-
-    if(!sabAvailable || !coi){
-      // This is *not* fixable from inside the page; needs headers or a different core.
-      const reason = !sabAvailable
-        ? "SharedArrayBuffer is not available in this browser/WebView."
-        : "Page is not cross-origin isolated (crossOriginIsolated=false).";
-
-      const hint = [
-        "ffmpeg.wasm (CDN build) needs SharedArrayBuffer + cross-origin isolation.",
-        "Typical fixes (outside this HTML file):",
-        "- Serve over HTTPS with headers:",
-        "  Cross-Origin-Opener-Policy: same-origin",
-        "  Cross-Origin-Embedder-Policy: require-corp",
-        "- Or open in a full browser (Chrome/Firefox) via a real URL, not an in-app viewer or file://.",
-        "- Or switch this app to a single-thread or ffmpeg.js build."
-      ].join("\n");
-
-      logError("FFmpeg load", reason + "\n\n" + hint);
-      setStatus("FFmpeg not supported in this browser context.");
-      updateBtn(); // keeps Compress disabled
-      return;
+    if(typeof ffmpeg!=="function"){
+      throw new Error("Global ffmpeg() from ffmpeg.js not found. Check the CDN script tag.");
     }
-
-    if(!window.FFmpeg) throw new Error("FFmpeg script not loaded (window.FFmpeg undefined)");
-
-    ffmpeg = FFmpeg.createFFmpeg({
-      log:false,
-      corePath:"https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js"
-    });
-    ffmpeg.setProgress(({ratio})=>setProgress(Math.max(0,ratio*100)));
-    await ffmpeg.load();
     ffReady=true;
-    setStatus("FFmpeg loaded. Ready.");
+    setStatus("FFmpeg.js ready (single-thread).");
     updateBtn();
   }catch(e){
-    logError("FFmpeg load",e);
+    logError("FFmpeg.js init",e);
   }
 })();
 
@@ -292,14 +261,27 @@ function buildArgs(input,out,o){
   args.push("-c:v",o.fmt==="webm"?"libvpx-vp9":"libx264","-crf",o.crf);
   if(o.fmt==="mp4"&&o.fastStart)args.push("-movflags","+faststart");
   if(o.stripMeta)args.push("-map_metadata","-1");
-  return args.concat(out);
+  args.push(out);
+  return args;
+}
+
+// Wrap synchronous ffmpeg.js call in a Promise so we can await it
+function runFfmpegJs(opts){
+  return new Promise((resolve,reject)=>{
+    try{
+      const result=ffmpeg(opts);
+      resolve(result);
+    }catch(e){
+      reject(e);
+    }
+  });
 }
 
 async function compress(){
   if(!currentFile||!ffReady)return;
   els.btn.disabled=true;
   els.spin.classList.remove("hidden");
-  setProgress(0);
+  setProgress(1);
   setStatus("Compressing...");
 
   if(prevUrl){URL.revokeObjectURL(prevUrl);prevUrl=null;}
@@ -316,30 +298,43 @@ async function compress(){
     fastStart:els.fastStart.checked,
     stripMeta:els.stripMeta.checked
   };
-  const out="out."+o.fmt;
+
+  const inputName="in_"+Date.now()+"."+((currentFile.name.split(".").pop()||"mp4")||"mp4");
+  const outName="out."+o.fmt;
 
   try{
     const buf=new Uint8Array(await currentFile.arrayBuffer());
-    ffmpeg.FS("writeFile",currentFile.name,buf);
-    await ffmpeg.run(...buildArgs(currentFile.name,out,o));
-    const data=ffmpeg.FS("readFile",out);
-    try{ffmpeg.FS("unlink",currentFile.name);}catch(e){logError("FS unlink input",e);}
-    try{ffmpeg.FS("unlink",out);}catch(e){logError("FS unlink output",e);}
-    const blob=new Blob([data],{type:"video/"+o.fmt});
+
+    // Let UI paint spinner/progress before the heavy sync call
+    await new Promise(r=>setTimeout(r,20));
+
+    const result=await runFfmpegJs({
+      MEMFS:[{name:inputName,data:buf}],
+      arguments:buildArgs(inputName,outName,o),
+      print:data=>{ /* optional: console.log(data); */ },
+      printErr:data=>{ /* optional: parse progress; for now just log */ }
+    });
+
+    if(!result||!result.MEMFS||!result.MEMFS.length){
+      throw new Error("FFmpeg.js returned no output file (MEMFS empty).");
+    }
+    const outFile=result.MEMFS[0];
+    const blob=new Blob([outFile.data],{type:"video/"+o.fmt});
     prevUrl=URL.createObjectURL(blob);
+
     els.preview.src=prevUrl;
     els.dl.href=prevUrl;
-    els.dl.download=out;
+    els.dl.download=outFile.name||outName;
     els.dl.classList.remove("hidden");
+
     const diff=((1-blob.size/currentFile.size)*100).toFixed(0);
     els.sizeInfo.textContent=`${fmtSize(currentFile.size)} -> ${fmtSize(blob.size)} (${diff>0?diff+"% smaller":Math.abs(diff)+"% larger"})`;
     els.sizeInfo.classList.remove("hidden");
+
     setProgress(100);
     setStatus("Done.");
   }catch(e){
     logError("Compression",e);
-    try{ffmpeg.FS("unlink",currentFile.name);}catch(_){}
-    try{ffmpeg.FS("unlink",out);}catch(_){}
   }
   els.spin.classList.add("hidden");
   updateBtn();
@@ -390,3 +385,5 @@ els.btn.onclick=compress;
 </script>
 </body>
 </html>
+```0
+ 
