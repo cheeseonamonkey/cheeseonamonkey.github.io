@@ -34,15 +34,12 @@ input[type=range]::-moz-range-track{height:8px;border-radius:4px}
 <p class="text-xs text-gray-400">Local FFmpeg.js worker. No upload.</p>
 
 <div class="card space-y-3">
-
-  <!-- FILE -->
   <div>
     <label class="text-xs text-gray-400">Source video</label>
     <input id="fileInput" type="file" accept="video/*" class="mt-1 text-sm">
     <p id="fileInfo" class="text-xs text-gray-500 mt-1">No file selected.</p>
   </div>
 
-  <!-- AUDIO -->
   <div>
     <div class="flex justify-between items-center">
       <span class="text-sm font-medium flex gap-1 items-center">Audio
@@ -63,7 +60,6 @@ input[type=range]::-moz-range-track{height:8px;border-radius:4px}
     <p id="audioMutedHint" class="hidden text-[10px] text-amber-400">Audio will be removed</p>
   </div>
 
-  <!-- RESOLUTION -->
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">Resolution
@@ -83,7 +79,6 @@ Lower = smaller file.</span></span>
     </div>
   </div>
 
-  <!-- CRF -->
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">CRF
@@ -98,7 +93,6 @@ Lower = smaller file.</span></span>
     <input id="crf" type="range" min="18" max="42" step="2" value="24" class="w-full">
   </div>
 
-  <!-- SPEED -->
   <div>
     <div class="flex justify-between text-[11px] text-gray-400 mb-1">
       <span class="flex gap-1 items-center">Speed
@@ -111,7 +105,6 @@ Reduces duration.</span></span>
     <input id="speed" type="range" min="100" max="175" step="5" value="100" class="w-full">
   </div>
 
-  <!-- FORMAT -->
   <div class="flex gap-2 text-xs items-center">
     <span class="tip-wrap tip-left" tabindex="0">?<span class="tip">MP4/H.264: Fast, universal.
 WebM/VP9: Smaller, slower.</span></span>
@@ -122,7 +115,6 @@ WebM/VP9: Smaller, slower.</span></span>
     </select>
   </div>
 
-  <!-- CHECKBOXES -->
   <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-300">
     <label class="flex gap-1 items-center">
       <input id="fastStart" type="checkbox" checked> Fast start
@@ -138,13 +130,11 @@ Good for privacy.</span></span>
     </label>
   </div>
 
-  <!-- ESTIMATE -->
   <div id="estimateRow" class="hidden text-xs text-gray-400 bg-gray-800/50 rounded px-3 py-2">
     Est: <span id="estimateLabel"></span>
     <span class="text-gray-500">(<span id="estimateReduction"></span>)</span>
   </div>
 
-  <!-- ACTION -->
   <button id="compressBtn" disabled class="w-full bg-indigo-600 rounded py-2 text-sm font-semibold flex justify-center gap-2 disabled:opacity-50">
     <span>Compress</span>
     <span id="spinner" class="hidden h-4 w-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></span>
@@ -160,14 +150,12 @@ Good for privacy.</span></span>
   <p id="status" class="text-xs text-gray-400">Loading FFmpeg worker...</p>
 </div>
 
-<!-- RESULT -->
 <div class="card space-y-2">
   <video id="preview" class="w-full bg-black rounded" controls playsinline></video>
   <p id="sizeInfo" class="hidden text-xs text-gray-400 text-center"></p>
   <a id="downloadLink" class="hidden w-full text-center bg-emerald-600 py-2 rounded text-sm font-semibold block">Download</a>
 </div>
 
-<!-- ERROR LOG (persistent, subtle) -->
 <div id="errorBox" class="card space-y-1 text-[11px] text-red-300 bg-red-900/10 border-red-700/40 hidden">
   <div class="font-semibold text-red-200">Errors (most recent first)</div>
   <pre id="errorText" class="whitespace-pre-wrap break-all text-red-200/90"></pre>
@@ -176,8 +164,8 @@ Good for privacy.</span></span>
 <video id="probeVideo" class="hidden"></video>
 
 <script>
-const $=id=>document.getElementById(id),
-els={
+const $=id=>document.getElementById(id);
+const els={
   file:$("fileInput"),fileInfo:$("fileInfo"),ab:$("audioBitrate"),abLbl:$("audioBitrateLabel"),
   mute:$("muteAudio"),abRow:$("audioBitrateRow"),abHint:$("audioMutedHint"),rp:$("resolutionPercent"),
   rLab:$("resolutionActualLabel"),resBtn:$("resButtons"),crf:$("crf"),crfLbl:$("crfLabel"),
@@ -188,33 +176,25 @@ els={
   estRed:$("estimateReduction"),errBox:$("errorBox"),errText:$("errorText")
 };
 
-let ffWorker=null,workerReady=false,ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
-let workerJob=null;
+let ffWorker=null, workerReady=false, currentFile=null, meta={w:0,h:0}, prevUrl=null, workerJob=null;
 const errorLines=[];
 const WORKER_URL="https://unpkg.com/ffmpeg.js@4.2.9003/build/ffmpeg-worker-mp4.js";
 
 const setStatus=s=>els.status.textContent=s;
 const setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%";};
 const fmtSize=b=>b<1e6?(b/1e3).toFixed(1)+" KB":(b/1e6).toFixed(2)+" MB";
-const updateBtn=()=>els.btn.disabled=!ffReady||!currentFile;
+const updateBtn=()=>els.btn.disabled=!workerReady||!currentFile;
 const calcRes=p=>({w:Math.floor(meta.w*p/100/2)*2,h:Math.floor(meta.h*p/100/2)*2});
+const fmtDiff=(a,b)=>{const d=((1-b/a)*100).toFixed(0);return d>0?d+"% smaller":Math.abs(d)+"% larger";};
 
-function formatError(err){
-  if(!err)return "Unknown error";
-  if(err.message)return err.message;
-  if(typeof err==="string")return err;
-  try{return JSON.stringify(err);}catch{return String(err);}
-}
-
-function logError(context,err){
-  const msg=formatError(err);
-  const line=`[${new Date().toLocaleTimeString()}] ${context}: ${msg}`;
-  errorLines.unshift(line);
+function logError(ctx,err){
+  const msg=err?.message||String(err);
+  errorLines.unshift(`[${new Date().toLocaleTimeString()}] ${ctx}: ${msg}`);
   if(errorLines.length>50)errorLines.pop();
   els.errText.textContent=errorLines.join("\n\n");
   els.errBox.classList.remove("hidden");
-  console.error(context,err);
-  setStatus(`Error in ${context}: ${msg}`);
+  console.error(ctx,err);
+  setStatus(`Error: ${msg}`);
 }
 
 function updateResLabel(){
@@ -228,99 +208,58 @@ function updateEstimate(){
   const rp=+els.rp.value/100,crf=+els.crf.value,speed=+els.speed.value/100;
   const est=Math.max(currentFile.size*rp*rp*Math.pow(2,(24-crf)/6)/speed*0.85,currentFile.size*0.05);
   els.estLbl.textContent=fmtSize(est);
-  const red=((1-est/currentFile.size)*100).toFixed(0);
-  els.estRed.textContent=red>0?`~${red}% smaller`:`~${Math.abs(red)}% larger`;
+  els.estRed.textContent="~"+fmtDiff(currentFile.size,est);
   els.estRow.classList.remove("hidden");
 }
 
-function initWorker(){
+async function initWorker(){
   try{
-    ffWorker=new Worker(WORKER_URL);
+    const res=await fetch(WORKER_URL);
+    if(!res.ok)throw new Error(`Fetch failed: ${res.status}`);
+    const blob=await res.blob();
+    ffWorker=new Worker(URL.createObjectURL(blob));
   }catch(e){
-    logError("FFmpeg worker create",e);
-    setStatus("FFmpeg worker failed to start.");
+    logError("FFmpeg worker init",e);
+    setStatus("FFmpeg worker failed to load.");
     return;
   }
   ffWorker.onmessage=e=>{
     const msg=e.data||{};
-    switch(msg.type){
-      case "ready":
-        workerReady=true;
-        ffReady=true;
-        setStatus("FFmpeg worker ready.");
-        updateBtn();
-        break;
-      case "run":
-        setStatus("Running FFmpeg...");
-        setProgress(5);
-        break;
-      case "stdout":
-      case "stderr":
-        // could parse for progress; keep quiet for now
-        break;
-      case "done": {
-        const job=workerJob;
-        workerJob=null;
-        if(job&&job.resolve)job.resolve(msg.data);
-        break;
-      }
-      case "exit": {
-        // If exit happens without done/error, treat as error if a job is active
-        if(workerJob){
-          const job=workerJob;
-          workerJob=null;
-          const err=new Error("FFmpeg worker exit code: "+msg.data);
-          if(job.reject)job.reject(err); else logError("FFmpeg worker exit",err);
-        }
-        break;
-      }
-      case "error":
-      case "abort": {
-        const err=new Error(msg.data||msg.type);
-        const job=workerJob;
-        workerJob=null;
-        if(job&&job.reject)job.reject(err); else logError("FFmpeg worker "+msg.type,err);
-        break;
-      }
-      default:
-        break;
+    if(msg.type==="ready"){
+      workerReady=true;
+      setStatus("FFmpeg worker ready.");
+      updateBtn();
+    }else if(msg.type==="done"){
+      workerJob?.resolve(msg.data);
+      workerJob=null;
+    }else if(msg.type==="exit"&&workerJob){
+      workerJob.reject(new Error("FFmpeg exit: "+msg.data));
+      workerJob=null;
+    }else if(msg.type==="error"||msg.type==="abort"){
+      workerJob?.reject(new Error(msg.data||msg.type));
+      workerJob=null;
     }
   };
-  ffWorker.onerror=e=>{
-    logError("FFmpeg worker onerror",e.message||e);
-  };
+  ffWorker.onerror=e=>logError("FFmpeg worker",e.message||e);
 }
 
-function runFfmpegWorker(opts){
+function runFfmpeg(opts){
   return new Promise((resolve,reject)=>{
-    if(!ffWorker||!workerReady){
-      reject(new Error("FFmpeg worker not ready"));
-      return;
-    }
-    if(workerJob){
-      reject(new Error("Another FFmpeg job is already running"));
-      return;
-    }
+    if(!ffWorker||!workerReady)return reject(new Error("Worker not ready"));
+    if(workerJob)return reject(new Error("Job already running"));
     workerJob={resolve,reject};
-    try{
-      ffWorker.postMessage(Object.assign({type:"run"},opts));
-    }catch(e){
-      workerJob=null;
-      reject(e);
-    }
+    try{ffWorker.postMessage({type:"run",...opts});}
+    catch(e){workerJob=null;reject(e);}
   });
 }
 
-(function(){ initWorker(); })();
-
 function buildArgs(input,out,o){
-  const vf=[],af=[];
+  const vf=[],af=[],args=["-y","-i",input];
   if(o.rp!==100)vf.push(`scale=trunc(iw*${o.rp/100}/2)*2:trunc(ih*${o.rp/100}/2)*2`);
   if(o.speed!==1){
     vf.push(`setpts=PTS/${o.speed}`);
     if(!o.mute)af.push(`atempo=${o.speed}`);
   }
-  const args=["-y","-i",input];
   if(vf.length)args.push("-vf",vf.join(","));
   if(af.length)args.push("-af",af.join(","));
   o.mute?args.push("-an"):args.push("-b:a",o.bitrate+"k");
@@ -332,7 +271,7 @@ function buildArgs(input,out,o){
 }
 
 async function compress(){
-  if(!currentFile||!ffReady)return;
+  if(!currentFile||!workerReady)return;
   els.btn.disabled=true;
   els.spin.classList.remove("hidden");
   setProgress(1);
@@ -343,51 +282,35 @@ async function compress(){
   els.sizeInfo.classList.add("hidden");
 
   const o={
-    mute:els.mute.checked,
-    bitrate:+els.ab.value,
-    rp:+els.rp.value,
-    crf:+els.crf.value,
-    speed:+els.speed.value/100,
-    fmt:els.fmt.value,
-    fastStart:els.fastStart.checked,
-    stripMeta:els.stripMeta.checked
+    mute:els.mute.checked, bitrate:+els.ab.value, rp:+els.rp.value,
+    crf:+els.crf.value, speed:+els.speed.value/100, fmt:els.fmt.value,
+    fastStart:els.fastStart.checked, stripMeta:els.stripMeta.checked
   };
-
-  const inputName="in_"+Date.now()+"."+(currentFile.name.split(".").pop()||"mp4");
-  const outName="out."+o.fmt;
+  const ext=currentFile.name.split(".").pop()||"mp4";
+  const inputName=`in_${Date.now()}.${ext}`;
+  const outName=`out.${o.fmt}`;
 
   try{
     const buf=new Uint8Array(await currentFile.arrayBuffer());
-
-    // Let UI paint spinner before heavy work
     await new Promise(r=>setTimeout(r,20));
 
-    const result=await runFfmpegWorker({
+    const result=await runFfmpeg({
       MEMFS:[{name:inputName,data:buf}],
-      arguments:buildArgs(inputName,outName,o),
-      // optional hooks:
-      stdin:function(){},
+      arguments:buildArgs(inputName,outName,o)
     });
 
-    if(!result||!result.MEMFS||!result.MEMFS.length){
-      throw new Error("FFmpeg worker returned no output files (MEMFS empty).");
-    }
-
-    let outFile=result.MEMFS.find(f=>f.name===outName);
-    if(!outFile)outFile=result.MEMFS[0];
+    if(!result?.MEMFS?.length)throw new Error("No output from FFmpeg");
+    const outFile=result.MEMFS.find(f=>f.name===outName)||result.MEMFS[0];
 
     setProgress(90);
-
-    const blob=new Blob([outFile.data],{type:"video/"+o.fmt});
+    const blob=new Blob([outFile.data],{type:`video/${o.fmt}`});
     prevUrl=URL.createObjectURL(blob);
 
     els.preview.src=prevUrl;
     els.dl.href=prevUrl;
     els.dl.download=outFile.name||outName;
     els.dl.classList.remove("hidden");
-
-    const diff=((1-blob.size/currentFile.size)*100).toFixed(0);
-    els.sizeInfo.textContent=`${fmtSize(currentFile.size)} -> ${fmtSize(blob.size)} (${diff>0?diff+"% smaller":Math.abs(diff)+"% larger"})`;
+    els.sizeInfo.textContent=`${fmtSize(currentFile.size)} → ${fmtSize(blob.size)} (${fmtDiff(currentFile.size,blob.size)})`;
     els.sizeInfo.classList.remove("hidden");
 
     setProgress(100);
@@ -416,7 +339,7 @@ els.file.onchange=e=>{
     els.resBtn.classList.remove("hidden");
   };
   els.probe.onerror=err=>{
-    logError("Video metadata probe",err||"onloadedmetadata failed");
+    logError("Video probe",err||"Metadata failed");
     currentFile=null;
     URL.revokeObjectURL(u);
     updateBtn();
@@ -441,7 +364,8 @@ els.rp.oninput=updateResLabel;
 els.crf.oninput=()=>{els.crfLbl.textContent=els.crf.value;updateEstimate();};
 els.speed.oninput=()=>{els.speedLbl.textContent=(+els.speed.value/100).toFixed(2);updateEstimate();};
 els.btn.onclick=compress;
+
+(async()=>await initWorker())();
 </script>
 </body>
 </html>
-```0
