@@ -9,8 +9,6 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#0a0f1a">
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- ffmpeg.js (single-thread, no SharedArrayBuffer required) -->
-<script src="https://unpkg.com/ffmpeg.js@4.2.9003/ffmpeg.min.js"></script>
 <style>
 html{-webkit-overflow-scrolling:touch;touch-action:manipulation;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
 html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -33,7 +31,7 @@ input[type=range]::-moz-range-track{height:8px;border-radius:4px}
 <body class="p-4 max-w-md mx-auto space-y-4">
 
 <h1 class="text-xl font-semibold">Video Compressor</h1>
-<p class="text-xs text-gray-400">Local FFmpeg.js processing. No upload.</p>
+<p class="text-xs text-gray-400">Local FFmpeg.js worker. No upload.</p>
 
 <div class="card space-y-3">
 
@@ -159,7 +157,7 @@ Good for privacy.</span></span>
     <span id="progressLabel" class="text-xs w-10 text-right text-gray-400">0%</span>
   </div>
 
-  <p id="status" class="text-xs text-gray-400">Loading FFmpeg.js...</p>
+  <p id="status" class="text-xs text-gray-400">Loading FFmpeg worker...</p>
 </div>
 
 <!-- RESULT -->
@@ -190,8 +188,10 @@ els={
   estRed:$("estimateReduction"),errBox:$("errorBox"),errText:$("errorText")
 };
 
-let ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
+let ffWorker=null,workerReady=false,ffReady=false,currentFile=null,meta={w:0,h:0},prevUrl=null;
+let workerJob=null;
 const errorLines=[];
+const WORKER_URL="https://unpkg.com/ffmpeg.js@4.2.9003/build/ffmpeg-worker-mp4.js";
 
 const setStatus=s=>els.status.textContent=s;
 const setProgress=p=>{els.bar.style.width=p+"%";els.barLbl.textContent=p.toFixed(0)+"%";};
@@ -233,19 +233,85 @@ function updateEstimate(){
   els.estRow.classList.remove("hidden");
 }
 
-// ffmpeg.js init (no SharedArrayBuffer / COOP/COEP required)
-(function initFfmpegJs(){
+function initWorker(){
   try{
-    if(typeof ffmpeg!=="function"){
-      throw new Error("Global ffmpeg() from ffmpeg.js not found. Check the CDN script tag.");
-    }
-    ffReady=true;
-    setStatus("FFmpeg.js ready (single-thread).");
-    updateBtn();
+    ffWorker=new Worker(WORKER_URL);
   }catch(e){
-    logError("FFmpeg.js init",e);
+    logError("FFmpeg worker create",e);
+    setStatus("FFmpeg worker failed to start.");
+    return;
   }
-})();
+  ffWorker.onmessage=e=>{
+    const msg=e.data||{};
+    switch(msg.type){
+      case "ready":
+        workerReady=true;
+        ffReady=true;
+        setStatus("FFmpeg worker ready.");
+        updateBtn();
+        break;
+      case "run":
+        setStatus("Running FFmpeg...");
+        setProgress(5);
+        break;
+      case "stdout":
+      case "stderr":
+        // could parse for progress; keep quiet for now
+        break;
+      case "done": {
+        const job=workerJob;
+        workerJob=null;
+        if(job&&job.resolve)job.resolve(msg.data);
+        break;
+      }
+      case "exit": {
+        // If exit happens without done/error, treat as error if a job is active
+        if(workerJob){
+          const job=workerJob;
+          workerJob=null;
+          const err=new Error("FFmpeg worker exit code: "+msg.data);
+          if(job.reject)job.reject(err); else logError("FFmpeg worker exit",err);
+        }
+        break;
+      }
+      case "error":
+      case "abort": {
+        const err=new Error(msg.data||msg.type);
+        const job=workerJob;
+        workerJob=null;
+        if(job&&job.reject)job.reject(err); else logError("FFmpeg worker "+msg.type,err);
+        break;
+      }
+      default:
+        break;
+    }
+  };
+  ffWorker.onerror=e=>{
+    logError("FFmpeg worker onerror",e.message||e);
+  };
+}
+
+function runFfmpegWorker(opts){
+  return new Promise((resolve,reject)=>{
+    if(!ffWorker||!workerReady){
+      reject(new Error("FFmpeg worker not ready"));
+      return;
+    }
+    if(workerJob){
+      reject(new Error("Another FFmpeg job is already running"));
+      return;
+    }
+    workerJob={resolve,reject};
+    try{
+      ffWorker.postMessage(Object.assign({type:"run"},opts));
+    }catch(e){
+      workerJob=null;
+      reject(e);
+    }
+  });
+}
+
+(function(){ initWorker(); })();
 
 function buildArgs(input,out,o){
   const vf=[],af=[];
@@ -258,23 +324,11 @@ function buildArgs(input,out,o){
   if(vf.length)args.push("-vf",vf.join(","));
   if(af.length)args.push("-af",af.join(","));
   o.mute?args.push("-an"):args.push("-b:a",o.bitrate+"k");
-  args.push("-c:v",o.fmt==="webm"?"libvpx-vp9":"libx264","-crf",o.crf);
+  args.push("-c:v",o.fmt==="webm"?"libvpx":"libx264","-crf",o.crf);
   if(o.fmt==="mp4"&&o.fastStart)args.push("-movflags","+faststart");
   if(o.stripMeta)args.push("-map_metadata","-1");
   args.push(out);
   return args;
-}
-
-// Wrap synchronous ffmpeg.js call in a Promise so we can await it
-function runFfmpegJs(opts){
-  return new Promise((resolve,reject)=>{
-    try{
-      const result=ffmpeg(opts);
-      resolve(result);
-    }catch(e){
-      reject(e);
-    }
-  });
 }
 
 async function compress(){
@@ -282,7 +336,7 @@ async function compress(){
   els.btn.disabled=true;
   els.spin.classList.remove("hidden");
   setProgress(1);
-  setStatus("Compressing...");
+  setStatus("Preparing...");
 
   if(prevUrl){URL.revokeObjectURL(prevUrl);prevUrl=null;}
   els.dl.classList.add("hidden");
@@ -299,26 +353,31 @@ async function compress(){
     stripMeta:els.stripMeta.checked
   };
 
-  const inputName="in_"+Date.now()+"."+((currentFile.name.split(".").pop()||"mp4")||"mp4");
+  const inputName="in_"+Date.now()+"."+(currentFile.name.split(".").pop()||"mp4");
   const outName="out."+o.fmt;
 
   try{
     const buf=new Uint8Array(await currentFile.arrayBuffer());
 
-    // Let UI paint spinner/progress before the heavy sync call
+    // Let UI paint spinner before heavy work
     await new Promise(r=>setTimeout(r,20));
 
-    const result=await runFfmpegJs({
+    const result=await runFfmpegWorker({
       MEMFS:[{name:inputName,data:buf}],
       arguments:buildArgs(inputName,outName,o),
-      print:data=>{ /* optional: console.log(data); */ },
-      printErr:data=>{ /* optional: parse progress; for now just log */ }
+      // optional hooks:
+      stdin:function(){},
     });
 
     if(!result||!result.MEMFS||!result.MEMFS.length){
-      throw new Error("FFmpeg.js returned no output file (MEMFS empty).");
+      throw new Error("FFmpeg worker returned no output files (MEMFS empty).");
     }
-    const outFile=result.MEMFS[0];
+
+    let outFile=result.MEMFS.find(f=>f.name===outName);
+    if(!outFile)outFile=result.MEMFS[0];
+
+    setProgress(90);
+
     const blob=new Blob([outFile.data],{type:"video/"+o.fmt});
     prevUrl=URL.createObjectURL(blob);
 
@@ -385,3 +444,4 @@ els.btn.onclick=compress;
 </script>
 </body>
 </html>
+```0
