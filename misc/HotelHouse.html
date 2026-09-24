@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0f12" />
+  <title>Light Controller</title>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0f12;
+      --panel: #15181d;
+      --panel-2: #1b1f25;
+      --border: #272c34;
+      --text: #f4f5f6;
+      --muted: #8d96a3;
+      --accent: #ffffff;
+      --accent-text: #111317;
+      --ok: #65d28a;
+      --danger: #ff7d7d;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: start center;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(100%, 520px);
+      padding: max(18px, env(safe-area-inset-top)) 18px max(28px, env(safe-area-inset-bottom));
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.025em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #59606a;
+    }
+
+    .dot.connected { background: var(--ok); }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .connect {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: var(--accent-text);
+      padding: 14px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .connect.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .connect:disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .label {
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .power {
+      width: 48px;
+      height: 28px;
+      border: 0;
+      border-radius: 999px;
+      background: #3a4049;
+      padding: 3px;
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+
+    .power::after {
+      content: "";
+      display: block;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: white;
+      transition: transform .15s ease;
+    }
+
+    .power.on {
+      background: #f3f4f6;
+    }
+
+    .power.on::after {
+      transform: translateX(20px);
+      background: #111317;
+    }
+
+    .power:disabled {
+      opacity: .4;
+      cursor: default;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .brightness-row {
+      display: grid;
+      grid-template-columns: 1fr 42px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: white;
+    }
+
+    .value {
+      text-align: right;
+      color: var(--muted);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 14px;
+      align-items: center;
+    }
+
+    input[type="color"] {
+      width: 86px;
+      height: 58px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: none;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: 0; }
+    input[type="color"]::-moz-color-swatch { border: 0; }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .swatch {
+      aspect-ratio: 1;
+      min-height: 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      cursor: pointer;
+    }
+
+    .swatch.selected {
+      outline: 2px solid white;
+      outline-offset: 2px;
+    }
+
+    .disabled {
+      opacity: .42;
+      pointer-events: none;
+    }
+
+    .message {
+      display: none;
+      margin-top: 12px;
+      color: var(--danger);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .message.show { display: block; }
+
+    footer {
+      text-align: center;
+      color: #69717c;
+      font-size: 11px;
+      line-height: 1.5;
+      padding-top: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <h1>Light Controller</h1>
+      <div class="status">
+        <span id="statusDot" class="dot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <button id="connectButton" class="connect">Connect Bluetooth</button>
+      <div id="compatibilityMessage" class="message"></div>
+    </section>
+
+    <div id="controls" class="disabled">
+      <section class="panel">
+        <div class="row">
+          <div>
+            <div class="label">Power</div>
+            <div class="sub">All lights</div>
+          </div>
+          <button id="powerButton" class="power on" aria-label="Toggle lights" aria-pressed="true"></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">Brightness</div>
+        <div class="brightness-row">
+          <input id="brightness" type="range" min="0" max="255" value="128" />
+          <div id="brightnessValue" class="value">50%</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-title">Color</div>
+
+        <div class="color-grid">
+          <input id="colorPicker" type="color" value="#ffd28a" aria-label="Choose color" />
+
+          <div class="swatches" aria-label="Color presets">
+            <button class="swatch selected" data-color="#ffd28a" style="background:#ffd28a" aria-label="Warm"></button>
+            <button class="swatch" data-color="#ffffff" style="background:#ffffff" aria-label="White"></button>
+            <button class="swatch" data-color="#ff6b5f" style="background:#ff6b5f" aria-label="Red"></button>
+            <button class="swatch" data-color="#6fa8ff" style="background:#6fa8ff" aria-label="Blue"></button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      Direct Bluetooth connection. No account or backend.
+    </footer>
+  </main>
+
+  <script>
+    /*
+      Minimal BLE protocol for the ESP32
+      ----------------------------------
+      Service:
+        7f8d0001-6a9f-4b51-b2e0-7c0d7d560001
+
+      Writable command characteristic:
+        7f8d0002-6a9f-4b51-b2e0-7c0d7d560001
+
+      ASCII commands:
+        P:1              power on
+        P:0              power off
+        B:128            brightness 0..255
+        C:255,210,138    RGB color
+
+      Add ?demo=1 to the URL to test the interface without hardware.
+    */
+
+    const SERVICE_UUID = '7f8d0001-6a9f-4b51-b2e0-7c0d7d560001';
+    const COMMAND_UUID = '7f8d0002-6a9f-4b51-b2e0-7c0d7d560001';
+
+    const demo = new URLSearchParams(location.search).get('demo') === '1';
+
+    const els = {
+      connect: document.getElementById('connectButton'),
+      controls: document.getElementById('controls'),
+      statusDot: document.getElementById('statusDot'),
+      statusText: document.getElementById('statusText'),
+      power: document.getElementById('powerButton'),
+      brightness: document.getElementById('brightness'),
+      brightnessValue: document.getElementById('brightnessValue'),
+      color: document.getElementById('colorPicker'),
+      compatibility: document.getElementById('compatibilityMessage'),
+      swatches: [...document.querySelectorAll('.swatch')]
+    };
+
+    const state = {
+      device: null,
+      characteristic: null,
+      connected: false,
+      power: true,
+      brightness: 128,
+      color: '#ffd28a'
+    };
+
+    const encoder = new TextEncoder();
+
+    function showMessage(text = '') {
+      els.compatibility.textContent = text;
+      els.compatibility.classList.toggle('show', !!text);
+    }
+
+    function setConnected(connected) {
+      state.connected = connected;
+      els.statusDot.classList.toggle('connected', connected);
+      els.statusText.textContent = connected ? 'Connected' : 'Disconnected';
+      els.controls.classList.toggle('disabled', !connected);
+      els.connect.textContent = connected ? 'Disconnect' : 'Connect Bluetooth';
+      els.connect.classList.toggle('secondary', connected);
+    }
+
+    async function write(command) {
+      if (!state.connected) return;
+
+      if (demo) {
+        console.log('[BLE demo]', command);
+        return;
+      }
+
+      if (!state.characteristic) return;
+
+      const bytes = encoder.encode(command);
+
+      if (state.characteristic.writeValueWithResponse) {
+        await state.characteristic.writeValueWithResponse(bytes);
+      } else {
+        await state.characteristic.writeValue(bytes);
+      }
+    }
+
+    async function connect() {
+      showMessage('');
+
+      if (state.connected) {
+        if (!demo && state.device?.gatt?.connected) state.device.gatt.disconnect();
+        else setConnected(false);
+        return;
+      }
+
+      if (demo) {
+        setConnected(true);
+        return;
+      }
+
+      if (!window.isSecureContext) {
+        showMessage('Bluetooth requires HTTPS. GitHub Pages provides this automatically.');
+        return;
+      }
+
+      if (!navigator.bluetooth) {
+        showMessage('Web Bluetooth is not available in this browser. Use a Chromium-based browser with Bluetooth support.');
+        return;
+      }
+
+      try {
+        els.connect.disabled = true;
+
+        state.device = await navigator.bluetooth.requestDevice({
+          filters: [{ services: [SERVICE_UUID] }]
+        });
+
+        state.device.addEventListener('gattserverdisconnected', () => {
+          state.characteristic = null;
+          setConnected(false);
+        });
+
+        const server = await state.device.gatt.connect();
+        const service = await server.getPrimaryService(SERVICE_UUID);
+        state.characteristic = await service.getCharacteristic(COMMAND_UUID);
+
+        setConnected(true);
+
+        await write(`P:${state.power ? 1 : 0}`);
+        await write(`B:${state.brightness}`);
+        await write(rgbCommand(state.color));
+      } catch (err) {
+        if (err?.name !== 'NotFoundError') {
+          showMessage(err?.message || String(err));
+        }
+      } finally {
+        els.connect.disabled = false;
+      }
+    }
+
+    function rgbCommand(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const r = (n >> 16) & 255;
+      const g = (n >> 8) & 255;
+      const b = n & 255;
+      return `C:${r},${g},${b}`;
+    }
+
+    function selectColor(hex) {
+      state.color = hex.toLowerCase();
+      els.color.value = state.color;
+
+      els.swatches.forEach(swatch => {
+        swatch.classList.toggle('selected', swatch.dataset.color.toLowerCase() === state.color);
+      });
+
+      write(rgbCommand(state.color)).catch(console.error);
+    }
+
+    els.connect.addEventListener('click', connect);
+
+    els.power.addEventListener('click', () => {
+      state.power = !state.power;
+      els.power.classList.toggle('on', state.power);
+      els.power.setAttribute('aria-pressed', String(state.power));
+      write(`P:${state.power ? 1 : 0}`).catch(console.error);
+    });
+
+    els.brightness.addEventListener('input', event => {
+      state.brightness = Number(event.target.value);
+      els.brightnessValue.textContent = `${Math.round(state.brightness / 255 * 100)}%`;
+    });
+
+    els.brightness.addEventListener('change', () => {
+      write(`B:${state.brightness}`).catch(console.error);
+    });
+
+    els.color.addEventListener('input', event => {
+      selectColor(event.target.value);
+    });
+
+    els.swatches.forEach(swatch => {
+      swatch.addEventListener('click', () => selectColor(swatch.dataset.color));
+    });
+
+    setConnected(false);
+
+    if (demo) {
+      showMessage('Demo mode');
+      setConnected(true);
+    }
+  </script>
+</body>
+</html>
