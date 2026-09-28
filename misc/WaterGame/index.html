@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#0ca8b8">
-  <meta name="description" content="A tiny mobile water-ring toy. Tilt your phone or drag to steer gravity; press the yellow pumps to launch the rings.">
+  <meta name="description" content="A tiny mobile water-ring toy. Tilt your phone and press the yellow pumps.">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,14 +24,10 @@
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
     .topbar{position:absolute;z-index:5;top:max(16px,calc(env(safe-area-inset-top) + 6px));left:max(18px,calc(env(safe-area-inset-left) + 8px));right:max(18px,calc(env(safe-area-inset-right) + 8px));display:flex;align-items:center;justify-content:flex-end;gap:8px;pointer-events:none}
-    .brand,.actions{display:flex;align-items:center;gap:7px;min-width:0}
-    .pill,.iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;border-radius:9px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-    .pill{padding:7px 10px;font-size:12px;font-weight:750;letter-spacing:.01em}
-    .title{display:inline}
-    .score strong{font-variant-numeric:tabular-nums}
+    .actions{display:flex;align-items:center;gap:7px;min-width:0}
+    .iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .iconbtn{min-height:34px;padding:7px 10px;border-radius:12px;font-size:12px;font-weight:760;cursor:pointer}
     .iconbtn:active{transform:translateY(1px) scale(.98)}
-    .hint{position:absolute;z-index:4;left:50%;bottom:max(12px,calc(env(safe-area-inset-bottom) + 6px));transform:translateX(-50%);padding:5px 8px;border-radius:7px;background:rgba(22,57,62,.28);color:rgba(255,255,255,.82);font-size:10px;font-weight:550;white-space:nowrap;pointer-events:none;transition:opacity .35s}
     .pump{position:absolute;z-index:4;top:55%;width:78px;height:78px;margin-top:-39px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
     .pump::after{content:"";position:absolute;inset:11px;border-radius:50%;border:1px solid rgba(105,88,20,.24)}
     .pump.left{left:max(18px,calc(env(safe-area-inset-left) + 8px))}
@@ -54,9 +50,9 @@
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     .love{position:absolute;z-index:4;left:50%;bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));transform:translateX(-50%);font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
-    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:88px;height:88px;margin-top:-44px}}
-    @media(max-height:620px),(max-width:620px){.topbar{top:12px;left:14px;right:14px;gap:5px}.brand,.actions{gap:4px}.pill,.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
-    @media(max-height:430px){.pill,.iconbtn{font-size:9px;padding:5px 6px}.pump{width:68px;height:68px;margin-top:-34px}.settings{top:39px;max-height:calc(100% - 46px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
+    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.pump{width:88px;height:88px;margin-top:-44px}}
+    @media(max-height:620px),(max-width:620px){.topbar{top:12px;left:14px;right:14px;gap:5px}.actions{gap:4px}.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
+    @media(max-height:430px){.iconbtn{font-size:9px;padding:5px 6px}.pump{width:68px;height:68px;margin-top:-34px}.settings{top:39px;max-height:calc(100% - 46px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
   </style>
 </head>
 <body>
@@ -335,7 +331,7 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
-const DUCKS=['./ducks/rubber-classic.svg','./ducks/rubber-round.svg','./ducks/rubber-squish.svg','./ducks/rubber-baby.svg'];
+const DUCKS=['./ducks/rubber-classic.svg','./ducks/rubber-round.svg','./ducks/rubber-baby.svg'];
 async function remoteImage(url){
   const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
@@ -364,7 +360,7 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://cheeseonamonkey.github.io/" target="_blank" rel="noopener">made with love</a></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://github.com/cheeseonamonkey" target="_blank" rel="noopener">made with love</a></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
