@@ -376,7 +376,7 @@ class App{
   }
   applyPreferences(){this.game.setPumpStrength(this.prefs.pump);this.game.setPumpAngle(this.prefs.pumpAngle);this.game.setGravityStrength(this.prefs.gravity);this.game.setRingScale(this.prefs.ring)}
   async restoreBackground(){try{const blob=await BackgroundStore.get();if(blob)this.renderer.setBackgroundImage(await blobToImage(blob))}catch{}}
-  async loadStartupDuck(){try{this.renderer.setDuckImage(await remoteImage(DUCKS[Math.floor(Math.random()*DUCKS.length)]))}catch{}}
+  async loadStartupDuck(){try{this.renderer.setDuckImage(await remoteImage(DUCKS[0]))}catch{}}
   resize(){
     const forced=window.innerHeight>window.innerWidth;
     this.stage.classList.toggle('forced-landscape',forced);
