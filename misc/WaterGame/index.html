@@ -24,7 +24,7 @@
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
     .topbar{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
-    .brand,.actions{display:flex;align-items:center;gap:7px}
+    .brand,.actions{display:flex;align-items:center;gap:7px;min-width:0}
     .pill,.iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;border-radius:9px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .pill{padding:7px 10px;font-size:12px;font-weight:750;letter-spacing:.01em}
     .title{display:inline}
@@ -54,7 +54,8 @@
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
     @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:88px;height:88px;margin-top:-44px}}
-    @media(orientation:landscape) and (max-height:620px){.pump{width:64px;height:64px;margin-top:-32px}.topbar{top:8px}.hint{bottom:8px}}
+    @media(max-height:620px),(max-width:620px){.topbar{top:6px;left:7px;right:7px;gap:5px}.brand,.actions{gap:4px}.pill,.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
+    @media(max-height:430px){.pill,.iconbtn{font-size:9px;padding:5px 6px}.pump{width:68px;height:68px;margin-top:-34px}.settings{top:39px;max-height:calc(100% - 46px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
   </style>
 </head>
 <body>
@@ -190,7 +191,7 @@ class ParticleSystem{
 class CanvasRenderer{
   constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null;this.duckImage=null;this.duckRect=null}
   setBackgroundImage(image){this.backgroundImage=image}
-  setDuckImage(image){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=image}
+  setDuckImage(image){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=image;this.duckRect=null}
   clearDuck(){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=null;this.duckRect=null}
   isDuckAt(x,y){const r=this.duckRect;return !!r&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
   clearBackgroundImage(){if(this.backgroundImage?._objectUrl)URL.revokeObjectURL(this.backgroundImage._objectUrl);this.backgroundImage=null}
@@ -247,7 +248,19 @@ class CanvasRenderer{
 
 class GameSession{
   constructor(renderer){this.renderer=renderer;this.world=new GameWorld();this.factory=new WorldFactory(TankDefinition);this.physics=new PhysicsEngine();this.pumps=new PumpJetService();this.particles=new ParticleSystem();this.loop=new FixedStepLoop(this,60)}
-  resize(w,h){const first=!this.world.width;this.factory.resize(this.world,w,h);if(first)this.factory.seed(this.world);this.renderer.resize(w,h)}
+  resize(w,h){
+    const first=!this.world.width,oldW=this.world.width,oldH=this.world.height;
+    this.factory.resize(this.world,w,h);
+    if(first)this.factory.seed(this.world);
+    else if(oldW&&oldH&&(oldW!==w||oldH!==h)){
+      const sx=w/oldW,sy=h/oldH;
+      for(const ring of this.world.rings){ring.position.x*=sx;ring.position.y*=sy;ring.velocity.x*=sx;ring.velocity.y*=sy}
+      const scale=Math.max(.9,Math.min(1.25,w/390))*this.world.ringScale;
+      for(const ring of this.world.rings)ring.setScale(scale);
+      this.world.bubbles=[];
+    }
+    this.renderer.resize(w,h)
+  }
   reset(){this.factory.seed(this.world)}
   pump(side){this.pumps.fire(this.world,side)}
   setGravity(x,y){this.world.gravity.set(x,y)}
@@ -381,7 +394,7 @@ class App{
     refresh();
     host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
     host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='Gradient background.'});
-    const changeDuck=async()=>{try{const url=DUCKS[Math.floor(Math.random()*DUCKS.length)];this.renderer.setDuckImage(await remoteImage(url));this.status.textContent='Duck changed.'}catch{this.status.textContent='Duck failed to load.'}};
+    let duckIndex=0;const changeDuck=async()=>{try{let next=duckIndex;while(DUCKS.length>1&&next===duckIndex)next=Math.floor(Math.random()*DUCKS.length);duckIndex=next;this.renderer.setDuckImage(await remoteImage(DUCKS[duckIndex]));this.status.textContent='Duck changed.'}catch{this.status.textContent='Duck failed to load.'}};
     host.querySelector('[data-change-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-random-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-hide-duck]').addEventListener('click',()=>{this.renderer.clearDuck();this.status.textContent='Duck hidden.'});
