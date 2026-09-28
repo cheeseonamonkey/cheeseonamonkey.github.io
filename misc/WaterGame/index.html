@@ -162,7 +162,8 @@ class PumpJetService{
       const turbulence=.82+Math.random()*.36;
       const strength=world.pumpStrength;
       ring.velocity.y-=strength*falloff*turbulence;
-      ring.velocity.x+=side*(strength*.145)*falloff*turbulence+(Math.random()-.5)*(strength*.077)*falloff;
+      // Each pump jets very slightly toward the tank center, not vertically.
+      ring.velocity.x+=(-side)*(strength*.18)*falloff*turbulence+(Math.random()-.5)*(strength*.06)*falloff;
     }
     for(let i=0;i<14;i++)world.bubbles.push({x:sourceX+(Math.random()-.5)*18,y:sourceY+Math.random()*12,vx:side*(8+Math.random()*22)+(Math.random()-.5)*15,vy:-(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65});
   }
