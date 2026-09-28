@@ -219,11 +219,11 @@ class CanvasRenderer{
     c.strokeStyle=r.color;c.lineWidth=Math.max(3,r.radius-r.holeRadius);c.beginPath();c.arc(r.position.x,r.position.y,(r.radius+r.holeRadius)/2,0,TAU);c.stroke();
   }
   drawDuck(c,w){
-    const img=this.duckImage,maxW=(w.right-w.left)*.22,maxH=(w.bottom-w.top)*.24,ratio=img.naturalWidth/img.naturalHeight;
+    const img=this.duckImage,maxW=(w.right-w.left)*.30,maxH=(w.bottom-w.top)*.34,ratio=img.naturalWidth/img.naturalHeight;
     let dw=maxW,dh=dw/ratio;if(dh>maxH){dh=maxH;dw=dh*ratio}
-    const x=(w.left+w.right-dw)/2,y=w.top+(w.bottom-w.top)*.18;
+    const x=(w.left+w.right-dw)/2,y=w.top+(w.bottom-w.top)*.13;
     this.duckRect={x,y,w:dw,h:dh};
-    c.save();c.globalAlpha=.78;c.beginPath();c.roundRect(x,y,dw,dh,Math.min(12,dw*.08));c.clip();c.drawImage(img,x,y,dw,dh);c.restore();
+    c.drawImage(img,x,y,dw,dh);
   }
   drawScene(c,w,time){
     const width=w.width,height=w.height;
@@ -315,7 +315,7 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
-const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg','./ducks/twemoji-goose.svg','./ducks/openmoji-goose.svg'];
+const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg'];
 async function remoteImage(url){
   const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
@@ -338,7 +338,7 @@ class App{
     host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-10" max="10" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
-    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.game.start();
+    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
   }
   bind(host){
     const enterFullscreen=async()=>{if(document.fullscreenElement)return true;const el=document.documentElement;try{if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return false};
@@ -373,6 +373,7 @@ class App{
   }
   applyPreferences(){this.game.setPumpStrength(this.prefs.pump);this.game.setPumpAngle(this.prefs.pumpAngle);this.game.setGravityStrength(this.prefs.gravity);this.game.setRingScale(this.prefs.ring)}
   async restoreBackground(){try{const blob=await BackgroundStore.get();if(blob)this.renderer.setBackgroundImage(await blobToImage(blob))}catch{}}
+  async loadStartupDuck(){try{this.renderer.setDuckImage(await remoteImage(DUCKS[Math.floor(Math.random()*DUCKS.length)]))}catch{}}
   resize(){
     const forced=window.innerHeight>window.innerWidth;
     this.stage.classList.toggle('forced-landscape',forced);
