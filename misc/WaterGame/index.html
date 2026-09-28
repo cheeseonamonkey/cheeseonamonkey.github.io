@@ -162,17 +162,20 @@ class PumpJetService{
     const sourceX=side<0?world.left+world.width*.05:world.right-world.width*.05;
     const sourceY=world.bottom-world.height*.055;
     for(const ring of world.rings){
-      const dx=(ring.position.x-sourceX)/(world.width*.25),dy=(ring.position.y-sourceY)/(world.height*.42);
+      const rise=Math.max(0,sourceY-ring.position.y),spread=.07+rise/(world.height*.42)*.20;
+      const centerX=sourceX+(-side)*Math.tan(world.pumpAngle*Math.PI/180)*rise;
+      const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.48);
       const distance=Math.hypot(dx,dy);
       const falloff=Math.max(0,1-distance);
       if(!falloff)continue;
       const turbulence=.82+Math.random()*.36;
       const strength=world.pumpStrength;
       const angle=world.pumpAngle*Math.PI/180;
+      const outward=Math.sign(ring.position.x-centerX)*strength*.12*Math.min(1,dy*1.7)*falloff;
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
-      ring.velocity.x+=(-side)*Math.sin(angle)*strength*falloff*turbulence+(Math.random()-.5)*(strength*.06)*falloff;
+      ring.velocity.x+=(-side)*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
     }
-    for(let i=0;i<14;i++)world.bubbles.push({x:sourceX+(Math.random()-.5)*18,y:sourceY+Math.random()*12,vx:(-side)*Math.sin(world.pumpAngle*Math.PI/180)*(95+Math.random()*80)+(Math.random()-.5)*15,vy:-Math.cos(world.pumpAngle*Math.PI/180)*(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65});
+    for(let i=0;i<14;i++){const fan=(Math.random()-.5)*.34,angle=world.pumpAngle*Math.PI/180+fan;world.bubbles.push({x:sourceX+(Math.random()-.5)*14,y:sourceY+Math.random()*12,vx:(-side)*Math.sin(angle)*(95+Math.random()*90),vy:-Math.cos(angle)*(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65})}
   }
 }
 
@@ -249,7 +252,7 @@ class GameSession{
   setGravity(x,y){this.world.gravity.set(x,y)}
   setGravityStrength(value){this.world.gravityStrength=value;const len=this.world.gravity.length()||1;this.world.gravity.scale(value/len)}
   setPumpStrength(value){this.world.pumpStrength=value}
-  setPumpAngle(value){this.world.pumpAngle=clamp(value,-10,10)}
+  setPumpAngle(value){this.world.pumpAngle=clamp(value,-18,18)}
   setRingScale(value){this.world.ringScale=value;const scale=Math.max(.9,Math.min(1.25,this.world.width/390))*value;for(const ring of this.world.rings)ring.setScale(scale)}
   update(dt){this.physics.update(this.world,dt);this.particles.update(this.world,dt)}
   render(_alpha,time){this.renderer.render(this.world,time)}
@@ -335,7 +338,7 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-10" max="10" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
