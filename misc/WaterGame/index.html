@@ -27,7 +27,7 @@
     .brand,.actions{display:flex;align-items:center;gap:7px}
     .pill,.iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;border-radius:9px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .pill{padding:7px 10px;font-size:12px;font-weight:750;letter-spacing:.01em}
-    .title{display:none}
+    .title{display:inline}
     .score strong{font-variant-numeric:tabular-nums}
     .iconbtn{min-height:34px;padding:7px 10px;border-radius:12px;font-size:12px;font-weight:760;cursor:pointer}
     .iconbtn:active{transform:translateY(1px) scale(.98)}
@@ -267,8 +267,14 @@ class DeviceOrientationInput{
     const D=window.DeviceOrientationEvent;
     if(!D)throw new Error('unsupported');
     if(typeof D.requestPermission==='function'){const p=await D.requestPermission();if(p!=='granted')throw new Error('denied')}
+    window.removeEventListener('deviceorientation',this.handle);
     window.addEventListener('deviceorientation',this.handle,{passive:true});
     this.status.textContent='tilt active';this.button.hidden=true;
+  }
+  disable(){
+    window.removeEventListener('deviceorientation',this.handle);
+    this.status.textContent='tilt off · drag gravity active';
+    this.button.hidden=false;
   }
   handle=(e)=>{
     let x=clamp((e.gamma||0)/42,-1,1),y=clamp(((e.beta||0)-18)/42,-1,1);
@@ -327,20 +333,26 @@ async function remoteImage(url){
 }
 
 class QuackSynth{
-  constructor(){this.context=null}
+  constructor(){
+    this.url='https://upload.wikimedia.org/wikipedia/commons/f/f1/Ducks_snatching.ogg';
+    this.audio=new Audio(this.url);
+    this.audio.preload='auto';
+    this.audio.volume=1;
+  }
   play(){
-    const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
-    const ctx=this.context||(this.context=new A());if(ctx.state==='suspended')ctx.resume();
-    const now=ctx.currentTime,out=ctx.createGain();out.gain.setValueAtTime(.001,now);out.gain.exponentialRampToValueAtTime(.95,now+.008);out.gain.exponentialRampToValueAtTime(.001,now+.42);out.connect(ctx.destination);
-    const osc=ctx.createOscillator(),formant=ctx.createBiquadFilter();osc.type='sawtooth';osc.frequency.setValueAtTime(390,now);osc.frequency.exponentialRampToValueAtTime(125,now+.24);formant.type='bandpass';formant.frequency.value=1050;formant.Q.value=2.8;osc.connect(formant).connect(out);osc.start(now);osc.stop(now+.42);
-    const len=Math.floor(ctx.sampleRate*.32),buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len);
-    const noise=ctx.createBufferSource(),nf=ctx.createBiquadFilter(),ng=ctx.createGain();noise.buffer=buf;nf.type='bandpass';nf.frequency.value=1350;nf.Q.value=.8;ng.gain.value=.42;noise.connect(nf).connect(ng).connect(out);noise.start(now);noise.stop(now+.32);
+    try{
+      this.audio.pause();
+      this.audio.currentTime=0;
+      this.audio.volume=1;
+      const p=this.audio.play();
+      p?.catch?.(()=>{});
+    }catch{}
   }
 }
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-reset-settings>Reset settings</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">WaterGame</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>Disable tilt</button><button data-fullscreen>Fullscreen</button><button data-reset-settings>Reset settings</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
@@ -349,12 +361,13 @@ class App{
     const enterFullscreen=async()=>{if(document.fullscreenElement)return true;const el=document.documentElement;try{if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return false};
     // Fullscreen is opt-in only. Browser chrome is preferable to clipping controls on short viewports.
     const immersive=()=>{};
-    this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
+    this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
     this.canvas.addEventListener('pointerdown',e=>{immersive();this.duckTapStart={x:e.offsetX,y:e.offsetY};if(this.renderer.isDuckAt(e.offsetX,e.offsetY)){this.quack.play();navigator.vibrate?.(18)}});
     this.canvas.addEventListener('pointerup',()=>{this.duckTapStart=null});
     host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
     host.querySelector('[data-settings]').addEventListener('click',()=>this.panel.hidden=!this.panel.hidden);
     host.querySelector('[data-close-settings]').addEventListener('click',()=>this.panel.hidden=true);
+    host.querySelector('[data-disable-tilt]').addEventListener('click',e=>{this.motion.disable();e.currentTarget.hidden=true});
     host.querySelectorAll('[data-pump]').forEach(button=>button.addEventListener('pointerdown',e=>{e.preventDefault();immersive();this.game.pump(Number(button.dataset.pump));button.classList.add('pulse');setTimeout(()=>button.classList.remove('pulse'),90)}));
     host.querySelector('[data-fullscreen]').addEventListener('click',async()=>{const ok=await enterFullscreen();this.status.textContent=ok?'Fullscreen active.':(/iPhone|iPad|iPod/.test(navigator.userAgent)?'For full-screen iOS play, Add to Home Screen.':'Fullscreen unavailable in this browser.');});
     const pump=host.querySelector('[data-pump-force]'),angle=host.querySelector('[data-pump-angle]'),gravity=host.querySelector('[data-gravity]'),ring=host.querySelector('[data-ring-size]');
