@@ -99,7 +99,7 @@ const TankDefinition={
 };
 
 class GameWorld{
-  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=650;this.pumpStrength=760;this.pumpAngle=14;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
+  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=650;this.pumpStrength=720;this.pumpAngle=14;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
 }
 
 class WorldFactory{
@@ -165,12 +165,25 @@ class PumpJetService{
   fire(world,side){
     const sourceX=side<0?world.left+world.width*.055:world.right-world.width*.055;
     const sourceY=world.bottom-world.height*.018;
-    const power=clamp(world.pumpStrength/760,.5,1.75);
+    const power=clamp(world.pumpStrength/720,.5,1.8);
     const angle=world.pumpAngle*Math.PI/180;
 
     for(const ring of world.rings){
       const rise=Math.max(0,sourceY-ring.position.y);
       const floorDepth=clamp((world.bottom-ring.position.y)/(world.height*.22),0,1);
+      const floorProximity=1-clamp((world.bottom-ring.position.y)/(world.height*.30),0,1);
+      const tankWidth=Math.max(1,world.right-world.left);
+      const across=side<0?(ring.position.x-world.left)/tankWidth:(world.right-ring.position.x)/tankWidth;
+      const floorReach=clamp(1-across/.82,0,1)*floorProximity;
+
+      // Hidden low-pressure floor wash: weak, broad, and mostly invisible.
+      // It nudges settled middle rings into circulation without replacing the main jet.
+      if(floorReach>0){
+        const wash=world.pumpStrength*floorReach;
+        ring.velocity.y-=wash*(.14+Math.random()*.035);
+        ring.velocity.x+=(-side)*wash*(.045+Math.random()*.025);
+      }
+
       const spread=.12+rise/(world.height*.40)*.21;
       const centerX=sourceX-side*Math.tan(angle)*rise;
       const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.52);
@@ -180,7 +193,7 @@ class PumpJetService{
 
       const turbulence=.84+Math.random()*.34;
       const floorBoost=1+(1-floorDepth)*.32;
-      const strength=world.pumpStrength*(1.06+.16*falloff)*floorBoost;
+      const strength=world.pumpStrength*(1.10+.18*falloff)*floorBoost;
 
       // Main jet + a small curling cross-current: broad scoop at the bottom,
       // then a lively inward spiral instead of a perfectly straight blast.
@@ -436,8 +449,8 @@ class DeviceOrientationInput{
 
 class Preferences{
   static key='watergame.settings.v2';
-  static defaults(){return {gravity:650,pump:760,pumpAngle:14,ring:1}}
-  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620)v.pump=760;if(v.pumpAngle===9)v.pumpAngle=14;if(v.gravity===570||v.gravity===620)v.gravity=650;return v}catch{return this.defaults()}}
+  static defaults(){return {gravity:650,pump:720,pumpAngle:14,ring:1}}
+  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620||v.pump===760)v.pump=720;if(v.pumpAngle===9)v.pumpAngle=14;if(v.gravity===570||v.gravity===620)v.gravity=650;return v}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
