@@ -164,38 +164,67 @@ class PhysicsEngine{
 class PumpJetService{
   fire(world,side){
     const sourceX=side<0?world.left+world.width*.055:world.right-world.width*.055;
-    const sourceY=world.bottom-world.height*.025;
+    const sourceY=world.bottom-world.height*.018;
+    const power=clamp(world.pumpStrength/760,.5,1.75);
+    const angle=world.pumpAngle*Math.PI/180;
+
     for(const ring of world.rings){
       const rise=Math.max(0,sourceY-ring.position.y);
-      const nearFloor=clamp((world.bottom-ring.position.y)/(world.height*.20),0,1);
-      const spread=.105+rise/(world.height*.42)*.19;
-      // Wide at the floor so a pump scoops up the pile, then fans upward.
-      const centerX=sourceX-side*Math.tan(world.pumpAngle*Math.PI/180)*rise;
-      const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.50);
+      const floorDepth=clamp((world.bottom-ring.position.y)/(world.height*.22),0,1);
+      const spread=.12+rise/(world.height*.40)*.21;
+      const centerX=sourceX-side*Math.tan(angle)*rise;
+      const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.52);
       const distance=Math.hypot(dx,dy);
       const falloff=Math.max(0,1-distance);
       if(!falloff)continue;
-      const turbulence=.82+Math.random()*.36;
-      const floorBoost=1+(1-nearFloor)*.18;
-      const strength=world.pumpStrength*(.96+.10*falloff)*floorBoost;
-      const angle=world.pumpAngle*Math.PI/180;
-      const outward=Math.sign(ring.position.x-centerX)*strength*.12*Math.min(1,dy*1.7)*falloff;
+
+      const turbulence=.84+Math.random()*.34;
+      const floorBoost=1+(1-floorDepth)*.32;
+      const strength=world.pumpStrength*(1.06+.16*falloff)*floorBoost;
+
+      // Main jet + a small curling cross-current: broad scoop at the bottom,
+      // then a lively inward spiral instead of a perfectly straight blast.
+      const outward=Math.sign(ring.position.x-centerX)*strength*.14*Math.min(1,dy*1.65)*falloff;
+      const swirl=(-side)*(0.06+.10*dy)*strength*falloff*(.55+Math.random()*.45);
+      const jitter=(Math.random()-.5)*(strength*.10)*falloff;
+
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
-      ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
+      ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+swirl+jitter;
+
+      // Bottom rings get a short extra lift so the pile visibly erupts.
+      if(floorDepth<.48&&falloff>.18){
+        ring.velocity.y-=strength*(.10+.10*(1-floorDepth))*falloff;
+      }
     }
-    const bubblePower=clamp(world.pumpStrength/760,.45,1.7);
-    const bubbleCount=Math.round(24+8*bubblePower);
+
+    const bubbleCount=Math.round(30+10*power);
     for(let i=0;i<bubbleCount;i++){
-      const fan=(Math.random()-.5)*(.38+.06*bubblePower),angle=world.pumpAngle*Math.PI/180+fan;
-      const speed=(88+Math.random()*125)*(.72+.38*bubblePower);
+      const t=Math.random();
+      const fan=(Math.random()-.5)*(.42+.08*power);
+      const a=angle+fan;
+      const speed=(102+Math.random()*150)*(.76+.40*power);
+      const curl=(-side)*(14+34*t)*power;
       world.bubbles.push({
-        x:sourceX+(Math.random()-.5)*(18+6*bubblePower),
-        y:sourceY+Math.random()*(16+5*bubblePower),
-        vx:-side*Math.sin(angle)*speed,
-        vy:-Math.cos(angle)*speed*(.95+Math.random()*.32),
-        r:1.15+Math.random()*(3.8+.9*bubblePower),
-        life:.58+Math.random()*.82,
-        alpha:.32+Math.random()*.44
+        x:sourceX+(Math.random()-.5)*(22+8*power),
+        y:sourceY+Math.random()*(18+7*power),
+        vx:-side*Math.sin(a)*speed+curl*(Math.random()-.25),
+        vy:-Math.cos(a)*speed*(.96+Math.random()*.34),
+        r:1.25+Math.random()*(4.3+1.0*power),
+        life:.62+Math.random()*.90,
+        alpha:.34+Math.random()*.46
+      })
+    }
+
+    // A few faint trailing bubbles make the burst read as moving water, not confetti.
+    for(let i=0;i<6;i++){
+      world.bubbles.push({
+        x:sourceX-side*(8+Math.random()*18),
+        y:sourceY-(8+Math.random()*48),
+        vx:-side*(8+Math.random()*22)*power,
+        vy:-(38+Math.random()*70)*power,
+        r:.7+Math.random()*1.7,
+        life:.8+Math.random()*.7,
+        alpha:.14+Math.random()*.16
       })
     }
   }
