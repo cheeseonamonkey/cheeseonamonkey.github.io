@@ -165,7 +165,8 @@ class PumpJetService{
     const sourceY=world.bottom-world.height*.055;
     for(const ring of world.rings){
       const rise=Math.max(0,sourceY-ring.position.y),spread=.07+rise/(world.height*.42)*.20;
-      const centerX=sourceX+(-side)*Math.tan(world.pumpAngle*Math.PI/180)*rise;
+      // One angle control, mirrored per pump: positive always means inward.
+      const centerX=sourceX+side*Math.tan(world.pumpAngle*Math.PI/180)*rise;
       const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.48);
       const distance=Math.hypot(dx,dy);
       const falloff=Math.max(0,1-distance);
@@ -175,9 +176,9 @@ class PumpJetService{
       const angle=world.pumpAngle*Math.PI/180;
       const outward=Math.sign(ring.position.x-centerX)*strength*.12*Math.min(1,dy*1.7)*falloff;
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
-      ring.velocity.x+=(-side)*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
+      ring.velocity.x+=side*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
     }
-    for(let i=0;i<14;i++){const fan=(Math.random()-.5)*.34,angle=world.pumpAngle*Math.PI/180+fan;world.bubbles.push({x:sourceX+(Math.random()-.5)*14,y:sourceY+Math.random()*12,vx:(-side)*Math.sin(angle)*(95+Math.random()*90),vy:-Math.cos(angle)*(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65})}
+    for(let i=0;i<14;i++){const fan=(Math.random()-.5)*.34,angle=world.pumpAngle*Math.PI/180+fan;world.bubbles.push({x:sourceX+(Math.random()-.5)*14,y:sourceY+Math.random()*12,vx:side*Math.sin(angle)*(95+Math.random()*90),vy:-Math.cos(angle)*(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65})}
   }
 }
 
