@@ -163,18 +163,21 @@ class PhysicsEngine{
 
 class PumpJetService{
   fire(world,side){
-    const sourceX=side<0?world.left+world.width*.05:world.right-world.width*.05;
-    const sourceY=world.bottom-world.height*.055;
+    const sourceX=side<0?world.left+world.width*.055:world.right-world.width*.055;
+    const sourceY=world.bottom-world.height*.025;
     for(const ring of world.rings){
-      const rise=Math.max(0,sourceY-ring.position.y),spread=.07+rise/(world.height*.42)*.20;
-      // One angle control, mirrored per pump: positive always means inward.
+      const rise=Math.max(0,sourceY-ring.position.y);
+      const nearFloor=clamp((world.bottom-ring.position.y)/(world.height*.20),0,1);
+      const spread=.105+rise/(world.height*.42)*.19;
+      // Wide at the floor so a pump scoops up the pile, then fans upward.
       const centerX=sourceX-side*Math.tan(world.pumpAngle*Math.PI/180)*rise;
-      const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.48);
+      const dx=(ring.position.x-centerX)/(world.width*spread),dy=rise/(world.height*.50);
       const distance=Math.hypot(dx,dy);
       const falloff=Math.max(0,1-distance);
       if(!falloff)continue;
       const turbulence=.82+Math.random()*.36;
-      const strength=world.pumpStrength*(.95+.08*falloff);
+      const floorBoost=1+(1-nearFloor)*.18;
+      const strength=world.pumpStrength*(.96+.10*falloff)*floorBoost;
       const angle=world.pumpAngle*Math.PI/180;
       const outward=Math.sign(ring.position.x-centerX)*strength*.12*Math.min(1,dy*1.7)*falloff;
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
