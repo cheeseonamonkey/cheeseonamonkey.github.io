@@ -30,10 +30,10 @@
     .iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .iconbtn{min-height:34px;padding:7px 10px;border-radius:12px;font-size:12px;font-weight:760;cursor:pointer}
     .iconbtn:active{transform:translateY(1px) scale(.98)}
-    .pump{position:absolute;z-index:4;top:63%;width:90px;height:90px;margin-top:-45px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
-    .pump::after{content:"";position:absolute;inset:13px;border-radius:50%;border:1px solid rgba(105,88,20,.24)}
-    .pump.left{left:max(18px,calc(env(safe-area-inset-left) + 8px))}
-    .pump.right{right:max(18px,calc(env(safe-area-inset-right) + 8px))}
+    .pump{position:absolute;z-index:4;top:63%;width:118px;height:118px;margin-top:-59px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
+    .pump::after{content:"";position:absolute;inset:17px;border-radius:50%;border:1px solid rgba(105,88,20,.24)}
+    .pump.left{left:max(8px,env(safe-area-inset-left))}
+    .pump.right{right:max(8px,env(safe-area-inset-right))}
     .pump:active,.pump.pulse{transform:scale(.86);filter:brightness(.92);box-shadow:inset 0 3px 8px rgba(105,88,20,.22),0 1px 3px rgba(0,45,50,.18)}
     .motion-needed{animation:nudge 2.1s ease-in-out infinite;background:rgba(255,229,91,.94);border-color:rgba(255,255,255,.7);font-size:13px;font-weight:850;padding:8px 12px;box-shadow:0 2px 9px rgba(77,61,0,.18)}
     .settings{position:absolute;z-index:9;left:50%;top:50%;transform:translate(-50%,-50%);width:min(330px,calc(100% - 40px));max-height:calc(100% - 40px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -53,9 +53,9 @@
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     .love{position:absolute;z-index:4;right:max(16px,calc(env(safe-area-inset-right) + 8px));bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
-    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.pump{width:100px;height:100px;margin-top:-50px}}
-    @media(max-height:620px),(max-width:620px){.topbar{top:18px;left:20px;right:20px;gap:6px}.quick,.actions{gap:4px}.iconbtn,.quick .upload-label{font-size:10px;padding:6px 7px;min-height:30px}.motion-needed{font-size:11px;padding:7px 9px}.pump{width:82px;height:82px;margin-top:-41px}.settings{width:min(330px,calc(100% - 34px));max-height:calc(100% - 34px)}}
-    @media(max-height:430px){.topbar{top:16px;left:18px;right:18px}.iconbtn,.quick .upload-label{font-size:9px;padding:5px 6px}.motion-needed{font-size:10px;padding:6px 8px}.pump{width:78px;height:78px;margin-top:-39px}.settings{width:calc(100% - 30px);max-height:calc(100% - 30px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
+    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.pump{width:130px;height:130px;margin-top:-65px}}
+    @media(max-height:620px),(max-width:620px){.topbar{top:18px;left:20px;right:20px;gap:6px}.quick,.actions{gap:4px}.iconbtn,.quick .upload-label{font-size:10px;padding:6px 7px;min-height:30px}.motion-needed{font-size:11px;padding:7px 9px}.pump{width:106px;height:106px;margin-top:-53px}.settings{width:min(330px,calc(100% - 34px));max-height:calc(100% - 34px)}}
+    @media(max-height:430px){.topbar{top:16px;left:18px;right:18px}.iconbtn,.quick .upload-label{font-size:9px;padding:5px 6px}.motion-needed{font-size:10px;padding:6px 8px}.pump{width:102px;height:102px;margin-top:-51px}.settings{width:calc(100% - 30px);max-height:calc(100% - 30px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
   </style>
 </head>
 <body>
@@ -99,7 +99,7 @@ const TankDefinition={
 };
 
 class GameWorld{
-  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=570;this.pumpStrength=760;this.pumpAngle=9;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
+  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=570;this.pumpStrength=760;this.pumpAngle=14;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
 }
 
 class WorldFactory{
@@ -340,8 +340,8 @@ class DeviceOrientationInput{
 
 class Preferences{
   static key='watergame.settings.v2';
-  static defaults(){return {gravity:570,pump:760,pumpAngle:9,ring:1}}
-  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620)v.pump=760;return v}catch{return this.defaults()}}
+  static defaults(){return {gravity:570,pump:760,pumpAngle:14,ring:1}}
+  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620)v.pump=760;if(v.pumpAngle===9)v.pumpAngle=14;return v}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
