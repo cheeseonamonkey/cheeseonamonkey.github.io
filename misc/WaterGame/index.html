@@ -177,8 +177,10 @@ class ParticleSystem{
 }
 
 class CanvasRenderer{
-  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null}
+  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null;this.duckImage=null}
   setBackgroundImage(image){this.backgroundImage=image}
+  setDuckImage(image){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=image}
+  clearDuck(){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=null}
   clearBackgroundImage(){if(this.backgroundImage?._objectUrl)URL.revokeObjectURL(this.backgroundImage._objectUrl);this.backgroundImage=null}
   resize(w,h){this.w=w;this.h=h;const d=Math.min(devicePixelRatio||1,2);this.canvas.width=Math.round(w*d);this.canvas.height=Math.round(h*d);this.ctx.setTransform(d,0,0,d,0,0)}
   render(world,time){
@@ -196,6 +198,7 @@ class CanvasRenderer{
 
     c.save();c.beginPath();c.roundRect(world.left,world.top,world.right-world.left,world.bottom-world.top,22);c.clip();
     this.drawScene(c,world,time);
+    if(this.duckImage)this.drawDuck(c,world);
     c.restore();
 
     c.strokeStyle='rgba(226,245,243,.60)';c.lineWidth=3;c.beginPath();c.roundRect(world.left,world.top,world.right-world.left,world.bottom-world.top,16);c.stroke();
@@ -206,6 +209,12 @@ class CanvasRenderer{
   }
   drawRing(c,r){
     c.strokeStyle=r.color;c.lineWidth=Math.max(3,r.radius-r.holeRadius);c.beginPath();c.arc(r.position.x,r.position.y,(r.radius+r.holeRadius)/2,0,TAU);c.stroke();
+  }
+  drawDuck(c,w){
+    const img=this.duckImage,maxW=(w.right-w.left)*.22,maxH=(w.bottom-w.top)*.24,ratio=img.naturalWidth/img.naturalHeight;
+    let dw=maxW,dh=dw/ratio;if(dh>maxH){dh=maxH;dw=dh*ratio}
+    const x=(w.left+w.right-dw)/2,y=w.top+(w.bottom-w.top)*.18;
+    c.save();c.globalAlpha=.72;c.beginPath();c.roundRect(x,y,dw,dh,Math.min(12,dw*.08));c.clip();c.drawImage(img,x,y,dw,dh);c.restore();
   }
   drawScene(c,w,time){
     const width=w.width,height=w.height;
@@ -296,14 +305,17 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
+async function remoteImage(url){
+  const img=new Image();img.referrerPolicy='no-referrer';
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
+}
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-close-settings>Close</button></div><small>Uploaded backgrounds are center-cropped to the game area and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><div class="hint"><span data-status>tilt your phone · or drag anywhere</span></div></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>Random duck</button><button data-hide-duck>Hide duck</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.game.start();
-    setTimeout(()=>{const hint=host.querySelector('.hint');if(hint)hint.style.opacity='.74'},4500);
   }
   bind(host){
     this.motionButton.addEventListener('click',async()=>{try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
@@ -319,7 +331,9 @@ class App{
     ring.addEventListener('input',()=>{this.prefs.ring=Number(ring.value);this.game.setRingScale(this.prefs.ring);Preferences.save(this.prefs);refresh()});
     refresh();
     host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
-    host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='gradient background'});
+    host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='Gradient background.'});
+    host.querySelector('[data-random-duck]').addEventListener('click',async()=>{this.status.textContent='Fetching a duck…';try{const img=await remoteImage('https://random-d.uk/api/randomimg?'+Date.now());this.renderer.setDuckImage(img);this.status.textContent='Duck acquired.'}catch{this.status.textContent='Duck fetch failed.'}});
+    host.querySelector('[data-hide-duck]').addEventListener('click',()=>{this.renderer.clearDuck();this.status.textContent='Duck hidden.'});
     window.addEventListener('resize',()=>this.resize());
     screen.orientation?.addEventListener?.('change',()=>this.resize());
   }
