@@ -23,8 +23,10 @@
     .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(145deg,#8fcfca 0%,#4eaaaE 55%,#2e7f89 100%)}
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
-    .topbar{position:absolute;z-index:5;top:max(16px,calc(env(safe-area-inset-top) + 6px));left:max(18px,calc(env(safe-area-inset-left) + 8px));right:max(18px,calc(env(safe-area-inset-right) + 8px));display:flex;align-items:center;justify-content:flex-end;gap:8px;pointer-events:none}
-    .actions{display:flex;align-items:center;gap:7px;min-width:0}
+    .topbar{position:absolute;z-index:5;top:22px;left:24px;right:24px;display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none}
+    .quick,.actions{display:flex;align-items:center;gap:7px;min-width:0}
+    .quick{justify-content:flex-start}
+    .actions{justify-content:flex-end}
     .iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .iconbtn{min-height:34px;padding:7px 10px;border-radius:12px;font-size:12px;font-weight:760;cursor:pointer}
     .iconbtn:active{transform:translateY(1px) scale(.98)}
@@ -33,8 +35,8 @@
     .pump.left{left:max(18px,calc(env(safe-area-inset-left) + 8px))}
     .pump.right{right:max(18px,calc(env(safe-area-inset-right) + 8px))}
     .pump:active,.pump.pulse{transform:scale(.86);filter:brightness(.92);box-shadow:inset 0 3px 8px rgba(105,88,20,.22),0 1px 3px rgba(0,45,50,.18)}
-    .motion-needed{animation:nudge 2.4s ease-in-out infinite}
-    .settings{position:absolute;z-index:9;right:12px;top:54px;width:min(330px,calc(100% - 24px));max-height:calc(100% - 66px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .motion-needed{animation:nudge 2.1s ease-in-out infinite;background:rgba(255,229,91,.94);border-color:rgba(255,255,255,.7);font-size:13px;font-weight:850;padding:8px 12px;box-shadow:0 2px 9px rgba(77,61,0,.18)}
+    .settings{position:absolute;z-index:9;left:50%;top:50%;transform:translate(-50%,-50%);width:min(330px,calc(100% - 40px));max-height:calc(100% - 40px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
     .settings[hidden]{display:none}
     .settings h2{font-size:14px;margin:0 0 10px}
     .setting{display:grid;grid-template-columns:92px 1fr 48px;align-items:center;gap:8px;margin:9px 0;font-size:12px;font-weight:700}
@@ -46,13 +48,14 @@
     .angle-guide::after{content:"";position:absolute;left:calc(50% - 13px);bottom:0;width:26px;height:1px;background:#789497}
     .settings-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
     .settings-row button,.upload-label{border:0;border-radius:10px;background:#fff;color:#123c43;padding:8px 10px;font-size:12px;font-weight:750;box-shadow:0 2px 8px rgba(0,60,70,.12);cursor:pointer}
+    .quick .upload-label{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.82);color:#173d42;border-radius:12px;padding:7px 10px;font-size:12px;font-weight:760;box-shadow:none;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .upload-label input{display:none}
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     .love{position:absolute;z-index:4;right:max(16px,calc(env(safe-area-inset-right) + 8px));bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
     @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.pump{width:88px;height:88px;margin-top:-44px}}
-    @media(max-height:620px),(max-width:620px){.topbar{top:12px;left:14px;right:14px;gap:5px}.actions{gap:4px}.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
-    @media(max-height:430px){.iconbtn{font-size:9px;padding:5px 6px}.pump{width:68px;height:68px;margin-top:-34px}.settings{top:39px;max-height:calc(100% - 46px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
+    @media(max-height:620px),(max-width:620px){.topbar{top:18px;left:20px;right:20px;gap:6px}.quick,.actions{gap:4px}.iconbtn,.quick .upload-label{font-size:10px;padding:6px 7px;min-height:30px}.motion-needed{font-size:11px;padding:7px 9px}.pump{width:72px;height:72px;margin-top:-36px}.settings{width:min(330px,calc(100% - 34px));max-height:calc(100% - 34px)}}
+    @media(max-height:430px){.topbar{top:16px;left:18px;right:18px}.iconbtn,.quick .upload-label{font-size:9px;padding:5px 6px}.motion-needed{font-size:10px;padding:6px 8px}.pump{width:68px;height:68px;margin-top:-34px}.settings{width:calc(100% - 30px);max-height:calc(100% - 30px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
   </style>
 </head>
 <body>
@@ -96,7 +99,7 @@ const TankDefinition={
 };
 
 class GameWorld{
-  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=570;this.pumpStrength=620;this.pumpAngle=6;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
+  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=570;this.pumpStrength=760;this.pumpAngle=9;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
 }
 
 class WorldFactory{
@@ -337,8 +340,8 @@ class DeviceOrientationInput{
 
 class Preferences{
   static key='watergame.settings.v2';
-  static defaults(){return {gravity:570,pump:620,pumpAngle:9,ring:1}}
-  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,18);return v}catch{return this.defaults()}}
+  static defaults(){return {gravity:570,pump:760,pumpAngle:9,ring:1}}
+  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,18);if(v.pump===620)v.pump=760;return v}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
@@ -393,34 +396,37 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://github.com/cheeseonamonkey" target="_blank" rel="noopener">made with love</a></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="quick"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><label class="upload-label" data-first-background>Background<input data-background-first type="file" accept="image/*"></label></div><div class="actions"><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://github.com/cheeseonamonkey" target="_blank" rel="noopener">made with love</a></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();
-    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
+    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;host.querySelector('[data-first-background]').hidden=localStorage.getItem('watergame.backgroundSeen')==='1';this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
   }
   bind(host){
     const toggleFullscreen=async()=>{try{if(document.fullscreenElement){await document.exitFullscreen?.();return false}const el=document.documentElement;if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return null};
-    // Fullscreen is opt-in only. Browser chrome is preferable to clipping controls on short viewports.
-    const immersive=()=>{};
-    this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable';this.motionButton.classList.remove('motion-needed')}});
-    this.canvas.addEventListener('pointerdown',e=>{immersive();const r=this.canvas.getBoundingClientRect(),x=(e.clientX-r.left)*this.canvas.clientWidth/r.width,y=(e.clientY-r.top)*this.canvas.clientHeight/r.height;if(this.renderer.isDuckAt(x,y)){this.quack.play();navigator.vibrate?.(18)}});
+    this.motionButton.addEventListener('click',async()=>{try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable';this.motionButton.classList.remove('motion-needed')}});
+    this.canvas.addEventListener('pointerdown',e=>{const r=this.canvas.getBoundingClientRect(),x=(e.clientX-r.left)*this.canvas.clientWidth/r.width,y=(e.clientY-r.top)*this.canvas.clientHeight/r.height;if(this.renderer.isDuckAt(x,y)){this.quack.play();navigator.vibrate?.(18)}});
     host.querySelector('[data-settings]').addEventListener('click',()=>{this.panel.hidden=!this.panel.hidden;host.querySelector('[data-disable-tilt]').hidden=!this.motion.active});
     host.querySelector('[data-close-settings]').addEventListener('click',()=>this.panel.hidden=true);
     host.querySelector('[data-disable-tilt]').addEventListener('click',e=>{this.motion.disable();e.currentTarget.hidden=true});
-    host.querySelectorAll('[data-pump]').forEach(button=>button.addEventListener('pointerdown',e=>{e.preventDefault();immersive();this.game.pump(Number(button.dataset.pump));button.classList.add('pulse');setTimeout(()=>button.classList.remove('pulse'),90)}));
+    host.querySelectorAll('[data-pump]').forEach(button=>button.addEventListener('pointerdown',e=>{e.preventDefault();this.game.pump(Number(button.dataset.pump));button.classList.add('pulse');setTimeout(()=>button.classList.remove('pulse'),90)}));
     const fsButton=host.querySelector('[data-fullscreen]');
     fsButton.addEventListener('click',async()=>{const state=await toggleFullscreen();if(state===null)this.status.textContent=/iPhone|iPad|iPod/.test(navigator.userAgent)?'Use Add to Home Screen on iOS.':'Fullscreen unavailable.';});
     document.addEventListener('fullscreenchange',()=>{fsButton.textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen';this.resize()});
     const pump=host.querySelector('[data-pump-force]'),angle=host.querySelector('[data-pump-angle]'),gravity=host.querySelector('[data-gravity]'),ring=host.querySelector('[data-ring-size]');
     pump.value=this.prefs.pump;angle.value=this.prefs.pumpAngle;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;
     const refresh=()=>{host.querySelector('[data-pump-out]').textContent=this.prefs.pump;host.querySelector('[data-angle-out]').textContent=(this.prefs.pumpAngle>0?'+':'')+this.prefs.pumpAngle+'°';host.querySelector('[data-angle-line]').style.transform='rotate('+this.prefs.pumpAngle+'deg)';host.querySelector('[data-gravity-out]').textContent=this.prefs.gravity;host.querySelector('[data-ring-out]').textContent=this.prefs.ring.toFixed(2)+'×'};
-    host.querySelector('[data-reset-all]').addEventListener('click',async()=>{this.prefs=Preferences.defaults();pump.value=this.prefs.pump;angle.value=this.prefs.pumpAngle;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;this.applyPreferences();Preferences.save(this.prefs);refresh();this.game.reset();this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}try{this.renderer.setDuckImage(await remoteImage(DUCKS[0]))}catch{}this.status.textContent='Reset.';this.panel.hidden=true});
+    host.querySelector('[data-reset-all]').addEventListener('click',async()=>{this.prefs=Preferences.defaults();pump.value=this.prefs.pump;angle.value=this.prefs.pumpAngle;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;this.applyPreferences();Preferences.save(this.prefs);refresh();this.game.reset();this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}try{this.renderer.setDuckImage(await remoteImage(DUCKS[0]))}catch{}localStorage.removeItem('watergame.backgroundSeen');firstBackground.hidden=false;this.status.textContent='Reset.';this.panel.hidden=true});
     pump.addEventListener('input',()=>{this.prefs.pump=Number(pump.value);this.game.setPumpStrength(this.prefs.pump);Preferences.save(this.prefs);refresh()});
     angle.addEventListener('input',()=>{this.prefs.pumpAngle=Number(angle.value);this.game.setPumpAngle(this.prefs.pumpAngle);Preferences.save(this.prefs);refresh()});
     gravity.addEventListener('input',()=>{this.prefs.gravity=Number(gravity.value);this.game.setGravityStrength(this.prefs.gravity);Preferences.save(this.prefs);refresh()});
     ring.addEventListener('input',()=>{this.prefs.ring=Number(ring.value);this.game.setRingScale(this.prefs.ring);Preferences.save(this.prefs);refresh()});
     refresh();
-    host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
+    const firstBackground=host.querySelector('[data-first-background]');
+    const markBackgroundSeen=()=>{localStorage.setItem('watergame.backgroundSeen','1');firstBackground.hidden=true};
+    firstBackground.addEventListener('click',markBackgroundSeen);
+    const chooseBackground=async e=>{const file=e.target.files?.[0];if(!file)return;markBackgroundSeen();try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''};
+    host.querySelector('[data-background]').addEventListener('change',chooseBackground);
+    host.querySelector('[data-background-first]').addEventListener('change',chooseBackground);
     let duckIndex=0;const changeDuck=async()=>{try{let next=duckIndex;while(DUCKS.length>1&&next===duckIndex)next=Math.floor(Math.random()*DUCKS.length);duckIndex=next;this.renderer.setDuckImage(await remoteImage(DUCKS[duckIndex]));this.status.textContent='Duck changed.'}catch{this.status.textContent='Duck failed to load.'}};
     host.querySelector('[data-change-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-random-duck]').addEventListener('click',changeDuck);
@@ -433,8 +439,14 @@ class App{
   async restoreBackground(){try{const blob=await BackgroundStore.get();if(blob)this.renderer.setBackgroundImage(await blobToImage(blob))}catch{}}
   async loadStartupDuck(){try{this.renderer.setDuckImage(await remoteImage(DUCKS[0]))}catch{}}
   resize(){
-    const forced=window.innerHeight>window.innerWidth;
+    const vv=window.visualViewport;
+    const vw=vv?.width||window.innerWidth,vh=vv?.height||window.innerHeight;
+    const forced=vh>vw;
     this.stage.classList.toggle('forced-landscape',forced);
+    this.stage.style.left=((vv?.offsetLeft||0)+vw/2)+'px';
+    this.stage.style.top=((vv?.offsetTop||0)+vh/2)+'px';
+    this.stage.style.width=(forced?vh:vw)+'px';
+    this.stage.style.height=(forced?vw:vh)+'px';
     const virtual=forced?-90:0;
     this.motion.setVirtualRotation(virtual);
     requestAnimationFrame(()=>this.game.resize(this.stage.clientWidth,this.stage.clientHeight));
