@@ -184,11 +184,12 @@ class PumpJetService{
 
       // Main jet + a small curling cross-current: broad scoop at the bottom,
       // then a lively inward spiral instead of a perfectly straight blast.
-      const outward=Math.sign(ring.position.x-centerX)*strength*.14*Math.min(1,dy*1.65)*falloff;
-      const swirl=(-side)*(0.06+.10*dy)*strength*falloff*(.55+Math.random()*.45);
-      const jitter=(Math.random()-.5)*(strength*.10)*falloff;
+      const outward=Math.sign(ring.position.x-centerX)*strength*.16*Math.min(1,dy*1.65)*falloff;
+      const swirl=(-side)*(0.10+.16*dy)*strength*falloff*(.65+Math.random()*.35);
+      const curlLift=(.035+.055*Math.abs(dx))*strength*falloff;
+      const jitter=(Math.random()-.5)*(strength*.11)*falloff;
 
-      ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
+      ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence+curlLift;
       ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+swirl+jitter;
 
       // Bottom rings get a short extra lift so the pile visibly erupts.
@@ -207,22 +208,24 @@ class PumpJetService{
       world.bubbles.push({
         x:sourceX+(Math.random()-.5)*(22+8*power),
         y:sourceY+Math.random()*(18+7*power),
-        vx:-side*Math.sin(a)*speed+curl*(Math.random()-.25),
+        vx:-side*Math.sin(a)*speed+curl*(Math.random()-.15),
         vy:-Math.cos(a)*speed*(.96+Math.random()*.34),
+        ax:(-side)*(18+Math.random()*38)*power*(Math.random()<.72?1:-.35),
         r:1.25+Math.random()*(4.3+1.0*power),
-        life:.62+Math.random()*.90,
+        life:.68+Math.random()*.95,
         alpha:.34+Math.random()*.46
       })
     }
 
     // A few faint trailing bubbles make the burst read as moving water, not confetti.
-    for(let i=0;i<6;i++){
+    for(let i=0;i<9;i++){
       world.bubbles.push({
         x:sourceX-side*(8+Math.random()*18),
         y:sourceY-(8+Math.random()*48),
-        vx:-side*(8+Math.random()*22)*power,
-        vy:-(38+Math.random()*70)*power,
-        r:.7+Math.random()*1.7,
+        vx:-side*(10+Math.random()*28)*power,
+        vy:-(42+Math.random()*78)*power,
+        ax:(-side)*(10+Math.random()*24)*power,
+        r:.75+Math.random()*1.9,
         life:.8+Math.random()*.7,
         alpha:.14+Math.random()*.16
       })
@@ -259,7 +262,7 @@ class ParticleSystem{
         r:.45+Math.random()*.75,life:1.4+Math.random()*1.5,alpha:.08+Math.random()*.08
       })
     }
-    for(const b of world.bubbles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy-=6*dt;b.life-=dt}
+    for(const b of world.bubbles){b.vx+=(b.ax||0)*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy-=6*dt;b.life-=dt}
     world.bubbles=world.bubbles.filter(b=>b.life>0&&b.y>world.top);
   }
 }
