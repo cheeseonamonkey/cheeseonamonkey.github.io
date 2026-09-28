@@ -99,7 +99,7 @@ const TankDefinition={
 };
 
 class GameWorld{
-  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=620;this.pumpStrength=760;this.pumpAngle=14;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
+  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=650;this.pumpStrength=760;this.pumpAngle=14;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
 }
 
 class WorldFactory{
@@ -121,8 +121,10 @@ class PhysicsEngine{
   constructor(){this.drag=.9925;this.restitution=.36}
   update(world,dt){
     for(const ring of world.rings){
-      ring.velocity.x=(ring.velocity.x+world.gravity.x*dt)*this.drag;
-      ring.velocity.y=(ring.velocity.y+world.gravity.y*dt)*this.drag;
+      const speed=Math.hypot(ring.velocity.x,ring.velocity.y);
+      const waterAccel=.80+.24*Math.min(1,speed/230);
+      ring.velocity.x=(ring.velocity.x+world.gravity.x*waterAccel*dt)*this.drag;
+      ring.velocity.y=(ring.velocity.y+world.gravity.y*waterAccel*dt)*this.drag;
       ring.position.addScaled(ring.velocity,dt);
       this.bounds(world,ring);
       for(const peg of world.pegs)this.pegCollision(ring,peg);
@@ -197,8 +199,9 @@ class ParticleSystem{
         const prevSpeed=Math.hypot(ring.waterVx,ring.waterVy);
         const dot=(ring.waterVx*vx+ring.waterVy*vy)/Math.max(1,prevSpeed*speed);
         const turned=prevSpeed>45&&speed>45&&dot<.55;
-        if((turned&&Math.random()<.22)||(speed>105&&Math.random()<.0007)){
-          const count=turned&&Math.random()<.3?2:1;
+        const abrupt=Math.hypot(vx-ring.waterVx,vy-ring.waterVy)>52;
+        if((turned&&Math.random()<.20)||(abrupt&&Math.random()<.09)||(speed>115&&Math.random()<.00065)){
+          const count=(turned||abrupt)&&Math.random()<.28?2:1;
           for(let i=0;i<count;i++)world.bubbles.push({
             x:ring.position.x+(Math.random()-.5)*ring.radius,
             y:ring.position.y+(Math.random()-.5)*ring.radius,
@@ -308,7 +311,7 @@ class GameSession{
 }
 
 class DeviceOrientationInput{
-  constructor(game,status,button){this.game=game;this.status=status;this.button=button;this.virtualRotation=0;this.active=false}
+  constructor(game,status,button){this.game=game;this.status=status;this.button=button;this.virtualRotation=0;this.active=false;this.lastRx=0;this.lastRy=0}
   startDefault(){
     const D=window.DeviceOrientationEvent;if(!D)return false;
     if(typeof D.requestPermission==='function')return false;
@@ -333,8 +336,12 @@ class DeviceOrientationInput{
     const physical=(screen.orientation&&typeof screen.orientation.angle==='number'?screen.orientation.angle:(window.orientation||0));
     const angle=(physical+this.virtualRotation)*Math.PI/180;
     let rx=x*Math.cos(angle)-y*Math.sin(angle),ry=x*Math.sin(angle)+y*Math.cos(angle);
-    const mag=Math.min(1,Math.hypot(rx,ry)),curve=mag?(.94+.08*mag):1;
-    rx*=curve;ry*=curve;
+    const baseRx=rx,baseRy=ry,mag=Math.hypot(rx,ry),delta=Math.hypot(rx-this.lastRx,ry-this.lastRy);
+    const boost=.92+.16*Math.min(1,mag)+Math.min(.18,delta*.72);
+    rx*=boost;ry*=boost;
+    const boosted=Math.hypot(rx,ry),cap=1.18;
+    if(boosted>cap){rx*=cap/boosted;ry*=cap/boosted}
+    this.lastRx=baseRx;this.lastRy=baseRy;
     const g=this.game.world.gravityStrength;
     this.game.setGravity(rx*g,ry*g);
   }
@@ -342,8 +349,8 @@ class DeviceOrientationInput{
 
 class Preferences{
   static key='watergame.settings.v2';
-  static defaults(){return {gravity:620,pump:760,pumpAngle:14,ring:1}}
-  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620)v.pump=760;if(v.pumpAngle===9)v.pumpAngle=14;if(v.gravity===570)v.gravity=620;return v}catch{return this.defaults()}}
+  static defaults(){return {gravity:650,pump:760,pumpAngle:14,ring:1}}
+  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,30);if(v.pump===620)v.pump=760;if(v.pumpAngle===9)v.pumpAngle=14;if(v.gravity===570||v.gravity===620)v.gravity=650;return v}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
