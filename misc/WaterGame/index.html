@@ -204,7 +204,7 @@ class PumpJetService{
 
       const turbulence=.84+Math.random()*.34;
       const floorBoost=1+(1-floorDepth)*.32;
-      const strength=world.pumpStrength*(1.08+.16*falloff)*floorBoost;
+      const strength=world.pumpStrength*(1.12+.20*falloff)*floorBoost;
 
       // Broad outer flow moves water; the narrow center is the violent nozzle core.
       const outward=Math.sign(ring.position.x-centerX)*strength*.13*Math.min(1,dy*1.65)*falloff;
@@ -215,25 +215,38 @@ class PumpJetService{
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence+curlLift;
       ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+swirl+jitter;
 
-      const coreX=clamp(1-Math.abs(dx)/.46,0,1);
-      const coreY=clamp(1-dy/.92,0,1);
-      const core=Math.pow(coreX,1.65)*coreY;
+      const coreX=clamp(1-Math.abs(dx)/.56,0,1);
+      const coreY=clamp(1-dy/.96,0,1);
+      const core=Math.pow(coreX,1.45)*coreY;
       if(core>0){
-        const coreBurst=strength*core*(.72+Math.random()*.34);
-        ring.velocity.y-=Math.cos(angle)*coreBurst;
-        ring.velocity.x+=-side*Math.sin(angle)*coreBurst*.82+(Math.random()-.5)*coreBurst*.10;
+        // The button press is an impulse: rings in the nozzle core should visibly LAUNCH.
+        const coreBurst=strength*core*(1.28+Math.random()*.62);
+        const spray=(Math.random()-.5)*coreBurst*(.22+.16*core);
+        ring.velocity.y-=Math.cos(angle)*coreBurst*(1.04+.12*(1-floorDepth));
+        ring.velocity.x+=-side*Math.sin(angle)*coreBurst*.88+spray;
+
+        // A ring sitting right on the floor/nozzle gets the hardest "pop".
+        if(floorDepth<.34)ring.velocity.y-=coreBurst*(.22+.18*(1-floorDepth));
       }
 
-      // Bottom rings get a short extra lift so the pile visibly erupts.
-      if(floorDepth<.48&&falloff>.18){
-        ring.velocity.y-=strength*(.12+.12*(1-floorDepth))*falloff;
+      // Bottom rings outside the exact core still get enough lift to break the pile apart.
+      if(floorDepth<.50&&falloff>.16){
+        ring.velocity.y-=strength*(.16+.16*(1-floorDepth))*falloff;
+        ring.velocity.x+=(Math.random()-.5)*strength*.08*falloff;
+      }
+
+      // Keep the violent burst controlled enough for collision detection.
+      const pumpSpeed=Math.hypot(ring.velocity.x,ring.velocity.y),maxPumpSpeed=860;
+      if(pumpSpeed>maxPumpSpeed){
+        ring.velocity.x*=maxPumpSpeed/pumpSpeed;
+        ring.velocity.y*=maxPumpSpeed/pumpSpeed;
       }
     }
 
     const coreBubbleCount=Math.round(10+5*power);
     for(let i=0;i<coreBubbleCount;i++){
       const a=angle+(Math.random()-.5)*(.10+.025*power);
-      const speed=(205+Math.random()*175)*(.78+.38*power);
+      const speed=(235+Math.random()*205)*(.80+.40*power);
       world.bubbles.push({
         kind:'jet',
         x:sourceX+(Math.random()-.5)*(8+3*power),
