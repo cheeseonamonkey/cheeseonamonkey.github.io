@@ -15,8 +15,9 @@
     html,body{width:100%;height:100%;margin:0;overflow:hidden}
     body{font-family:ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#07191d;touch-action:none;overscroll-behavior:none}
     button{font:inherit;-webkit-tap-highlight-color:transparent}
-    #app{width:100%;height:100%;display:grid;place-items:center}
-    .stage{position:relative;width:100%;height:100%;overflow:hidden;background:#087d8e}
+    #app{position:fixed;inset:0;overflow:hidden;background:#07191d}
+    .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(135deg,#c8fff3 0%,#62dfd8 39%,#1caebb 70%,#08768b 100%)}
+    .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
     .topbar{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
     .brand,.actions{display:flex;align-items:center;gap:7px}
@@ -33,6 +34,16 @@
     .pump.right{right:max(10px,env(safe-area-inset-right))}
     .pump:active,.pump.pulse{transform:scale(.89);filter:brightness(1.04)}
     .motion-needed{animation:nudge 2.4s ease-in-out infinite}
+    .settings{position:absolute;z-index:9;right:12px;top:58px;width:min(340px,calc(100% - 24px));padding:13px;border-radius:18px;background:rgba(239,255,255,.94);color:#123c43;box-shadow:0 18px 50px rgba(0,28,34,.30);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+    .settings[hidden]{display:none}
+    .settings h2{font-size:14px;margin:0 0 10px}
+    .setting{display:grid;grid-template-columns:92px 1fr 48px;align-items:center;gap:8px;margin:9px 0;font-size:12px;font-weight:700}
+    .setting output{text-align:right;font-variant-numeric:tabular-nums}
+    .setting input[type=range]{width:100%;accent-color:#129ead}
+    .settings-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+    .settings-row button,.upload-label{border:0;border-radius:10px;background:#fff;color:#123c43;padding:8px 10px;font-size:12px;font-weight:750;box-shadow:0 2px 8px rgba(0,60,70,.12);cursor:pointer}
+    .upload-label input{display:none}
+    .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
     @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:82px;height:82px;margin-top:-41px}}
     @media(orientation:landscape) and (max-height:620px){.pump{width:64px;height:64px;margin-top:-32px}.topbar{top:8px}.hint{bottom:8px}}
@@ -45,6 +56,7 @@ class Vec2{
   constructor(x=0,y=0){this.x=x;this.y=y}
   set(x,y){this.x=x;this.y=y;return this}
   addScaled(v,n){this.x+=v.x*n;this.y+=v.y*n;return this}
+  scale(n){this.x*=n;this.y*=n;return this}
   length(){return Math.hypot(this.x,this.y)}
 }
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -62,7 +74,8 @@ class CircleBody extends Entity{
   constructor(prefix,radius){super(prefix);this.radius=radius;this.position=new Vec2();this.velocity=new Vec2()}
 }
 class Ring extends CircleBody{
-  constructor(color){super('ring',9.5);this.color=color;this.holeRadius=5;this.capturedPegId=null}
+  constructor(color){super('ring',9.5);this.color=color;this.baseRadius=9.5;this.baseHoleRadius=5;this.holeRadius=5}
+  setScale(scale){this.radius=this.baseRadius*scale;this.holeRadius=this.baseHoleRadius*scale}
 }
 class Peg extends CircleBody{
   constructor(x,y,radius=7){super('peg',radius);this.position.set(x,y)}
@@ -77,7 +90,7 @@ const TankDefinition={
 };
 
 class GameWorld{
-  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravity=new Vec2(0,570);this.rings=[];this.pegs=[];this.score=0;this.bubbles=[]}
+  constructor(){this.width=0;this.height=0;this.left=0;this.right=0;this.top=0;this.bottom=0;this.gravityStrength=570;this.pumpStrength=620;this.ringScale=1;this.gravity=new Vec2(0,this.gravityStrength);this.rings=[];this.pegs=[];this.bubbles=[]}
 }
 
 class WorldFactory{
@@ -88,24 +101,10 @@ class WorldFactory{
     world.pegs=this.definition.pegs.map(p=>new Peg(w*p.x,h*p.y,p.r*Math.max(.9,Math.min(1.25,w/390))));
   }
   seed(world){
-    world.rings=[];world.score=0;
-    const scale=Math.max(.9,Math.min(1.25,world.width/390));
-    for(let i=0;i<this.count;i++){const ring=new Ring(this.colors[i%this.colors.length]);ring.radius*=scale;ring.holeRadius*=scale;ring.position.set(world.width*(.28+Math.random()*.43),world.height*(.16+Math.random()*.19));ring.velocity.set((Math.random()-.5)*30,Math.random()*15);world.rings.push(ring)}
+    world.rings=[];
+    const scale=Math.max(.9,Math.min(1.25,world.width/390))*world.ringScale;
+    for(let i=0;i<this.count;i++){const ring=new Ring(this.colors[i%this.colors.length]);ring.setScale(scale);ring.position.set(world.width*(.28+Math.random()*.43),world.height*(.16+Math.random()*.19));ring.velocity.set((Math.random()-.5)*30,Math.random()*15);world.rings.push(ring)}
     world.bubbles=[];
-  }
-}
-
-class CaptureSystem{
-  update(world){
-    for(const ring of world.rings){
-      if(ring.capturedPegId){const peg=world.pegs.find(p=>p.id===ring.capturedPegId);if(peg){ring.position.set(peg.position.x,peg.position.y+1);ring.velocity.set(0,0)}continue}
-      const speed=ring.velocity.length();
-      for(const peg of world.pegs){
-        const dx=ring.position.x-peg.position.x,dy=ring.position.y-peg.position.y,dist=Math.hypot(dx,dy);
-        const catchRadius=Math.max(2,ring.holeRadius-peg.radius*.32);
-        if(dist<catchRadius && speed<280){ring.capturedPegId=peg.id;ring.position.set(peg.position.x,peg.position.y+1);ring.velocity.set(0,0);world.score++;break}
-      }
-    }
   }
 }
 
@@ -113,14 +112,13 @@ class PhysicsEngine{
   constructor(){this.drag=.9925;this.restitution=.36}
   update(world,dt){
     for(const ring of world.rings){
-      if(ring.capturedPegId)continue;
       ring.velocity.x=(ring.velocity.x+world.gravity.x*dt)*this.drag;
       ring.velocity.y=(ring.velocity.y+world.gravity.y*dt)*this.drag;
       ring.position.addScaled(ring.velocity,dt);
       this.bounds(world,ring);
       for(const peg of world.pegs)this.pegCollision(ring,peg);
     }
-    for(let i=0;i<world.rings.length;i++)for(let j=i+1;j<world.rings.length;j++){const a=world.rings[i],b=world.rings[j];if(!a.capturedPegId&&!b.capturedPegId)this.circle(a,b)}
+    for(let i=0;i<world.rings.length;i++)for(let j=i+1;j<world.rings.length;j++){const a=world.rings[i],b=world.rings[j];this.circle(a,b)}
   }
   bounds(w,a){
     const p=a.position,v=a.velocity,r=a.radius,e=this.restitution;
@@ -157,14 +155,14 @@ class PumpJetService{
     const sourceX=side<0?world.left+world.width*.05:world.right-world.width*.05;
     const sourceY=world.bottom-world.height*.055;
     for(const ring of world.rings){
-      if(ring.capturedPegId)continue;
       const dx=(ring.position.x-sourceX)/(world.width*.25),dy=(ring.position.y-sourceY)/(world.height*.42);
       const distance=Math.hypot(dx,dy);
       const falloff=Math.max(0,1-distance);
       if(!falloff)continue;
       const turbulence=.82+Math.random()*.36;
-      ring.velocity.y-=620*falloff*turbulence;
-      ring.velocity.x+=side*90*falloff*turbulence+(Math.random()-.5)*48*falloff;
+      const strength=world.pumpStrength;
+      ring.velocity.y-=strength*falloff*turbulence;
+      ring.velocity.x+=side*(strength*.145)*falloff*turbulence+(Math.random()-.5)*(strength*.077)*falloff;
     }
     for(let i=0;i<14;i++)world.bubbles.push({x:sourceX+(Math.random()-.5)*18,y:sourceY+Math.random()*12,vx:side*(8+Math.random()*22)+(Math.random()-.5)*15,vy:-(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65});
   }
@@ -178,14 +176,24 @@ class ParticleSystem{
 }
 
 class CanvasRenderer{
-  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0}
+  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null}
+  setBackgroundImage(image){this.backgroundImage=image}
+  clearBackgroundImage(){if(this.backgroundImage?._objectUrl)URL.revokeObjectURL(this.backgroundImage._objectUrl);this.backgroundImage=null}
   resize(w,h){this.w=w;this.h=h;const d=Math.min(devicePixelRatio||1,2);this.canvas.width=Math.round(w*d);this.canvas.height=Math.round(h*d);this.ctx.setTransform(d,0,0,d,0,0)}
   render(world,time){
     const c=this.ctx,w=this.w,h=this.h;
     c.clearRect(0,0,w,h);
-    const water=c.createLinearGradient(0,0,0,h);water.addColorStop(0,'#baf9ed');water.addColorStop(.33,'#67e0d6');water.addColorStop(.72,'#1ab4be');water.addColorStop(1,'#087f91');c.fillStyle=water;c.fillRect(0,0,w,h);
+    if(this.backgroundImage){
+      const img=this.backgroundImage,ir=img.naturalWidth/img.naturalHeight,cr=w/h;
+      let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight;
+      if(ir>cr){sw=img.naturalHeight*cr;sx=(img.naturalWidth-sw)/2}else{sh=img.naturalWidth/cr;sy=(img.naturalHeight-sh)/2}
+      c.drawImage(img,sx,sy,sw,sh,0,0,w,h);
+      const tint=c.createLinearGradient(0,0,w,h);tint.addColorStop(0,'rgba(164,251,239,.16)');tint.addColorStop(1,'rgba(0,100,120,.26)');c.fillStyle=tint;c.fillRect(0,0,w,h);
+    }else{
+      const water=c.createLinearGradient(0,0,w,h);water.addColorStop(0,'#c8fff3');water.addColorStop(.34,'#62dfd8');water.addColorStop(.70,'#1caebb');water.addColorStop(1,'#08768b');c.fillStyle=water;c.fillRect(0,0,w,h);
+    }
 
-    c.save();c.globalAlpha=.12;
+    c.save();c.globalAlpha=this.backgroundImage?.06:.12;
     for(let i=0;i<9;i++){c.fillStyle='hsl('+((i*37+time*.012)%360)+' 85% 70%)';c.beginPath();c.moveTo(w*.08+i*w*.12,0);c.lineTo(w*.23+i*w*.12,h);c.lineTo(w*.39+i*w*.12,h);c.closePath();c.fill()}
     c.restore();
 
@@ -230,19 +238,22 @@ class CanvasRenderer{
 }
 
 class GameSession{
-  constructor(renderer,onScore){this.renderer=renderer;this.onScore=onScore;this.world=new GameWorld();this.factory=new WorldFactory(TankDefinition);this.physics=new PhysicsEngine();this.capture=new CaptureSystem();this.pumps=new PumpJetService();this.particles=new ParticleSystem();this.loop=new FixedStepLoop(this,60);this.lastScore=-1}
+  constructor(renderer){this.renderer=renderer;this.world=new GameWorld();this.factory=new WorldFactory(TankDefinition);this.physics=new PhysicsEngine();this.pumps=new PumpJetService();this.particles=new ParticleSystem();this.loop=new FixedStepLoop(this,60)}
   resize(w,h){const first=!this.world.width;this.factory.resize(this.world,w,h);if(first)this.factory.seed(this.world);this.renderer.resize(w,h)}
-  reset(){this.factory.seed(this.world);this.publishScore()}
+  reset(){this.factory.seed(this.world)}
   pump(side){this.pumps.fire(this.world,side)}
   setGravity(x,y){this.world.gravity.set(x,y)}
-  update(dt){this.physics.update(this.world,dt);this.capture.update(this.world);this.particles.update(this.world,dt);this.publishScore()}
+  setGravityStrength(value){this.world.gravityStrength=value;const len=this.world.gravity.length()||1;this.world.gravity.scale(value/len)}
+  setPumpStrength(value){this.world.pumpStrength=value}
+  setRingScale(value){this.world.ringScale=value;const scale=Math.max(.9,Math.min(1.25,this.world.width/390))*value;for(const ring of this.world.rings)ring.setScale(scale)}
+  update(dt){this.physics.update(this.world,dt);this.particles.update(this.world,dt)}
   render(_alpha,time){this.renderer.render(this.world,time)}
-  publishScore(){if(this.world.score!==this.lastScore){this.lastScore=this.world.score;this.onScore(this.world.score,this.world.rings.length)}}
   start(){this.loop.start()}
 }
 
 class DeviceOrientationInput{
-  constructor(game,status,button){this.game=game;this.status=status;this.button=button}
+  constructor(game,status,button){this.game=game;this.status=status;this.button=button;this.virtualRotation=0}
+  setVirtualRotation(degrees){this.virtualRotation=degrees}
   async enable(){
     const D=window.DeviceOrientationEvent;
     if(!D)throw new Error('unsupported');
@@ -252,36 +263,89 @@ class DeviceOrientationInput{
   }
   handle=(e)=>{
     let x=clamp((e.gamma||0)/42,-1,1),y=clamp(((e.beta||0)-18)/42,-1,1);
-    const angle=(screen.orientation&&typeof screen.orientation.angle==='number'?screen.orientation.angle:(window.orientation||0))*Math.PI/180;
+    const physical=(screen.orientation&&typeof screen.orientation.angle==='number'?screen.orientation.angle:(window.orientation||0));
+    const angle=(physical+this.virtualRotation)*Math.PI/180;
     const rx=x*Math.cos(angle)-y*Math.sin(angle),ry=x*Math.sin(angle)+y*Math.cos(angle);
-    this.game.setGravity(rx*570,ry*570);
+    const g=this.game.world.gravityStrength;
+    this.game.setGravity(rx*g,ry*g);
   }
 }
 
 class PointerGravityInput{
-  constructor(canvas,game,status){this.canvas=canvas;this.game=game;this.status=status;this.origin=null}
+  constructor(canvas,game,status){this.canvas=canvas;this.game=game;this.status=status;this.origin=null;this.virtualRotation=0}
+  setVirtualRotation(degrees){this.virtualRotation=degrees}
   bind(){
     this.canvas.addEventListener('pointerdown',e=>{this.origin=new Vec2(e.clientX,e.clientY);this.canvas.setPointerCapture(e.pointerId)});
-    this.canvas.addEventListener('pointermove',e=>{if(!this.origin)return;const dx=e.clientX-this.origin.x,dy=e.clientY-this.origin.y,d=Math.hypot(dx,dy);if(d<8)return;this.game.setGravity(dx/d*570,dy/d*570);this.status.textContent='drag gravity'});
+    this.canvas.addEventListener('pointermove',e=>{if(!this.origin)return;let dx=e.clientX-this.origin.x,dy=e.clientY-this.origin.y,d=Math.hypot(dx,dy);if(d<8)return;const a=this.virtualRotation*Math.PI/180,rx=dx*Math.cos(a)-dy*Math.sin(a),ry=dx*Math.sin(a)+dy*Math.cos(a),g=this.game.world.gravityStrength;this.game.setGravity(rx/d*g,ry/d*g);this.status.textContent='drag gravity'});
     this.canvas.addEventListener('pointerup',()=>{this.origin=null});
     this.canvas.addEventListener('pointercancel',()=>{this.origin=null});
   }
 }
 
+class Preferences{
+  static key='watergame.settings.v2';
+  static load(){try{return {...{gravity:570,pump:620,ring:1},...JSON.parse(localStorage.getItem(this.key)||'{}')}}catch{return {gravity:570,pump:620,ring:1}}}
+  static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
+}
+class BackgroundStore{
+  static open(){return new Promise((resolve,reject)=>{const req=indexedDB.open('WaterGame',1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('assets'))req.result.createObjectStore('assets')};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+  static async put(blob){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').put(blob,'background');tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
+  static async get(){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('assets','readonly'),req=tx.objectStore('assets').get('background');req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)})}
+  static async clear(){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('assets','readwrite');tx.objectStore('assets').delete('background');tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
+}
+async function fileToImage(file){
+  const url=URL.createObjectURL(file),img=new Image();
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});
+  URL.revokeObjectURL(url);return img;
+}
+async function cropImageFile(file,aspect){
+  const img=await fileToImage(file),maxW=1600,maxH=Math.max(1,Math.round(maxW/aspect));
+  let sx=0,sy=0,sw=img.naturalWidth,sh=img.naturalHeight,ir=sw/sh;
+  if(ir>aspect){sw=sh*aspect;sx=(img.naturalWidth-sw)/2}else{sh=sw/aspect;sy=(img.naturalHeight-sh)/2}
+  const canvas=document.createElement('canvas');canvas.width=maxW;canvas.height=maxH;
+  canvas.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,maxW,maxH);
+  return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('crop failed')),'image/jpeg',.86));
+}
+async function blobToImage(blob){
+  const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
+  await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
+}
+
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span><span class="pill score">hooked <strong>0</strong>/24</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-reset>Reset</button></div></div><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><div class="hint"><span data-status>tilt your phone · or drag anywhere</span></div></main>';
-    this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.score=host.querySelector('.score strong');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');
-    this.game=new GameSession(new CanvasRenderer(this.canvas),(score,total)=>{this.score.textContent=String(score);this.score.parentElement.lastChild.textContent='/'+total});
-    new PointerGravityInput(this.canvas,this.game,this.status).bind();
-    this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);
-    this.motionButton.addEventListener('click',async()=>{try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
-    host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
-    host.querySelectorAll('[data-pump]').forEach(button=>button.addEventListener('pointerdown',e=>{e.preventDefault();const side=Number(button.dataset.pump);this.game.pump(side);button.classList.add('pulse');setTimeout(()=>button.classList.remove('pulse'),90)}));
-    window.addEventListener('resize',()=>this.resize());this.resize();this.game.start();
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-close-settings>Close</button></div><small>Uploaded backgrounds are center-cropped to the game area and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><div class="hint"><span data-status>tilt your phone · or drag anywhere</span></div></main>';
+    this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
+    this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);
+    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.game.start();
     setTimeout(()=>{const hint=host.querySelector('.hint');if(hint)hint.style.opacity='.74'},4500);
   }
-  resize(){this.game.resize(this.stage.clientWidth,this.stage.clientHeight)}
+  bind(host){
+    this.motionButton.addEventListener('click',async()=>{try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
+    host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
+    host.querySelector('[data-settings]').addEventListener('click',()=>this.panel.hidden=!this.panel.hidden);
+    host.querySelector('[data-close-settings]').addEventListener('click',()=>this.panel.hidden=true);
+    host.querySelectorAll('[data-pump]').forEach(button=>button.addEventListener('pointerdown',e=>{e.preventDefault();this.game.pump(Number(button.dataset.pump));button.classList.add('pulse');setTimeout(()=>button.classList.remove('pulse'),90)}));
+    const pump=host.querySelector('[data-pump-force]'),gravity=host.querySelector('[data-gravity]'),ring=host.querySelector('[data-ring-size]');
+    pump.value=this.prefs.pump;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;
+    const refresh=()=>{host.querySelector('[data-pump-out]').textContent=this.prefs.pump;host.querySelector('[data-gravity-out]').textContent=this.prefs.gravity;host.querySelector('[data-ring-out]').textContent=this.prefs.ring.toFixed(2)+'×'};
+    pump.addEventListener('input',()=>{this.prefs.pump=Number(pump.value);this.game.setPumpStrength(this.prefs.pump);Preferences.save(this.prefs);refresh()});
+    gravity.addEventListener('input',()=>{this.prefs.gravity=Number(gravity.value);this.game.setGravityStrength(this.prefs.gravity);Preferences.save(this.prefs);refresh()});
+    ring.addEventListener('input',()=>{this.prefs.ring=Number(ring.value);this.game.setRingScale(this.prefs.ring);Preferences.save(this.prefs);refresh()});
+    refresh();
+    host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
+    host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='gradient background'});
+    window.addEventListener('resize',()=>this.resize());
+    screen.orientation?.addEventListener?.('change',()=>this.resize());
+  }
+  applyPreferences(){this.game.setPumpStrength(this.prefs.pump);this.game.setGravityStrength(this.prefs.gravity);this.game.setRingScale(this.prefs.ring)}
+  async restoreBackground(){try{const blob=await BackgroundStore.get();if(blob)this.renderer.setBackgroundImage(await blobToImage(blob))}catch{}}
+  resize(){
+    const forced=window.innerHeight>window.innerWidth;
+    this.stage.classList.toggle('forced-landscape',forced);
+    const virtual=forced?-90:0;
+    this.motion.setVirtualRotation(virtual);this.pointer.setVirtualRotation(virtual);
+    requestAnimationFrame(()=>this.game.resize(this.stage.clientWidth,this.stage.clientHeight));
+  }
 }
 const host=document.querySelector('#app');if(!host)throw new Error('Missing #app');new App(host);
 </script>
