@@ -23,7 +23,7 @@
     .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(145deg,#8fcfca 0%,#4eaaaE 55%,#2e7f89 100%)}
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
-    .topbar{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
+    .topbar{position:absolute;z-index:5;top:max(16px,calc(env(safe-area-inset-top) + 6px));left:max(18px,calc(env(safe-area-inset-left) + 8px));right:max(18px,calc(env(safe-area-inset-right) + 8px));display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
     .brand,.actions{display:flex;align-items:center;gap:7px;min-width:0}
     .pill,.iconbtn{pointer-events:auto;border:1px solid rgba(255,255,255,.38);background:rgba(237,248,247,.78);color:#173d42;border-radius:9px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
     .pill{padding:7px 10px;font-size:12px;font-weight:750;letter-spacing:.01em}
@@ -34,8 +34,8 @@
     .hint{position:absolute;z-index:4;left:50%;bottom:max(12px,calc(env(safe-area-inset-bottom) + 6px));transform:translateX(-50%);padding:5px 8px;border-radius:7px;background:rgba(22,57,62,.28);color:rgba(255,255,255,.82);font-size:10px;font-weight:550;white-space:nowrap;pointer-events:none;transition:opacity .35s}
     .pump{position:absolute;z-index:4;top:55%;width:78px;height:78px;margin-top:-39px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
     .pump::after{content:"";position:absolute;inset:11px;border-radius:50%;border:1px solid rgba(105,88,20,.24)}
-    .pump.left{left:max(10px,env(safe-area-inset-left))}
-    .pump.right{right:max(10px,env(safe-area-inset-right))}
+    .pump.left{left:max(18px,calc(env(safe-area-inset-left) + 8px))}
+    .pump.right{right:max(18px,calc(env(safe-area-inset-right) + 8px))}
     .pump:active,.pump.pulse{transform:scale(.86);filter:brightness(.92);box-shadow:inset 0 3px 8px rgba(105,88,20,.22),0 1px 3px rgba(0,45,50,.18)}
     .motion-needed{animation:nudge 2.4s ease-in-out infinite}
     .settings{position:absolute;z-index:9;right:12px;top:54px;width:min(330px,calc(100% - 24px));max-height:calc(100% - 66px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -52,9 +52,10 @@
     .settings-row button,.upload-label{border:0;border-radius:10px;background:#fff;color:#123c43;padding:8px 10px;font-size:12px;font-weight:750;box-shadow:0 2px 8px rgba(0,60,70,.12);cursor:pointer}
     .upload-label input{display:none}
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
+    .love{position:absolute;z-index:4;left:50%;bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));transform:translateX(-50%);font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
     @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:88px;height:88px;margin-top:-44px}}
-    @media(max-height:620px),(max-width:620px){.topbar{top:6px;left:7px;right:7px;gap:5px}.brand,.actions{gap:4px}.pill,.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
+    @media(max-height:620px),(max-width:620px){.topbar{top:12px;left:14px;right:14px;gap:5px}.brand,.actions{gap:4px}.pill,.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
     @media(max-height:430px){.pill,.iconbtn{font-size:9px;padding:5px 6px}.pump{width:68px;height:68px;margin-top:-34px}.settings{top:39px;max-height:calc(100% - 46px);padding:10px}.setting{margin:7px 0}.angle-guide{height:18px}}
   </style>
 </head>
@@ -267,7 +268,7 @@ class GameSession{
   setGravity(x,y){this.world.gravity.set(x,y)}
   setGravityStrength(value){this.world.gravityStrength=value;const len=this.world.gravity.length()||1;this.world.gravity.scale(value/len)}
   setPumpStrength(value){this.world.pumpStrength=value}
-  setPumpAngle(value){this.world.pumpAngle=clamp(value,-18,18)}
+  setPumpAngle(value){this.world.pumpAngle=clamp(value,0,18)}
   setRingScale(value){this.world.ringScale=value;const scale=Math.max(.9,Math.min(1.25,this.world.width/390))*value;for(const ring of this.world.rings)ring.setScale(scale)}
   update(dt){this.physics.update(this.world,dt);this.particles.update(this.world,dt)}
   render(_alpha,time){this.renderer.render(this.world,time)}
@@ -275,7 +276,12 @@ class GameSession{
 }
 
 class DeviceOrientationInput{
-  constructor(game,status,button){this.game=game;this.status=status;this.button=button;this.virtualRotation=0}
+  constructor(game,status,button){this.game=game;this.status=status;this.button=button;this.virtualRotation=0;this.active=false}
+  startDefault(){
+    const D=window.DeviceOrientationEvent;if(!D)return false;
+    if(typeof D.requestPermission==='function')return false;
+    window.addEventListener('deviceorientation',this.handle,{passive:true});this.active=true;this.status.textContent='tilt active';this.button.hidden=true;return true
+  }
   setVirtualRotation(degrees){this.virtualRotation=degrees}
   async enable(){
     const D=window.DeviceOrientationEvent;
@@ -283,10 +289,10 @@ class DeviceOrientationInput{
     if(typeof D.requestPermission==='function'){const p=await D.requestPermission();if(p!=='granted')throw new Error('denied')}
     window.removeEventListener('deviceorientation',this.handle);
     window.addEventListener('deviceorientation',this.handle,{passive:true});
-    this.status.textContent='tilt active';this.button.hidden=true;
+    this.active=true;this.status.textContent='tilt active';this.button.hidden=true;
   }
   disable(){
-    window.removeEventListener('deviceorientation',this.handle);
+    window.removeEventListener('deviceorientation',this.handle);this.active=false;
     this.status.textContent='tilt off · drag gravity active';
     this.button.hidden=false;
   }
@@ -314,7 +320,7 @@ class PointerGravityInput{
 class Preferences{
   static key='watergame.settings.v2';
   static defaults(){return {gravity:570,pump:620,pumpAngle:9,ring:1}}
-  static load(){try{return {...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')}}catch{return this.defaults()}}
+  static load(){try{const v={...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')};v.pumpAngle=clamp(v.pumpAngle,0,18);return v}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
@@ -340,7 +346,7 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
-const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg'];
+const DUCKS=['./ducks/fluent-color.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg'];
 async function remoteImage(url){
   const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
@@ -352,6 +358,9 @@ class QuackSynth{
     this.audio=new Audio(this.url);
     this.audio.preload='auto';
     this.audio.volume=1;
+    this.audio.playbackRate=.86;
+    this.audio.preservesPitch=false;
+    this.audio.webkitPreservesPitch=false;
   }
   play(){
     try{
@@ -366,17 +375,17 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">WaterGame</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-settings>Defaults</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it. Or drag.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">WaterGame</span></div><div class="actions"><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-motion>Enable tilt</button><button data-disable-tilt hidden>No tilt</button><button data-reset-settings>Defaults</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it. Or drag.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://cheeseonamonkey.github.io/" target="_blank" rel="noopener">made with love</a></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
-    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
+    this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
   }
   bind(host){
     const enterFullscreen=async()=>{if(document.fullscreenElement)return true;const el=document.documentElement;try{if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return false};
     // Fullscreen is opt-in only. Browser chrome is preferable to clipping controls on short viewports.
     const immersive=()=>{};
     this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
-    this.canvas.addEventListener('pointerdown',e=>{immersive();this.duckTapStart={x:e.offsetX,y:e.offsetY};if(this.renderer.isDuckAt(e.offsetX,e.offsetY)){this.quack.play();navigator.vibrate?.(18)}});
+    this.canvas.addEventListener('pointerdown',e=>{immersive();const r=this.canvas.getBoundingClientRect(),x=(e.clientX-r.left)*this.canvas.clientWidth/r.width,y=(e.clientY-r.top)*this.canvas.clientHeight/r.height;this.duckTapStart={x,y};if(this.renderer.isDuckAt(x,y)){this.quack.play();navigator.vibrate?.(18)}});
     this.canvas.addEventListener('pointerup',()=>{this.duckTapStart=null});
     host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
     host.querySelector('[data-settings]').addEventListener('click',()=>this.panel.hidden=!this.panel.hidden);
