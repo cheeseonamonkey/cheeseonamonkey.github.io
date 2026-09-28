@@ -307,8 +307,9 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
+const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg'];
 async function remoteImage(url){
-  const img=new Image();img.referrerPolicy='no-referrer';
+  const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
 
@@ -348,7 +349,7 @@ class App{
     refresh();
     host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
     host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='Gradient background.'});
-    const changeDuck=async()=>{this.status.textContent='Fetching a duck…';try{const img=await remoteImage('https://random-d.uk/api/randomimg?'+Date.now());this.renderer.setDuckImage(img);this.status.textContent='Duck acquired.'}catch{this.status.textContent='Duck fetch failed.'}};
+    const changeDuck=async()=>{try{const url=DUCKS[Math.floor(Math.random()*DUCKS.length)];this.renderer.setDuckImage(await remoteImage(url));this.status.textContent='Duck changed.'}catch{this.status.textContent='Duck failed to load.'}};
     host.querySelector('[data-change-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-random-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-hide-duck]').addEventListener('click',()=>{this.renderer.clearDuck();this.status.textContent='Duck hidden.'});
