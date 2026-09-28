@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
-  <meta name="apple-mobile-web-app-title" content="Water Ring">
-  <title>Water Ring Toy</title>
+  <meta name="apple-mobile-web-app-title" content="WaterGame">
+  <title>WaterGame</title>
   <style>
     :root{color-scheme:dark;--ink:#0b4550;--glass:rgba(235,255,255,.82);--yellow:#ffdf21;--yellow-edge:#d2a800}
     *{box-sizing:border-box}
@@ -315,7 +315,7 @@ async function blobToImage(blob){
   const url=URL.createObjectURL(blob),img=new Image();img._objectUrl=url;
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
-const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg'];
+const DUCKS=['./ducks/fluent-color.svg','./ducks/fluent-flat.svg','./ducks/fluent-mono.svg','./ducks/twemoji.svg','./ducks/openmoji-color.svg','./ducks/openmoji-line.svg','./ducks/twemoji-goose.svg','./ducks/openmoji-goose.svg'];
 async function remoteImage(url){
   const img=new Image();
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
