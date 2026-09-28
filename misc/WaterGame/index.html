@@ -16,7 +16,7 @@
     body{font-family:ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#07191d;touch-action:none;overscroll-behavior:none}
     button{font:inherit;-webkit-tap-highlight-color:transparent}
     #app{position:fixed;inset:0;overflow:hidden;background:#07191d}
-    .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(145deg,#b9e6e2 0%,#72c5c5 55%,#459aa3 100%)}
+    .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(145deg,#8fcfca 0%,#4eaaaE 55%,#2e7f89 100%)}
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
     canvas{display:block;width:100%;height:100%}
     .topbar{position:absolute;z-index:5;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none}
@@ -177,10 +177,11 @@ class ParticleSystem{
 }
 
 class CanvasRenderer{
-  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null;this.duckImage=null}
+  constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext('2d');this.w=0;this.h=0;this.backgroundImage=null;this.duckImage=null;this.duckRect=null}
   setBackgroundImage(image){this.backgroundImage=image}
   setDuckImage(image){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=image}
-  clearDuck(){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=null}
+  clearDuck(){if(this.duckImage?._objectUrl)URL.revokeObjectURL(this.duckImage._objectUrl);this.duckImage=null;this.duckRect=null}
+  isDuckAt(x,y){const r=this.duckRect;return !!r&&x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h}
   clearBackgroundImage(){if(this.backgroundImage?._objectUrl)URL.revokeObjectURL(this.backgroundImage._objectUrl);this.backgroundImage=null}
   resize(w,h){this.w=w;this.h=h;const d=Math.min(devicePixelRatio||1,2);this.canvas.width=Math.round(w*d);this.canvas.height=Math.round(h*d);this.ctx.setTransform(d,0,0,d,0,0)}
   render(world,time){
@@ -193,7 +194,7 @@ class CanvasRenderer{
       c.drawImage(img,sx,sy,sw,sh,0,0,w,h);
       const tint=c.createLinearGradient(0,0,w,h);tint.addColorStop(0,'rgba(164,251,239,.16)');tint.addColorStop(1,'rgba(0,100,120,.26)');c.fillStyle=tint;c.fillRect(0,0,w,h);
     }else{
-      const water=c.createLinearGradient(0,0,w,h);water.addColorStop(0,'#b9e6e2');water.addColorStop(.52,'#72c5c5');water.addColorStop(1,'#459aa3');c.fillStyle=water;c.fillRect(0,0,w,h);
+      const water=c.createLinearGradient(0,0,w,h);water.addColorStop(0,'#8fcfca');water.addColorStop(.52,'#4eaaae');water.addColorStop(1,'#2e7f89');c.fillStyle=water;c.fillRect(0,0,w,h);
     }
 
     c.save();c.beginPath();c.roundRect(world.left,world.top,world.right-world.left,world.bottom-world.top,22);c.clip();
@@ -214,7 +215,8 @@ class CanvasRenderer{
     const img=this.duckImage,maxW=(w.right-w.left)*.22,maxH=(w.bottom-w.top)*.24,ratio=img.naturalWidth/img.naturalHeight;
     let dw=maxW,dh=dw/ratio;if(dh>maxH){dh=maxH;dw=dh*ratio}
     const x=(w.left+w.right-dw)/2,y=w.top+(w.bottom-w.top)*.18;
-    c.save();c.globalAlpha=.72;c.beginPath();c.roundRect(x,y,dw,dh,Math.min(12,dw*.08));c.clip();c.drawImage(img,x,y,dw,dh);c.restore();
+    this.duckRect={x,y,w:dw,h:dh};
+    c.save();c.globalAlpha=.78;c.beginPath();c.roundRect(x,y,dw,dh,Math.min(12,dw*.08));c.clip();c.drawImage(img,x,y,dw,dh);c.restore();
   }
   drawScene(c,w,time){
     const width=w.width,height=w.height;
@@ -310,15 +312,29 @@ async function remoteImage(url){
   await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url});return img;
 }
 
+class QuackSynth{
+  constructor(){this.context=null}
+  play(){
+    const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
+    const ctx=this.context||(this.context=new A());if(ctx.state==='suspended')ctx.resume();
+    const now=ctx.currentTime,out=ctx.createGain();out.gain.setValueAtTime(.001,now);out.gain.exponentialRampToValueAtTime(.72,now+.012);out.gain.exponentialRampToValueAtTime(.001,now+.34);out.connect(ctx.destination);
+    const osc=ctx.createOscillator(),formant=ctx.createBiquadFilter();osc.type='sawtooth';osc.frequency.setValueAtTime(310,now);osc.frequency.exponentialRampToValueAtTime(145,now+.19);formant.type='bandpass';formant.frequency.value=950;formant.Q.value=2.4;osc.connect(formant).connect(out);osc.start(now);osc.stop(now+.34);
+    const len=Math.floor(ctx.sampleRate*.25),buf=ctx.createBuffer(1,len,ctx.sampleRate),data=buf.getChannelData(0);for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len);
+    const noise=ctx.createBufferSource(),nf=ctx.createBiquadFilter(),ng=ctx.createGain();noise.buffer=buf;nf.type='bandpass';nf.frequency.value=1350;nf.Q.value=.8;ng.gain.value=.28;noise.connect(nf).connect(ng).connect(out);noise.start(now);noise.stop(now+.25);
+  }
+}
+
 class App{
   constructor(host){
     host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>Change duck</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>Change duck</button><button data-hide-duck>Hide duck</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
-    this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);
+    this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.game.start();
   }
   bind(host){
     this.motionButton.addEventListener('click',async()=>{try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
+    this.canvas.addEventListener('pointerdown',e=>{this.duckTapStart={x:e.offsetX,y:e.offsetY}});
+    this.canvas.addEventListener('pointerup',e=>{if(!this.duckTapStart)return;const moved=Math.hypot(e.offsetX-this.duckTapStart.x,e.offsetY-this.duckTapStart.y);if(moved<12&&this.renderer.isDuckAt(e.offsetX,e.offsetY))this.quack.play();this.duckTapStart=null});
     host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
     host.querySelector('[data-settings]').addEventListener('click',()=>this.panel.hidden=!this.panel.hidden);
     host.querySelector('[data-close-settings]').addEventListener('click',()=>this.panel.hidden=true);
