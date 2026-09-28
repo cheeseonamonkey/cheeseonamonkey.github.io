@@ -342,7 +342,8 @@ class App{
   }
   bind(host){
     const enterFullscreen=async()=>{if(document.fullscreenElement)return true;const el=document.documentElement;try{if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return false};
-    const immersive=()=>{if(this.fullscreenTried)return;this.fullscreenTried=true;enterFullscreen()};
+    // Fullscreen is opt-in only. Browser chrome is preferable to clipping controls on short viewports.
+    const immersive=()=>{};
     this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable()}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
     this.canvas.addEventListener('pointerdown',e=>{immersive();this.duckTapStart={x:e.offsetX,y:e.offsetY};if(this.renderer.isDuckAt(e.offsetX,e.offsetY)){this.quack.play();navigator.vibrate?.(18)}});
     this.canvas.addEventListener('pointerup',()=>{this.duckTapStart=null});
