@@ -280,7 +280,7 @@ class DeviceOrientationInput{
   startDefault(){
     const D=window.DeviceOrientationEvent;if(!D)return false;
     if(typeof D.requestPermission==='function')return false;
-    window.addEventListener('deviceorientation',this.handle,{passive:true});this.active=true;this.status.textContent='tilt active';this.button.hidden=true;return true
+    window.addEventListener('deviceorientation',this.handle,{passive:true});this.active=true;this.status.textContent='tilt active';this.button.hidden=true;this.button.classList.remove('motion-needed');return true
   }
   setVirtualRotation(degrees){this.virtualRotation=degrees}
   async enable(){
@@ -289,12 +289,12 @@ class DeviceOrientationInput{
     if(typeof D.requestPermission==='function'){const p=await D.requestPermission();if(p!=='granted')throw new Error('denied')}
     window.removeEventListener('deviceorientation',this.handle);
     window.addEventListener('deviceorientation',this.handle,{passive:true});
-    this.active=true;this.status.textContent='tilt active';this.button.hidden=true;
+    this.active=true;this.status.textContent='tilt active';this.button.hidden=true;this.button.classList.remove('motion-needed');
   }
   disable(){
     window.removeEventListener('deviceorientation',this.handle);this.active=false;
-    this.status.textContent='tilt off · drag gravity active';
-    this.button.hidden=false;
+    this.status.textContent='tilt off';
+    this.button.hidden=false;this.button.classList.add('motion-needed');
   }
   handle=(e)=>{
     let x=clamp((e.gamma||0)/42,-1,1),y=clamp(((e.beta||0)-18)/42,-1,1);
@@ -303,17 +303,6 @@ class DeviceOrientationInput{
     const rx=x*Math.cos(angle)-y*Math.sin(angle),ry=x*Math.sin(angle)+y*Math.cos(angle);
     const g=this.game.world.gravityStrength;
     this.game.setGravity(rx*g,ry*g);
-  }
-}
-
-class PointerGravityInput{
-  constructor(canvas,game,status){this.canvas=canvas;this.game=game;this.status=status;this.origin=null;this.virtualRotation=0}
-  setVirtualRotation(degrees){this.virtualRotation=degrees}
-  bind(){
-    this.canvas.addEventListener('pointerdown',e=>{this.origin=new Vec2(e.clientX,e.clientY);this.canvas.setPointerCapture(e.pointerId)});
-    this.canvas.addEventListener('pointermove',e=>{if(!this.origin)return;let dx=e.clientX-this.origin.x,dy=e.clientY-this.origin.y,d=Math.hypot(dx,dy);if(d<8)return;const a=this.virtualRotation*Math.PI/180,rx=dx*Math.cos(a)-dy*Math.sin(a),ry=dx*Math.sin(a)+dy*Math.cos(a),g=this.game.world.gravityStrength;this.game.setGravity(rx/d*g,ry/d*g);this.status.textContent='drag gravity'});
-    this.canvas.addEventListener('pointerup',()=>{this.origin=null});
-    this.canvas.addEventListener('pointercancel',()=>{this.origin=null});
   }
 }
 
@@ -375,16 +364,16 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">WaterGame</span></div><div class="actions"><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-motion>Enable tilt</button><button data-disable-tilt hidden>No tilt</button><button data-reset-settings>Defaults</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it. Or drag.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://cheeseonamonkey.github.io/" target="_blank" rel="noopener">made with love</a></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">WaterGame</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-settings>Defaults</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://cheeseonamonkey.github.io/" target="_blank" rel="noopener">made with love</a></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
-    this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
+    this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
   }
   bind(host){
     const enterFullscreen=async()=>{if(document.fullscreenElement)return true;const el=document.documentElement;try{if(el.requestFullscreen){await el.requestFullscreen({navigationUI:'hide'});return true}if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();return true}}catch{}return false};
     // Fullscreen is opt-in only. Browser chrome is preferable to clipping controls on short viewports.
     const immersive=()=>{};
-    this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable · drag still works';this.motionButton.classList.remove('motion-needed')}});
+    this.motionButton.addEventListener('click',async()=>{immersive();try{await this.motion.enable();host.querySelector('[data-disable-tilt]').hidden=false}catch{this.status.textContent='tilt unavailable';this.motionButton.classList.remove('motion-needed')}});
     this.canvas.addEventListener('pointerdown',e=>{immersive();const r=this.canvas.getBoundingClientRect(),x=(e.clientX-r.left)*this.canvas.clientWidth/r.width,y=(e.clientY-r.top)*this.canvas.clientHeight/r.height;this.duckTapStart={x,y};if(this.renderer.isDuckAt(x,y)){this.quack.play();navigator.vibrate?.(18)}});
     this.canvas.addEventListener('pointerup',()=>{this.duckTapStart=null});
     host.querySelector('[data-reset]').addEventListener('click',()=>this.game.reset());
@@ -420,7 +409,7 @@ class App{
     const forced=window.innerHeight>window.innerWidth;
     this.stage.classList.toggle('forced-landscape',forced);
     const virtual=forced?-90:0;
-    this.motion.setVirtualRotation(virtual);this.pointer.setVirtualRotation(virtual);
+    this.motion.setVirtualRotation(virtual);
     requestAnimationFrame(()=>this.game.resize(this.stage.clientWidth,this.stage.clientHeight));
   }
 }
