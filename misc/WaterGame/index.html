@@ -180,12 +180,19 @@ class PumpJetService{
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
       ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
     }
-    for(let i=0;i<26;i++){
-      const fan=(Math.random()-.5)*.42,angle=world.pumpAngle*Math.PI/180+fan;
+    const bubblePower=clamp(world.pumpStrength/760,.45,1.7);
+    const bubbleCount=Math.round(24+8*bubblePower);
+    for(let i=0;i<bubbleCount;i++){
+      const fan=(Math.random()-.5)*(.38+.06*bubblePower),angle=world.pumpAngle*Math.PI/180+fan;
+      const speed=(88+Math.random()*125)*(.72+.38*bubblePower);
       world.bubbles.push({
-        x:sourceX+(Math.random()-.5)*18,y:sourceY+Math.random()*16,
-        vx:-side*Math.sin(angle)*(85+Math.random()*115),vy:-Math.cos(angle)*(90+Math.random()*155),
-        r:.9+Math.random()*3.8,life:.6+Math.random()*.85,alpha:.34+Math.random()*.42
+        x:sourceX+(Math.random()-.5)*(18+6*bubblePower),
+        y:sourceY+Math.random()*(16+5*bubblePower),
+        vx:-side*Math.sin(angle)*speed,
+        vy:-Math.cos(angle)*speed*(.95+Math.random()*.32),
+        r:1.15+Math.random()*(3.8+.9*bubblePower),
+        life:.58+Math.random()*.82,
+        alpha:.32+Math.random()*.44
       })
     }
   }
