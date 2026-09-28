@@ -48,7 +48,7 @@
     .settings-row button,.upload-label{border:0;border-radius:10px;background:#fff;color:#123c43;padding:8px 10px;font-size:12px;font-weight:750;box-shadow:0 2px 8px rgba(0,60,70,.12);cursor:pointer}
     .upload-label input{display:none}
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
-    .love{position:absolute;z-index:4;left:50%;bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));transform:translateX(-50%);font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
+    .love{position:absolute;z-index:4;right:max(16px,calc(env(safe-area-inset-right) + 8px));bottom:max(14px,calc(env(safe-area-inset-bottom) + 8px));font-size:9px;letter-spacing:.08em;color:rgba(236,248,247,.62);text-decoration:none;text-shadow:0 1px 2px rgba(0,30,35,.45);white-space:nowrap}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
     @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.pump{width:88px;height:88px;margin-top:-44px}}
     @media(max-height:620px),(max-width:620px){.topbar{top:12px;left:14px;right:14px;gap:5px}.actions{gap:4px}.iconbtn{font-size:10px;padding:6px 7px;min-height:30px}.pump{width:72px;height:72px;margin-top:-36px}.settings{top:44px;right:7px;width:min(330px,calc(100% - 14px));max-height:calc(100% - 51px)}}
@@ -80,7 +80,7 @@ class CircleBody extends Entity{
   constructor(prefix,radius){super(prefix);this.radius=radius;this.position=new Vec2();this.velocity=new Vec2()}
 }
 class Ring extends CircleBody{
-  constructor(color){super('ring',9.5);this.color=color;this.baseRadius=9.5;this.baseHoleRadius=5;this.holeRadius=5}
+  constructor(color){super('ring',9.5);this.color=color;this.baseRadius=9.5;this.baseHoleRadius=5;this.holeRadius=5;this.waterVx=0;this.waterVy=0;this.waterReady=false}
   setScale(scale){this.radius=this.baseRadius*scale;this.holeRadius=this.baseHoleRadius*scale}
 }
 class Peg extends CircleBody{
@@ -175,13 +175,46 @@ class PumpJetService{
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence;
       ring.velocity.x+=side*Math.sin(angle)*strength*falloff*turbulence+outward+(Math.random()-.5)*(strength*.08)*falloff;
     }
-    for(let i=0;i<14;i++){const fan=(Math.random()-.5)*.34,angle=world.pumpAngle*Math.PI/180+fan;world.bubbles.push({x:sourceX+(Math.random()-.5)*14,y:sourceY+Math.random()*12,vx:side*Math.sin(angle)*(95+Math.random()*90),vy:-Math.cos(angle)*(95+Math.random()*130),r:1.5+Math.random()*4,life:.65+Math.random()*.65})}
+    for(let i=0;i<26;i++){
+      const fan=(Math.random()-.5)*.42,angle=world.pumpAngle*Math.PI/180+fan;
+      world.bubbles.push({
+        x:sourceX+(Math.random()-.5)*18,y:sourceY+Math.random()*16,
+        vx:side*Math.sin(angle)*(85+Math.random()*115),vy:-Math.cos(angle)*(90+Math.random()*155),
+        r:.9+Math.random()*3.8,life:.6+Math.random()*.85,alpha:.34+Math.random()*.42
+      })
+    }
   }
 }
 
 class ParticleSystem{
   update(world,dt){
-    for(const b of world.bubbles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy-=8*dt;b.life-=dt}
+    for(const ring of world.rings){
+      const vx=ring.velocity.x,vy=ring.velocity.y,speed=Math.hypot(vx,vy);
+      if(ring.waterReady){
+        const prevSpeed=Math.hypot(ring.waterVx,ring.waterVy);
+        const dot=(ring.waterVx*vx+ring.waterVy*vy)/Math.max(1,prevSpeed*speed);
+        const turned=prevSpeed>45&&speed>45&&dot<.55;
+        if((turned&&Math.random()<.22)||(speed>105&&Math.random()<.0007)){
+          const count=turned&&Math.random()<.3?2:1;
+          for(let i=0;i<count;i++)world.bubbles.push({
+            x:ring.position.x+(Math.random()-.5)*ring.radius,
+            y:ring.position.y+(Math.random()-.5)*ring.radius,
+            vx:(Math.random()-.5)*14,vy:-8-Math.random()*20,
+            r:.6+Math.random()*1.25,life:.65+Math.random()*.7,alpha:.12+Math.random()*.18
+          })
+        }
+      }
+      ring.waterVx=vx;ring.waterVy=vy;ring.waterReady=true;
+    }
+    if(Math.random()<dt*.32){
+      world.bubbles.push({
+        x:world.left+Math.random()*(world.right-world.left),
+        y:world.top+(world.bottom-world.top)*(.45+Math.random()*.5),
+        vx:(Math.random()-.5)*4,vy:-3-Math.random()*8,
+        r:.45+Math.random()*.75,life:1.4+Math.random()*1.5,alpha:.08+Math.random()*.08
+      })
+    }
+    for(const b of world.bubbles){b.x+=b.vx*dt;b.y+=b.vy*dt;b.vy-=6*dt;b.life-=dt}
     world.bubbles=world.bubbles.filter(b=>b.life>0&&b.y>world.top);
   }
 }
@@ -216,7 +249,7 @@ class CanvasRenderer{
 
     for(const peg of world.pegs){c.fillStyle='rgba(39,139,142,.62)';c.beginPath();c.arc(peg.position.x,peg.position.y,peg.radius,0,TAU);c.fill()}
     for(const ring of world.rings)this.drawRing(c,ring);
-    for(const b of world.bubbles){c.globalAlpha=Math.min(1,b.life*1.4);c.strokeStyle='rgba(255,255,255,.82)';c.lineWidth=1.2;c.beginPath();c.arc(b.x,b.y,b.r,0,TAU);c.stroke()}c.globalAlpha=1;
+    for(const b of world.bubbles){c.globalAlpha=Math.min(b.alpha??.7,b.life*(b.alpha??.7)*1.7);c.strokeStyle='rgba(255,255,255,.88)';c.lineWidth=b.r<1.5?.8:1.1;c.beginPath();c.arc(b.x,b.y,b.r,0,TAU);c.stroke()}c.globalAlpha=1;
   }
   drawRing(c,r){
     c.strokeStyle=r.color;c.lineWidth=Math.max(3,r.radius-r.holeRadius);c.beginPath();c.arc(r.position.x,r.position.y,(r.radius+r.holeRadius)/2,0,TAU);c.stroke();
@@ -360,7 +393,7 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-clear-background>Just water</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://github.com/cheeseonamonkey" target="_blank" rel="noopener">made with love</a></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-fullscreen>Fullscreen</button><button class="iconbtn" data-settings>Settings</button></div></div><section class="settings" data-panel hidden><h2>Settings</h2><label class="setting"><span>Pump</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Aim</span><input data-pump-angle type="range" min="0" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Big rings</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background<input data-background type="file" accept="image/*"></label><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-disable-tilt hidden>No tilt</button><button data-reset-all>Reset everything</button><button data-close-settings>Close</button></div><small><strong>Gravity:</strong> tilt it.<br><span data-status>Ready.</span><br>Picture stays here.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button><a class="love" href="https://github.com/cheeseonamonkey" target="_blank" rel="noopener">made with love</a></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.motion.startDefault();host.querySelector('[data-disable-tilt]').hidden=!this.motion.active;this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
@@ -388,7 +421,6 @@ class App{
     ring.addEventListener('input',()=>{this.prefs.ring=Number(ring.value);this.game.setRingScale(this.prefs.ring);Preferences.save(this.prefs);refresh()});
     refresh();
     host.querySelector('[data-background]').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{this.status.textContent='cropping background…';const blob=await cropImageFile(file,this.stage.clientWidth/this.stage.clientHeight);await BackgroundStore.put(blob);this.renderer.clearBackgroundImage();this.renderer.setBackgroundImage(await blobToImage(blob));this.status.textContent='background saved'}catch{this.status.textContent='could not save background'}e.target.value=''});
-    host.querySelector('[data-clear-background]').addEventListener('click',async()=>{this.renderer.clearBackgroundImage();try{await BackgroundStore.clear()}catch{}this.status.textContent='Gradient background.'});
     let duckIndex=0;const changeDuck=async()=>{try{let next=duckIndex;while(DUCKS.length>1&&next===duckIndex)next=Math.floor(Math.random()*DUCKS.length);duckIndex=next;this.renderer.setDuckImage(await remoteImage(DUCKS[duckIndex]));this.status.textContent='Duck changed.'}catch{this.status.textContent='Duck failed to load.'}};
     host.querySelector('[data-change-duck]').addEventListener('click',changeDuck);
     host.querySelector('[data-random-duck]').addEventListener('click',changeDuck);
