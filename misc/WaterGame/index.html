@@ -180,8 +180,8 @@ class PumpJetService{
       // sweeps almost the whole lower tank so settled middle rings actually join in.
       if(floorReach>0){
         const wash=world.pumpStrength*floorReach;
-        ring.velocity.y-=wash*(.20+Math.random()*.055);
-        ring.velocity.x+=(-side)*wash*(.060+Math.random()*.030);
+        ring.velocity.y-=wash*(.11+Math.random()*.035);
+        ring.velocity.x+=(-side)*wash*(.030+Math.random()*.018);
       }
 
       // A softer lower-half entrainment current pulls central rings toward the active
@@ -191,8 +191,8 @@ class PumpJetService{
       const entrainReach=clamp(1-across/1.04,0,1)*lowerHalf;
       if(entrainReach>0){
         const entrain=world.pumpStrength*entrainReach;
-        ring.velocity.y-=entrain*(.075+Math.random()*.025);
-        ring.velocity.x+=(-side)*entrain*(.035+Math.random()*.018);
+        ring.velocity.y-=entrain*(.045+Math.random()*.018);
+        ring.velocity.x+=(-side)*entrain*(.022+Math.random()*.012);
       }
 
       const spread=.12+rise/(world.height*.40)*.21;
@@ -204,25 +204,50 @@ class PumpJetService{
 
       const turbulence=.84+Math.random()*.34;
       const floorBoost=1+(1-floorDepth)*.32;
-      const strength=world.pumpStrength*(1.10+.18*falloff)*floorBoost;
+      const strength=world.pumpStrength*(1.08+.16*falloff)*floorBoost;
 
-      // Main jet + a small curling cross-current: broad scoop at the bottom,
-      // then a lively inward spiral instead of a perfectly straight blast.
-      const outward=Math.sign(ring.position.x-centerX)*strength*.16*Math.min(1,dy*1.65)*falloff;
-      const swirl=(-side)*(0.10+.16*dy)*strength*falloff*(.65+Math.random()*.35);
-      const curlLift=(.035+.055*Math.abs(dx))*strength*falloff;
-      const jitter=(Math.random()-.5)*(strength*.11)*falloff;
+      // Broad outer flow moves water; the narrow center is the violent nozzle core.
+      const outward=Math.sign(ring.position.x-centerX)*strength*.13*Math.min(1,dy*1.65)*falloff;
+      const swirl=(-side)*(0.075+.12*dy)*strength*falloff*(.65+Math.random()*.35);
+      const curlLift=(.025+.045*Math.abs(dx))*strength*falloff;
+      const jitter=(Math.random()-.5)*(strength*.09)*falloff;
 
       ring.velocity.y-=Math.cos(angle)*strength*falloff*turbulence+curlLift;
       ring.velocity.x+=-side*Math.sin(angle)*strength*falloff*turbulence+outward+swirl+jitter;
 
+      const coreX=clamp(1-Math.abs(dx)/.46,0,1);
+      const coreY=clamp(1-dy/.92,0,1);
+      const core=Math.pow(coreX,1.65)*coreY;
+      if(core>0){
+        const coreBurst=strength*core*(.72+Math.random()*.34);
+        ring.velocity.y-=Math.cos(angle)*coreBurst;
+        ring.velocity.x+=-side*Math.sin(angle)*coreBurst*.82+(Math.random()-.5)*coreBurst*.10;
+      }
+
       // Bottom rings get a short extra lift so the pile visibly erupts.
       if(floorDepth<.48&&falloff>.18){
-        ring.velocity.y-=strength*(.10+.10*(1-floorDepth))*falloff;
+        ring.velocity.y-=strength*(.12+.12*(1-floorDepth))*falloff;
       }
     }
 
-    const bubbleCount=Math.round(30+10*power);
+    const coreBubbleCount=Math.round(10+5*power);
+    for(let i=0;i<coreBubbleCount;i++){
+      const a=angle+(Math.random()-.5)*(.10+.025*power);
+      const speed=(205+Math.random()*175)*(.78+.38*power);
+      world.bubbles.push({
+        kind:'jet',
+        x:sourceX+(Math.random()-.5)*(8+3*power),
+        y:sourceY+Math.random()*9,
+        vx:-side*Math.sin(a)*speed,
+        vy:-Math.cos(a)*speed*(1.04+Math.random()*.16),
+        ax:(-side)*(8+Math.random()*16)*power,
+        r:.8+Math.random()*1.7,
+        life:.34+Math.random()*.38,
+        alpha:.42+Math.random()*.34
+      })
+    }
+
+    const bubbleCount=Math.round(28+9*power);
     for(let i=0;i<bubbleCount;i++){
       const t=Math.random();
       const fan=(Math.random()-.5)*(.42+.08*power);
@@ -345,6 +370,8 @@ class CanvasRenderer{
       c.strokeStyle='rgba(255,255,255,.88)';
       if(b.kind==='ripple'){
         c.lineWidth=.9;c.beginPath();c.ellipse(b.x,b.y,b.r,b.r*.34,0,0,TAU);c.stroke()
+      }else if(b.kind==='jet'){
+        c.lineWidth=.9;c.beginPath();c.ellipse(b.x,b.y,b.r*.72,b.r*2.15,0,0,TAU);c.stroke()
       }else if(b.kind==='wake'){
         c.lineWidth=.75;c.beginPath();c.arc(b.x,b.y,b.r,0,TAU);c.stroke()
       }else{
