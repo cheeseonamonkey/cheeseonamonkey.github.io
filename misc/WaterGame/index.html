@@ -17,7 +17,8 @@
     html,body{width:100%;height:100%;min-height:100%;margin:0;overflow:hidden;background:#07191d}
     html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     body{font-family:ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#07191d;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-    button{font:inherit;-webkit-tap-highlight-color:transparent}
+    button{font:inherit;-webkit-tap-highlight-color:transparent;transition:transform .08s ease,filter .08s ease,background-color .08s ease}
+    button:active,.upload-label:active{transform:scale(.95);filter:brightness(.92)}
     #app{position:fixed;inset:0;width:100%;height:100%;height:100dvh;overflow:hidden;background:#07191d}
     .stage{position:absolute;left:50%;top:50%;width:100vw;height:100vh;transform:translate(-50%,-50%);overflow:hidden;background:linear-gradient(145deg,#8fcfca 0%,#4eaaaE 55%,#2e7f89 100%)}
     .stage.forced-landscape{width:100vh;height:100vw;transform:translate(-50%,-50%) rotate(90deg)}
@@ -31,13 +32,13 @@
     .iconbtn{min-height:34px;padding:7px 10px;border-radius:12px;font-size:12px;font-weight:760;cursor:pointer}
     .iconbtn:active{transform:translateY(1px) scale(.98)}
     .hint{position:absolute;z-index:4;left:50%;bottom:max(12px,calc(env(safe-area-inset-bottom) + 6px));transform:translateX(-50%);padding:5px 8px;border-radius:7px;background:rgba(22,57,62,.28);color:rgba(255,255,255,.82);font-size:10px;font-weight:550;white-space:nowrap;pointer-events:none;transition:opacity .35s}
-    .pump{position:absolute;z-index:4;top:50%;width:68px;height:68px;margin-top:-34px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
+    .pump{position:absolute;z-index:4;top:55%;width:78px;height:78px;margin-top:-39px;border-radius:50%;border:4px solid #b99d27;background:#e8cf48;box-shadow:0 2px 5px rgba(0,45,50,.22);cursor:pointer}
     .pump::after{content:"";position:absolute;inset:11px;border-radius:50%;border:1px solid rgba(105,88,20,.24)}
     .pump.left{left:max(10px,env(safe-area-inset-left))}
     .pump.right{right:max(10px,env(safe-area-inset-right))}
-    .pump:active,.pump.pulse{transform:scale(.89);filter:brightness(1.04)}
+    .pump:active,.pump.pulse{transform:scale(.86);filter:brightness(.92);box-shadow:inset 0 3px 8px rgba(105,88,20,.22),0 1px 3px rgba(0,45,50,.18)}
     .motion-needed{animation:nudge 2.4s ease-in-out infinite}
-    .settings{position:absolute;z-index:9;right:12px;top:54px;width:min(330px,calc(100% - 24px));padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+    .settings{position:absolute;z-index:9;right:12px;top:54px;width:min(330px,calc(100% - 24px));max-height:calc(100% - 66px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:12px;border-radius:11px;background:rgba(237,246,245,.95);color:#173d42;box-shadow:0 8px 24px rgba(0,28,34,.20);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
     .settings[hidden]{display:none}
     .settings h2{font-size:14px;margin:0 0 10px}
     .setting{display:grid;grid-template-columns:92px 1fr 48px;align-items:center;gap:8px;margin:9px 0;font-size:12px;font-weight:700}
@@ -52,7 +53,7 @@
     .upload-label input{display:none}
     .settings small{display:block;margin-top:9px;line-height:1.3;opacity:.68}
     @keyframes nudge{0%,75%,100%{transform:none}82%{transform:rotate(-3deg)}90%{transform:rotate(3deg)}}
-    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:82px;height:82px;margin-top:-41px}}
+    @media(min-width:680px){.stage{max-width:560px;max-height:900px;border-radius:34px;box-shadow:0 24px 80px #0008}.title{display:inline}.pump{width:88px;height:88px;margin-top:-44px}}
     @media(orientation:landscape) and (max-height:620px){.pump{width:64px;height:64px;margin-top:-32px}.topbar{top:8px}.hint{bottom:8px}}
   </style>
 </head>
@@ -292,7 +293,8 @@ class PointerGravityInput{
 
 class Preferences{
   static key='watergame.settings.v2';
-  static load(){try{return {...{gravity:570,pump:620,pumpAngle:6,ring:1},...JSON.parse(localStorage.getItem(this.key)||'{}')}}catch{return {gravity:570,pump:620,pumpAngle:6,ring:1}}}
+  static defaults(){return {gravity:570,pump:620,pumpAngle:9,ring:1}}
+  static load(){try{return {...this.defaults(),...JSON.parse(localStorage.getItem(this.key)||'{}')}}catch{return this.defaults()}}
   static save(value){localStorage.setItem(this.key,JSON.stringify(value))}
 }
 class BackgroundStore{
@@ -338,7 +340,7 @@ class QuackSynth{
 
 class App{
   constructor(host){
-    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
+    host.innerHTML='<main class="stage"><canvas aria-label="Water ring game"></canvas><div class="topbar"><div class="brand"><span class="pill title">Water Ring Toy</span></div><div class="actions"><button class="iconbtn motion-needed" data-motion>Enable tilt</button><button class="iconbtn" data-change-duck>CHANGE DUCK</button><button class="iconbtn" data-settings>Settings</button><button class="iconbtn" data-reset>Reset</button></div></div><section class="settings" data-panel hidden><h2>Toy settings</h2><label class="setting"><span>Pump force</span><input data-pump-force type="range" min="250" max="1300" step="10"><output data-pump-out></output></label><label class="setting"><span>Pump angle</span><input data-pump-angle type="range" min="-18" max="18" step="1"><output data-angle-out></output><span class="angle-guide" aria-hidden="true"><i data-angle-line></i></span></label><label class="setting"><span>Gravity</span><input data-gravity type="range" min="150" max="1200" step="10"><output data-gravity-out></output></label><label class="setting"><span>Ring size</span><input data-ring-size type="range" min=".65" max="1.7" step=".05"><output data-ring-out></output></label><div class="settings-row"><label class="upload-label">Background image<input data-background type="file" accept="image/*"></label><button data-clear-background>Use gradient</button><button data-random-duck>CHANGE DUCK</button><button data-hide-duck>Hide duck</button><button data-fullscreen>Fullscreen</button><button data-reset-settings>Reset settings</button><button data-close-settings>Close</button></div><small><strong>Gravity control:</strong> tilt your phone after enabling tilt, or swipe/drag anywhere on the playfield.<br><span data-status>Ready.</span><br>Uploaded backgrounds are center-cropped and stored only in this browser.</small></section><button class="pump left" data-pump="-1" aria-label="Left water pump"></button><button class="pump right" data-pump="1" aria-label="Right water pump"></button></main>';
     this.stage=host.querySelector('.stage');this.canvas=host.querySelector('canvas');this.status=host.querySelector('[data-status]');this.motionButton=host.querySelector('[data-motion]');this.panel=host.querySelector('[data-panel]');
     this.renderer=new CanvasRenderer(this.canvas);this.game=new GameSession(this.renderer);this.pointer=new PointerGravityInput(this.canvas,this.game,this.status);this.pointer.bind();this.motion=new DeviceOrientationInput(this.game,this.status,this.motionButton);this.quack=new QuackSynth();this.duckTapStart=null;this.fullscreenTried=false;
     this.prefs=Preferences.load();this.applyPreferences();this.bind(host);this.resize();this.restoreBackground();this.loadStartupDuck();this.game.start();
@@ -358,6 +360,7 @@ class App{
     const pump=host.querySelector('[data-pump-force]'),angle=host.querySelector('[data-pump-angle]'),gravity=host.querySelector('[data-gravity]'),ring=host.querySelector('[data-ring-size]');
     pump.value=this.prefs.pump;angle.value=this.prefs.pumpAngle;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;
     const refresh=()=>{host.querySelector('[data-pump-out]').textContent=this.prefs.pump;host.querySelector('[data-angle-out]').textContent=(this.prefs.pumpAngle>0?'+':'')+this.prefs.pumpAngle+'°';host.querySelector('[data-angle-line]').style.transform='rotate('+this.prefs.pumpAngle+'deg)';host.querySelector('[data-gravity-out]').textContent=this.prefs.gravity;host.querySelector('[data-ring-out]').textContent=this.prefs.ring.toFixed(2)+'×'};
+    host.querySelector('[data-reset-settings]').addEventListener('click',()=>{this.prefs=Preferences.defaults();pump.value=this.prefs.pump;angle.value=this.prefs.pumpAngle;gravity.value=this.prefs.gravity;ring.value=this.prefs.ring;this.applyPreferences();Preferences.save(this.prefs);refresh();this.status.textContent='Settings reset.'});
     pump.addEventListener('input',()=>{this.prefs.pump=Number(pump.value);this.game.setPumpStrength(this.prefs.pump);Preferences.save(this.prefs);refresh()});
     angle.addEventListener('input',()=>{this.prefs.pumpAngle=Number(angle.value);this.game.setPumpAngle(this.prefs.pumpAngle);Preferences.save(this.prefs);refresh()});
     gravity.addEventListener('input',()=>{this.prefs.gravity=Number(gravity.value);this.game.setGravityStrength(this.prefs.gravity);Preferences.save(this.prefs);refresh()});
