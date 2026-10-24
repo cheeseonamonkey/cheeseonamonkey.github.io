@@ -6,7 +6,8 @@ description: Opinionated UX rules for Linux CLIs, TUIs, scripts, and developer t
 # Incredibly stupid fucking laws of UX
 
 - these are defaults, not commandments; preserve compatibility and composability when they conflict
-- humor & irony are intentionally used to best demonstrate common frustrations & failures
+- they are specific examples, *not* a prescribed set of operations 
+- humor & irony are intentionally used to best demonstrate common frustrations & failures; don't take them extremely seriously 
 
 
 1. **CTRL+C means exit! Spamming CTRL+C 30 times per second should exit any fucking TUI immediately.**
