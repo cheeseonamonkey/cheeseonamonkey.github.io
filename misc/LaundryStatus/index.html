@@ -26,7 +26,7 @@ h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:650;letter-spacing:-.04em;marg
 details{margin-top:16px;border-top:1px solid #e9edef;padding-top:14px}summary{font-weight:600;font-size:.86rem;cursor:pointer;list-style-position:inside}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.fields input:first-child,.fields input:last-child{grid-column:1 / -1}
 .machines-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.status{display:inline-flex;align-items:center;gap:8px;font-size:.77rem;color:#60707c}.dot{height:7px;width:7px;background:#9aa6ad;border-radius:50%;display:inline-block}.dot.live{background:#2e8b66}.dot.waiting{background:#d0a251}
-.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}.stat{background:#f7f9fa;border:1px solid #edf0f2;border-radius:10px;padding:14px}.stat b{font-size:1.5rem;display:block;font-variant-numeric:tabular-nums}.stat small{color:#73818b;font-size:.76rem}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:20px 0}.stat{background:#f7f9fa;border:1px solid #edf0f2;border-radius:10px;padding:14px}.stat b{font-size:1.5rem;display:block;font-variant-numeric:tabular-nums}.stat small{color:#73818b;font-size:.76rem}
 .filters{display:grid;grid-template-columns:1fr 110px;gap:8px;margin:10px 0 14px}
 .machine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}.machine{padding:15px;border-radius:10px;background:#fafbfc;border:1px solid #e7ecef}
 .machine-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.machine-id{font-weight:650;font-size:.87rem}.pill{font-size:.68rem;border:1px solid #dfe5e9;background:#f3f5f7;border-radius:8px;padding:4px 7px;white-space:nowrap}
@@ -34,7 +34,7 @@ details{margin-top:16px;border-top:1px solid #e9edef;padding-top:14px}summary{fo
 .clock{font-size:1.55rem;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin-top:12px}.secondary-text{font-size:.76rem;color:#798690;margin-top:5px}
 .empty{padding:42px 15px;border:1px dashed #dde4e9;border-radius:10px;text-align:center;color:#73818b;font-size:.87rem}.hint{margin-top:16px;font-size:.76rem;line-height:1.55}
 footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer a{color:inherit}
-@media(max-width:740px){.shell{padding:18px 12px}.layout{grid-template-columns:1fr}.panel{padding:15px}.rooms{max-height:260px}.stat-grid{margin:14px 0}.machine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.machine{padding:12px}.search{grid-template-columns:minmax(0,1fr) 85px}}
+@media(max-width:740px){.shell{padding:18px 12px}.layout{grid-template-columns:1fr}.panel{padding:15px}.rooms{max-height:260px}.stat-grid{margin:14px 0}.machine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.machine{padding:12px}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.search{grid-template-columns:minmax(0,1fr) 85px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
 </style>
 </head>
@@ -42,21 +42,15 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
 <main class="shell">
 <header class="top">
   <div><h1>Laundry rooms</h1><p>Search rooms and view live machine availability.</p></div>
-  <a class="tag" href="https://stores.speedqueenlaundry.com/locations" target="_blank" rel="noopener noreferrer">Find a Speed Queen location ↗</a>
+  <a class="tag" href="https://github.com/drakeerv/squeen/releases" target="_blank" rel="noopener noreferrer">Account features · Android ↗</a>
 </header>
 <div class="layout">
 <section class="panel" aria-labelledby="directoryTitle">
-  <h2 id="directoryTitle">Find rooms & stores</h2>
-  <label for="roomSearch" class="tiny">Search known rooms and public locations by city, state, or ID</label>
-  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Houston, Texas, 5730" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
+  <h2 id="directoryTitle">Known live rooms</h2>
+  <label for="roomSearch" class="tiny">Search known rooms by ID, name, city or state</label>
+  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. 5730, Kimball, UT" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
   <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
   <div id="roomList" class="rooms" aria-label="Known live rooms"></div>
-  <div class="meta"><strong class="tiny" style="color:#50606d">Nearby laundromats</strong><span class="tiny" id="facilityCount">Loading…</span></div>
-  <div id="facilityList" class="rooms" aria-label="Public laundromat locations"></div>
-  <p class="hint">Publicly listed facilities; Speed Queen equipment is marked when verified. These are <strong>not live room connections</strong>.</p>
-  <div class="meta"><strong class="tiny" style="color:#50606d">Public Speed Queen stores</strong><span class="tiny" id="storeCount">Loading…</span></div>
-  <div id="storeList" class="rooms" aria-label="Public store locations"></div>
-  <p class="hint">Store listings are from Speed Queen's public locator. They are <strong>not verified live room IDs</strong> and cannot connect until an actual room ID is known.</p>
   <details><summary>Add a known room</summary>
     <form id="addRoomForm">
       <div class="fields">
@@ -72,10 +66,11 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
   </details>
   <div class="controls" style="margin-top:14px">
     <button id="exportRooms" class="btn secondary" type="button">Export</button>
-    <button id="importRooms" class="btn secondary" type="button">Import</button>
+    <button id="importRooms" class="btn secondary" type="button">Import rooms</button>
     <input id="roomFile" type="file" accept="application/json,.json" hidden>
   </div>
-  <p class="hint" id="directoryUpdated"></p>
+  <p class="hint">Import room IDs from your own authorized Speed Queen room-list export or geo-boundary JSON. Only room IDs and names are saved locally. Payment/location PINs are different identifiers.</p>
+  <p class="tiny" id="directoryUpdated"></p>
 </section>
 <section class="panel" aria-labelledby="machineTitle">
   <div class="machines-head"><div><h2 id="machineTitle">Machine status</h2><p id="selectedRoom" class="tiny">Choose a room to connect.</p></div>
@@ -83,18 +78,33 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
   <div class="stat-grid">
     <div class="stat"><b id="statAvailable">—</b><small>Available</small></div>
     <div class="stat"><b id="statInUse">—</b><small>In use</small></div>
-    <div class="stat"><b id="statDone">—</b><small>Complete</small></div>
+    <div class="stat"><b id="statDone">—</b><small>Complete</small></div><div class="stat"><b id="statNext">—</b><small>Next free</small></div>
   </div>
   <div class="filters"><input id="machineSearch" class="input" type="search" placeholder="Filter machines or cycles" aria-label="Filter machines or cycles">
   <select id="machineFilter" class="input" aria-label="Machine filter">
     <option value="">All</option><option value="washer">Washers</option><option value="dryer">Dryers</option><option value="AVAILABLE">Available</option><option value="IN_USE">In use</option><option value="COMPLETE">Done</option>
   </select></div>
   <div id="machineList" class="machine-grid"><div class="empty" style="grid-column:1/-1">Select a room to see its machines.</div></div>
-  <p class="hint">Read-only live status from Alliance Laundry. Room IDs are distinct from Speed Queen payment/location PINs. “Connected” alone does not confirm a room has machines; live data is only confirmed after status updates arrive.</p>
+  <section style="margin-top:22px" aria-label="Monitoring">
+  <div class="machines-head"><h2>Recent activity</h2><div class="controls">
+    <button type="button" class="btn secondary" id="enableAlerts">Enable alerts</button>
+    <button type="button" class="btn secondary" id="exportActivity">Export</button>
+  </div></div>
+  <p class="tiny" style="margin:0 0 12px">Session-only history. Watch a machine for an alert when it finishes. Keep this page open for notifications.</p>
+  <div id="activityList" class="rooms"><div class="empty">No status changes observed yet.</div></div>
+  <details><summary>Connection diagnostics</summary><div class="hint" id="diagnostics">Select a room.</div></details>
+</section>
+<section style="margin-top:22px;border-top:1px solid #edf0f2;padding-top:17px" aria-label="Account features">
+  <div class="machines-head"><h2>Account features</h2><span class="pill">Locked</span></div>
+  <p class="tiny" style="margin-bottom:12px">Modeled on <a href="https://github.com/drakeerv/squeen">squeen</a>. These controls need authenticated account integration. They are disabled and cannot send requests.</p>
+  <div class="machine-grid" id="lockedFeatures"></div>
+  <p class="hint">For live account pricing, paid starts, dryer top-offs, balances, history, and cloud wash alerts, see the <a href="https://github.com/drakeerv/squeen/releases" target="_blank" rel="noopener noreferrer">unofficial Android client</a>. This dashboard remains read-only.</p>
+</section>
+<p class="hint">Read-only live status from Alliance Laundry. Room IDs are distinct from Speed Queen payment/location PINs. “Connected” alone does not confirm a room has machines; live data is only confirmed after status updates arrive.</p>
   <p class="tiny" id="lastUpdate" style="margin-top:12px">No updates received.</p>
 </section>
 </div>
-<footer><a href="https://github.com/cheeseonamonkey">cheeseonamonkey</a> · Based on <a href="https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine">zane-programs' laundry dashboard</a> · Not affiliated with Alliance Laundry</footer>
+<footer><a href="https://github.com/cheeseonamonkey">cheeseonamonkey</a> · <a href="https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine">Zane / original dashboard</a> · <a href="https://github.com/drakeerv/squeen">drakeerv / squeen</a> · <a href="https://github.com/bwees/speedqueen-hass">bwees / Home Assistant</a><div style="margin-top:4px">Unofficial · Not affiliated with Alliance Laundry</div></footer>
 </main>
 <script>
 'use strict';
@@ -131,8 +141,9 @@ const readPrefs = () => {
       favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
   } catch { return { rooms: [], favorites: new Set() }; }
 };
-let known = [], stores = [], facilities = [], { rooms: personal, favorites } = readPrefs();
+let known = [], { rooms: personal, favorites } = readPrefs();
 let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
+let activity = [], watched = new Set(), eventCount = 0, lastError = '';
 const savePrefs = () => {
   try { localStorage.setItem(KEY, JSON.stringify({rooms:personal, favorites:[...favorites]})); }
   catch { $('addMessage').textContent = 'Browser storage unavailable.'; }
@@ -149,7 +160,7 @@ function setStatus(label, level='') {
 function stateOptions() {
   const chosen = $('stateFilter').value;
   $('stateFilter').replaceChildren(new Option('All states', ''));
-  [...new Set([...rooms(),...stores,...facilities].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  [...new Set(rooms().map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
   $('stateFilter').value = chosen;
 }
 function renderRooms() {
@@ -177,43 +188,6 @@ function renderRooms() {
   }
   if (!matches.length) list.append(el('div','empty','No known live rooms match. Add a known room ID below to connect.'));
   if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
-  renderFacilities(terms,state);
-  const places = stores.filter(store => {
-    const text = [store.city,store.state,store.stateName,'Speed Queen Laundry',store.count].join(' ').toLowerCase();
-    return !favoritesOnly && (!state || store.state === state) && terms.every(term => text.includes(term));
-  });
-  $('storeCount').textContent = places.length + ' cities';
-  const storeList = $('storeList');storeList.replaceChildren();
-  for (const store of places) {
-    const link = el('a','room-choice');
-    link.style.cssText = 'display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
-    link.href = store.url;link.target='_blank';link.rel='noopener noreferrer';
-    link.append(el('span','room-title',store.city + ', ' + store.state + ' ↗'),
-      el('span','room-sub',store.count + ' public ' + (store.count===1?'store':'stores') + ' · No live room IDs'));
-    storeList.append(link);
-  }
-  if (!places.length) storeList.append(el('p','tiny','No listed commercial stores match. Campus laundry rooms generally are not in this store locator.'));
-}
-function renderFacilities(terms,state) {
-  const matches = facilities.filter(site => {
-    const haystack = [site.name,site.city,site.state,site.address,site.region,site.equipment].join(' ').toLowerCase();
-    return !favoritesOnly && (!state || site.state === state) && terms.every(term => haystack.includes(term));
-  });
-  $('facilityCount').textContent = matches.length + ' locations';
-  const list = $('facilityList');list.replaceChildren();
-  for (const site of matches.slice(0,100)) {
-    const link = el('a','room-choice');
-    link.style.cssText='display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
-    link.href=site.source;link.target='_blank';link.rel='noopener noreferrer';
-    const badge=site.equipment==='confirmed' ? 'Speed Queen equipment verified' :
-      site.equipment==='historical' ? 'Historic Speed Queen listing' : 'Equipment not verified';
-    link.append(el('span','room-title',site.name+' ↗'),
-      el('span','room-sub',[site.address,site.city+' '+site.state].filter(Boolean).join(' · ')),
-      el('span','room-sub',badge));
-    list.append(link);
-  }
-  if(!matches.length) list.append(el('p','tiny','No matching known laundromats. Try another city, state, or address.'));
-  if(matches.length>100) list.append(el('p','tiny','Showing 100 matches; narrow the search.'));
 }
 function closeSocket() {
   clearTimeout(retry); retry = null;
@@ -227,6 +201,7 @@ function selectRoom(id) {
   const room = rooms().find(r=>r.id === id);
   if (!room) return;
   selected = room; stopped = false; machineData.clear(); lastDataAt = 0;
+  activity=[];watched.clear();eventCount=0;lastError='';renderActivity();renderDiagnostics();
   $('selectedRoom').textContent = [room.name,room.city,room.state,'#'+room.id].filter(Boolean).join(' · ');
   $('reconnect').disabled = false;
   $('lastUpdate').textContent = 'No updates received.';
@@ -252,18 +227,28 @@ function connect() {
     const machine = msg.data;
     const id = clean(machine.id || msg.machineId);
     if (!id) return;
-    machineData.set(id, {...machine,id,receivedAt:Date.now()});
+    const previous=machineData.get(id);
+    const current={...machine,id,receivedAt:Date.now()};
+    machineData.set(id,current);eventCount++;
+    if(previous && previous.statusId!==current.statusId) {
+      recordActivity(current,previous.statusId);
+      if(watched.has(id) && previous.statusId==='IN_USE' && ['AVAILABLE','COMPLETE'].includes(current.statusId)){
+        watched.delete(id);
+        if('Notification' in window && Notification.permission==='granted')
+          new Notification('Laundry cycle updated',{body:'Machine #'+id.slice(-2)+' is '+labelStatus(current.statusId).toLowerCase()+'.'});
+      }
+    }
     lastDataAt = Date.now();
     setStatus('Live data','live');renderMachines();
-    $('lastUpdate').textContent = 'Last machine update: ' + new Date(lastDataAt).toLocaleTimeString();
+    $('lastUpdate').textContent = 'Last machine update: ' + new Date(lastDataAt).toLocaleTimeString();renderDiagnostics();
   };
   socket.onclose = () => {
     if (ws !== socket) return;
     ws = null;
-    setStatus('Disconnected · retrying');
+    lastError='Socket closed';setStatus('Disconnected · retrying');renderDiagnostics();
     if (!stopped && selected) retry = setTimeout(connect,5000);
   };
-  socket.onerror = () => socket.close();
+  socket.onerror = () => {lastError='Socket error';renderDiagnostics();socket.close();};
 }
 const machineType = m => clean(m.controlId).startsWith('335054') ? 'dryer' : 'washer';
 const labelStatus = status => ({AVAILABLE:'Available',IN_USE:'In use',COMPLETE:'Complete'})[status] || 'Unknown';
@@ -278,7 +263,14 @@ function machineCard(machine) {
   if (status === 'COMPLETE') clock.dataset.completed = String(dateUTC(machine.createdAt));
   const info = [clean(machine.selectedCycle?.name).replaceAll('_',' '),machine.isDoorOpen ? 'Door open' : ''].filter(Boolean).join(' · ');
   const detail = el('div','secondary-text',info || (status==='IN_USE' ? 'Remaining' : status==='COMPLETE' ? 'Since completion' : ''));
-  card.append(head,clock,detail);return card;
+  const watch=el('button','btn secondary',watched.has(machine.id)?'Watching ✓':'Watch machine');
+  watch.type='button';watch.style.cssText='margin-top:12px;padding:6px;width:100%;font-size:.75rem';
+  watch.setAttribute('aria-pressed',String(watched.has(machine.id)));
+  watch.addEventListener('click',()=>{
+    if(watched.has(machine.id)) watched.delete(machine.id); else watched.add(machine.id);
+    renderMachines();
+  });
+  card.append(head,clock,detail,watch);return card;
 }
 function renderMachines() {
   const all = [...machineData.values()];
@@ -286,6 +278,10 @@ function renderMachines() {
   const counts = kind => all.filter(m => m.statusId === kind).length;
   for (const [id,kind] of [['statAvailable','AVAILABLE'],['statInUse','IN_USE'],['statDone','COMPLETE']])
     $(id).textContent = all.length ? String(counts(kind)) : '—';
+  const ready=all.some(m=>m.statusId==='AVAILABLE');
+  const times=all.filter(m=>m.statusId==='IN_USE' && Number(m.remainingSeconds)>0)
+    .map(m=>Math.max(0,Number(m.remainingSeconds)-(Date.now()-m.receivedAt)/1000));
+  $('statNext').textContent=!all.length?'—':ready?'Now':times.length?Math.ceil(Math.min(...times)/60)+'m':'—';
   const list = $('machineList');list.replaceChildren();
   if (!selected) {list.append(el('div','empty','Select a room to see its machines.'));return;}
   if (!all.length) {list.append(el('div','empty','Waiting for machine updates. An open connection does not prove this room ID is valid.'));return;}
@@ -308,6 +304,61 @@ function tick() {
   });
   if (lastDataAt && Date.now()-lastDataAt>120000 && ws?.readyState===WebSocket.OPEN) setStatus('Connected · data stale','waiting');
 }
+
+function recordActivity(machine,previous){
+  activity.unshift({at:new Date().toISOString(),roomId:selected?.id||'',machineId:machine.id,type:machineType(machine),from:previous,to:machine.statusId});
+  activity=activity.slice(0,100);renderActivity();
+}
+function renderActivity(){
+  const list=$('activityList');list.replaceChildren();
+  if(!activity.length){list.append(el('div','empty','No status changes observed yet.'));return;}
+  for(const item of activity.slice(0,25)){
+    const card=el('div','room-choice');card.style.cssText='border:1px solid #e6ebef;border-radius:8px;margin-bottom:5px';
+    card.append(el('span','room-title',(item.type==='dryer'?'Dryer':'Washer')+' #'+item.machineId.slice(-2)+' · '+labelStatus(item.to)),
+      el('span','room-sub',new Date(item.at).toLocaleTimeString()+' · '+labelStatus(item.from)+' → '+labelStatus(item.to)));
+    list.append(card);
+  }
+}
+function renderDiagnostics(){
+  $('diagnostics').textContent=[
+    'Room: '+(selected?.id||'none'),
+    'WebSocket: '+(ws ? ['connecting','open','closing','closed'][ws.readyState] : 'closed'),
+    'Machines: '+machineData.size,
+    'Status messages: '+eventCount,
+    'Last data: '+(lastDataAt ? new Date(lastDataAt).toLocaleString() : 'none'),
+    'Last error: '+(lastError||'none')
+  ].join(' | ');
+}
+const capabilities=[
+  ['Cycle pricing','View options and account-specific prices','View pricing'],
+  ['Paid remote start','Start a paid wash or dry cycle','Start cycle'],
+  ['Dryer top-off','Purchase additional drying time','Add time'],
+  ['Account balance','View laundry credit and rewards','Balance'],
+  ['Transaction history','Review personal laundry spending','History'],
+  ['Cloud wash alerts','Register server-side cycle alerts','Configure alerts']
+];
+for(const [name,description,action] of capabilities){
+  const panel=el('article','machine');
+  panel.append(el('div','machine-id',name),el('p','secondary-text',description));
+  const button=el('button','btn secondary',action+' · Locked');
+  button.disabled=true;button.type='button';button.style.cssText='width:100%;margin-top:12px;font-size:.76rem';
+  button.title='Disabled until authenticated account integration is available';
+  panel.append(button);$('lockedFeatures').append(panel);
+}
+$('enableAlerts').addEventListener('click',async()=>{
+  if(!('Notification' in window)){$('enableAlerts').textContent='Unsupported';return;}
+  try {
+    const permission=await Notification.requestPermission();
+    $('enableAlerts').textContent=permission==='granted'?'Alerts enabled':'Alerts unavailable';
+    $('enableAlerts').disabled=permission!=='granted';
+  }catch{$('enableAlerts').textContent='Alerts unavailable';}
+});
+$('exportActivity').addEventListener('click',()=>{
+  const url=URL.createObjectURL(new Blob([JSON.stringify({room:selected?.id,activity},null,2)],{type:'application/json'}));
+  const link=el('a');link.href=url;link.download='laundry-activity.json';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
 $('roomSearch').addEventListener('input',renderRooms);
 $('stateFilter').addEventListener('change',renderRooms);
 $('favoritesOnly').addEventListener('click',()=>{
@@ -343,13 +394,30 @@ $('roomFile').addEventListener('change',async event=>{
   if (file.size > 1000000) {alert('File too large (1 MB maximum).');return;}
   try {
     const payload = JSON.parse(await file.text());
-    if (!Array.isArray(payload.rooms)) throw new Error('Expected a rooms array.');
-    const merged = new Map(personal.map(r=>[r.id,r]));
-    payload.rooms.slice(0,500).map(sanitizeRoom).filter(Boolean).forEach(r=>merged.set(r.id,r));
-    personal = [...merged.values()].slice(0,500);
-    if (Array.isArray(payload.favorites)) payload.favorites.filter(validId).forEach(id=>favorites.add(String(id)));
+    const incoming=[];
+    const visit=(node,depth=0)=>{
+      if(!node || depth>12 || incoming.length>=500) return;
+      if(Array.isArray(node)){node.forEach(x=>visit(x,depth+1));return;}
+      if(typeof node!=='object') return;
+      // Support this app's JSON and the nested Alliance geo-boundary response.
+      const room=(node.type==='rooms'||node.roomName||node.name||node.location_name) ?
+        sanitizeRoom({id:node.id,name:node.roomName||node.name||node.location_name||node.attributes?.roomName||'',
+          city:node.city||'',state:node.state||''}) : null;
+      if(room) incoming.push(room);
+      if(Array.isArray(node.rooms)) visit(node.rooms,depth+1);
+      if(Array.isArray(node.geoBoundaries)) visit(node.geoBoundaries,depth+1);
+      if(Array.isArray(node.included)) visit(node.included,depth+1);
+      if(Array.isArray(node.data)) visit(node.data,depth+1);
+      if(node.data && !Array.isArray(node.data)) visit(node.data,depth+1);
+    };
+    visit(payload);
+    if(!incoming.length) throw new Error('No valid room IDs found.');
+    const merged=new Map(personal.map(r=>[r.id,r]));
+    incoming.forEach(r=>merged.set(r.id,r));
+    personal=[...merged.values()].slice(0,500);
+    if(Array.isArray(payload.favorites)) payload.favorites.filter(validId).forEach(id=>favorites.add(String(id)));
     savePrefs();renderRooms();
-    alert('Imported ' + payload.rooms.length + ' room entries (up to 500).');
+    alert('Imported '+incoming.length+' room entries.');
   } catch (error) {alert('Invalid room file: ' + error.message);}
 });
 window.addEventListener('pagehide',closeSocket);
@@ -364,25 +432,7 @@ async function init() {
   } catch {
     $('directoryUpdated').textContent = 'Public directory unavailable. Your locally saved rooms still work.';
   }
-  try {
-    const response = await fetch('./stores.json',{cache:'no-store'});
-    if (!response.ok) throw new Error('Public store directory unavailable');
-    const parsed = await response.json();
-    stores = Array.isArray(parsed.stores) ? parsed.stores.filter(s => /^[A-Z]{2}$/.test(s.state) && /^https:\/\/stores\.speedqueenlaundry\.com\//.test(s.url)) : [];
-  } catch {
-    $('storeCount').textContent = 'Store directory unavailable';
-  }
-  try {
-    const response = await fetch('./facilities.json',{cache:'no-store'});
-    if (!response.ok) throw new Error('Unavailable');
-    const parsed=await response.json();
-    facilities=Array.isArray(parsed.facilities) ? parsed.facilities.filter(f =>
-      f && typeof f.name==='string' && /^[A-Z]{2}$/.test(f.state) &&
-      /^https:\/\//.test(f.source) && f.name.length<120).slice(0,300) : [];
-  } catch {
-    $('facilityCount').textContent='Location directory unavailable';
-  }
-  renderRooms();
+  renderRooms();renderDiagnostics();
   const requested = new URLSearchParams(location.search).get('room');
   if (requested && rooms().some(r=>r.id===requested)) selectRoom(requested);
   else if (rooms().length) $('selectedRoom').textContent = 'Choose a room from the directory.';
