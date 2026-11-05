@@ -66,10 +66,10 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
   </details>
   <div class="controls" style="margin-top:14px">
     <button id="exportRooms" class="btn secondary" type="button">Export</button>
-    <button id="importRooms" class="btn secondary" type="button">Import rooms</button>
+    <button id="importRooms" class="btn secondary" type="button">Import / map IDs</button>
     <input id="roomFile" type="file" accept="application/json,.json" hidden>
   </div>
-  <p class="hint">Public room IDs are documented, not live-verified. Import your authorized room list; payment/location PINs are different identifiers.</p>
+  <p class="hint">Only numeric room IDs are listed. Import authorized Alliance room, geo-boundary, or machine-roster JSON to map IDs to location names. The file stays on your device; only extracted room metadata is saved locally. Location/payment PINs are different.</p>
   <p class="tiny" id="directoryUpdated"></p>
 </section>
 <section class="panel" aria-labelledby="machineTitle">
@@ -132,6 +132,7 @@ const sanitizeRoom = room => {
   if (!room || !validId(room.id)) return null;
   return { id: String(room.id), name: clean(room.name).slice(0,100) || 'Room ' + room.id,
     city: clean(room.city).slice(0,80), state: clean(room.state).toUpperCase().slice(0,2),
+    location: clean(room.location).slice(0,120), organization: clean(room.organization).slice(0,120),
     country: clean(room.country).slice(0,25), verification: ['documented','demo','example','custom'].includes(room.verification)?room.verification:'custom',
     source: /^https:\/\//.test(room.source || '') ? String(room.source) : '' };
 };
@@ -169,7 +170,7 @@ function renderRooms() {
   const terms = $('roomSearch').value.toLowerCase().split(/\s+/).filter(Boolean);
   const state = $('stateFilter').value;
   const matches = rooms().filter(room => {
-    const text = [room.id,room.name,room.city,room.state,room.country,room.verification].join(' ').toLowerCase();
+    const text = [room.id,room.name,room.location,room.organization,room.city,room.state,room.country,room.verification].join(' ').toLowerCase();
     return (!state || room.state === state) && (!favoritesOnly || favorites.has(room.id)) && terms.every(word => text.includes(word));
   });
   $('roomCount').textContent = matches.length + ' of ' + rooms().length + ' room IDs';
@@ -179,7 +180,7 @@ function renderRooms() {
     const row = el('div','room-row' + (selected?.id === room.id ? ' current' : ''));
     const choose = el('button','room-choice');
     choose.type = 'button';
-    choose.append(el('span','room-title',room.name),el('span','room-sub',[room.city,room.state,room.country,'#'+room.id,room.verification==='documented'?'Documented API ID':room.verification==='demo'?'Original demo':room.verification==='example'?'Example ID':'Saved locally'].filter(Boolean).join(' · ')));
+    choose.append(el('span','room-title',room.name),el('span','room-sub',[room.location,room.organization,room.city,room.state,room.country,'#'+room.id,room.verification==='documented'?'Documented API ID':room.verification==='demo'?'Original demo':room.verification==='example'?'Example ID':'Saved locally'].filter(Boolean).join(' · ')));
     choose.addEventListener('click',()=>selectRoom(room.id));
     const star = el('button','star' + (favorites.has(room.id) ? ' active' : ''),favorites.has(room.id) ? '★' : '☆');
     star.type = 'button'; star.title = favorites.has(room.id) ? 'Remove favorite' : 'Add favorite';
@@ -397,30 +398,22 @@ $('roomFile').addEventListener('change',async event=>{
   if (file.size > 1000000) {alert('File too large (1 MB maximum).');return;}
   try {
     const payload = JSON.parse(await file.text());
-    const incoming=[];
-    const visit=(node,depth=0)=>{
-      if(!node || depth>12 || incoming.length>=500) return;
-      if(Array.isArray(node)){node.forEach(x=>visit(x,depth+1));return;}
-      if(typeof node!=='object') return;
-      // Support this app's JSON and the nested Alliance geo-boundary response.
-      const room=(node.type==='rooms'||node.roomName||node.name||node.location_name) ?
-        sanitizeRoom({id:node.id,name:node.roomName||node.name||node.location_name||node.attributes?.roomName||'',
-          city:node.city||'',state:node.state||''}) : null;
-      if(room) incoming.push(room);
-      if(Array.isArray(node.rooms)) visit(node.rooms,depth+1);
-      if(Array.isArray(node.geoBoundaries)) visit(node.geoBoundaries,depth+1);
-      if(Array.isArray(node.included)) visit(node.included,depth+1);
-      if(Array.isArray(node.data)) visit(node.data,depth+1);
-      if(node.data && !Array.isArray(node.data)) visit(node.data,depth+1);
-    };
-    visit(payload);
-    if(!incoming.length) throw new Error('No valid room IDs found.');
+    const {extractRoomMappings}=await import('./room-mapper.mjs');
+    const incoming=extractRoomMappings(payload).map(sanitizeRoom).filter(Boolean);
+    if(!incoming.length) throw new Error('No numeric room IDs found.');
     const merged=new Map(personal.map(r=>[r.id,r]));
-    incoming.forEach(r=>merged.set(r.id,r));
+    for(const room of incoming){
+      const old=merged.get(room.id)||known.find(x=>x.id===room.id)||{};
+      merged.set(room.id,{...old,...room,
+        name:room.name==='Room '+room.id && old.name ? old.name : room.name,
+        location:room.location||old.location||'',organization:room.organization||old.organization||'',
+        city:room.city||old.city||'',state:room.state||old.state||'',country:room.country||old.country||'',
+        source:old.source||'',verification:old.verification||'custom'});
+    }
     personal=[...merged.values()].slice(0,500);
     if(Array.isArray(payload.favorites)) payload.favorites.filter(validId).forEach(id=>favorites.add(String(id)));
     savePrefs();renderRooms();
-    alert('Imported '+incoming.length+' room entries.');
+    alert('Mapped '+incoming.length+' room ID(s) locally.');
   } catch (error) {alert('Invalid room file: ' + error.message);}
 });
 window.addEventListener('pagehide',closeSocket);

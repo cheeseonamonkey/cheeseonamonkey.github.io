@@ -30,6 +30,9 @@ jobs:
       - name: Validate and rebuild curated room directory
         run: python3 misc/LaundryStatus/build_directory.py
 
+      - name: Test room-to-location mapping
+        run: node --test misc/LaundryStatus/room-mapper.test.mjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
