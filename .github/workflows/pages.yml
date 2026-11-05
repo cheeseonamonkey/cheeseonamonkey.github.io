@@ -5,6 +5,8 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  schedule:
+    - cron: '27 6 1 * *' # Monthly curated directory rebuild, UTC
 
 permissions:
   contents: read
@@ -24,6 +26,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Validate and rebuild curated room directory
+        run: python3 misc/LaundryStatus/build_directory.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f5f6f7">
+<title>Laundry Rooms · Live Status</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#202932;background:#f5f6f7;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;min-height:100vh}button,input,select{font:inherit}
+button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+a{color:#345d78}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid #316c98;outline-offset:3px}
+.shell{max-width:1110px;margin:auto;padding:30px 20px 20px}.top{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:650;letter-spacing:-.04em;margin:0 0 4px}h2{font-size:1.05rem;margin:0 0 15px;font-weight:650;letter-spacing:-.02em}p{margin:0;color:#65717b}.tiny{font-size:.76rem;color:#73818b}
+.tag{border:1px solid #dce2e6;padding:7px 11px;border-radius:20px;font-size:.76rem;color:#596772;background:#fff}
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:18px;align-items:start}
+.panel{background:#fff;border:1px solid #e4e8eb;border-radius:13px;padding:19px;min-width:0;box-shadow:0 2px 6px #17202b08}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.input{border:1px solid #d7dfe5;background:#fff;color:#202932;border-radius:8px;padding:10px 11px;min-width:0;width:100%}.input::placeholder{color:#93a0aa}
+.primary{background:#243f53;color:#fff;border:1px solid #243f53}.secondary{background:#fff;color:#394d5c;border:1px solid #d7dfe5}
+.btn{border-radius:8px;padding:9px 12px;white-space:nowrap;font-size:.86rem}.btn:hover{filter:brightness(.96)}
+.search{display:grid;grid-template-columns:minmax(0,1fr) 93px;gap:8px;margin:14px 0 8px}.meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:10px 0 12px}
+.rooms{display:grid;gap:6px;max-height:420px;overflow:auto}.room-row{display:grid;grid-template-columns:1fr 32px;align-items:center;gap:5px;border-radius:8px}.room-row.current{background:#edf3f6}
+.room-choice{background:none;border:0;padding:9px 10px;text-align:left;color:inherit;border-radius:8px;min-width:0}
+.room-title{display:block;font-weight:600;font-size:.89rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room-sub{display:block;font-size:.73rem;color:#7a8893;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.star{border:0;background:none;color:#a6b1ba;font-size:1.2rem;padding:5px}.star.active{color:#986d1f}
+details{margin-top:16px;border-top:1px solid #e9edef;padding-top:14px}summary{font-weight:600;font-size:.86rem;cursor:pointer;list-style-position:inside}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.fields input:first-child,.fields input:last-child{grid-column:1 / -1}
+.machines-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.status{display:inline-flex;align-items:center;gap:8px;font-size:.77rem;color:#60707c}.dot{height:7px;width:7px;background:#9aa6ad;border-radius:50%;display:inline-block}.dot.live{background:#2e8b66}.dot.waiting{background:#d0a251}
+.stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:20px 0}.stat{background:#f7f9fa;border:1px solid #edf0f2;border-radius:10px;padding:14px}.stat b{font-size:1.5rem;display:block;font-variant-numeric:tabular-nums}.stat small{color:#73818b;font-size:.76rem}
+.filters{display:grid;grid-template-columns:1fr 110px;gap:8px;margin:10px 0 14px}
+.machine-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}.machine{padding:15px;border-radius:10px;background:#fafbfc;border:1px solid #e7ecef}
+.machine-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.machine-id{font-weight:650;font-size:.87rem}.pill{font-size:.68rem;border:1px solid #dfe5e9;background:#f3f5f7;border-radius:8px;padding:4px 7px;white-space:nowrap}
+.pill.available{color:#286f53;background:#e9f5ee;border-color:#d4eadb}.pill.in-use{color:#75571b;background:#fdf4dd;border-color:#f7e5b9}.pill.complete{color:#915442;background:#fdf0ec;border-color:#f1d9cf}
+.clock{font-size:1.55rem;font-weight:650;font-variant-numeric:tabular-nums;letter-spacing:-.04em;margin-top:12px}.secondary-text{font-size:.76rem;color:#798690;margin-top:5px}
+.empty{padding:42px 15px;border:1px dashed #dde4e9;border-radius:10px;text-align:center;color:#73818b;font-size:.87rem}.hint{margin-top:16px;font-size:.76rem;line-height:1.55}
+footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer a{color:inherit}
+@media(max-width:740px){.shell{padding:18px 12px}.layout{grid-template-columns:1fr}.panel{padding:15px}.rooms{max-height:260px}.stat-grid{margin:14px 0}.machine-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.machine{padding:12px}.search{grid-template-columns:minmax(0,1fr) 85px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="top">
+  <div><h1>Laundry rooms</h1><p>Search rooms and view live machine availability.</p></div>
+  <a class="tag" href="https://stores.speedqueenlaundry.com/locations" target="_blank" rel="noopener noreferrer">Find a Speed Queen location ↗</a>
+</header>
+<div class="layout">
+<section class="panel" aria-labelledby="directoryTitle">
+  <h2 id="directoryTitle">Room directory</h2>
+  <label for="roomSearch" class="tiny">Search name, city, state, or room ID</label>
+  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Kimball, CO, 5730" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
+  <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
+  <div id="roomList" class="rooms" aria-label="Search results"></div>
+  <details><summary>Add a known room</summary>
+    <form id="addRoomForm">
+      <div class="fields">
+        <input class="input" name="id" required inputmode="numeric" pattern="[0-9]{1,12}" maxlength="12" placeholder="Room ID">
+        <input class="input" name="name" required maxlength="100" placeholder="Location name">
+        <input class="input" name="city" maxlength="80" placeholder="City (optional)">
+        <input class="input" name="state" maxlength="2" placeholder="State (e.g. UT)">
+      </div>
+      <button class="btn primary" type="submit">Save locally</button>
+      <span class="tiny" id="addMessage" role="status"></span>
+    </form>
+    <p class="hint">Only add room IDs you know are valid and that you are authorized to monitor. Saved rooms remain in this browser.</p>
+  </details>
+  <div class="controls" style="margin-top:14px">
+    <button id="exportRooms" class="btn secondary" type="button">Export</button>
+    <button id="importRooms" class="btn secondary" type="button">Import</button>
+    <input id="roomFile" type="file" accept="application/json,.json" hidden>
+  </div>
+  <p class="hint" id="directoryUpdated"></p>
+</section>
+<section class="panel" aria-labelledby="machineTitle">
+  <div class="machines-head"><div><h2 id="machineTitle">Machine status</h2><p id="selectedRoom" class="tiny">Choose a room to connect.</p></div>
+  <div class="controls"><span class="status" aria-live="polite"><span id="connectionDot" class="dot"></span><span id="connectionText">Disconnected</span></span><button id="reconnect" class="btn secondary" type="button" disabled>Reconnect</button></div></div>
+  <div class="stat-grid">
+    <div class="stat"><b id="statAvailable">—</b><small>Available</small></div>
+    <div class="stat"><b id="statInUse">—</b><small>In use</small></div>
+    <div class="stat"><b id="statDone">—</b><small>Complete</small></div>
+  </div>
+  <div class="filters"><input id="machineSearch" class="input" type="search" placeholder="Filter machines or cycles" aria-label="Filter machines or cycles">
+  <select id="machineFilter" class="input" aria-label="Machine filter">
+    <option value="">All</option><option value="washer">Washers</option><option value="dryer">Dryers</option><option value="AVAILABLE">Available</option><option value="IN_USE">In use</option><option value="COMPLETE">Done</option>
+  </select></div>
+  <div id="machineList" class="machine-grid"><div class="empty" style="grid-column:1/-1">Select a room to see its machines.</div></div>
+  <p class="hint">Read-only live status from Alliance Laundry. Room IDs are distinct from Speed Queen payment/location PINs. “Connected” alone does not confirm a room has machines; live data is only confirmed after status updates arrive.</p>
+  <p class="tiny" id="lastUpdate" style="margin-top:12px">No updates received.</p>
+</section>
+</div>
+<footer><a href="https://github.com/cheeseonamonkey">cheeseonamonkey</a> · Based on <a href="https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine">zane-programs' laundry dashboard</a> · Not affiliated with Alliance Laundry</footer>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const ENDPOINT = 'wss://websocket.alliancelaundrydigital.com';
+const KEY = 'laundryRooms.v1';
+const el = (tag, cls, content) => {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (content !== undefined) node.textContent = String(content);
+  return node;
+};
+const validId = id => /^\d{1,12}$/.test(String(id || ''));
+const clean = value => String(value ?? '').trim();
+const formatTime = n => {
+  const total = Math.max(0, Math.floor(Number(n) || 0));
+  return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0');
+};
+const dateUTC = value => {
+  if (!value) return NaN;
+  const date = String(value);
+  return Date.parse(/[Zz]|[+-]\d\d:\d\d$/.test(date) ? date : date + 'Z');
+};
+const sanitizeRoom = room => {
+  if (!room || !validId(room.id)) return null;
+  return { id: String(room.id), name: clean(room.name).slice(0,100) || 'Room ' + room.id,
+    city: clean(room.city).slice(0,80), state: clean(room.state).toUpperCase().slice(0,2),
+    source: /^https:\/\//.test(room.source || '') ? String(room.source) : '' };
+};
+const readPrefs = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(KEY) || '{}');
+    return { rooms: Array.isArray(parsed.rooms) ? parsed.rooms.map(sanitizeRoom).filter(Boolean).slice(0,500) : [],
+      favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
+  } catch { return { rooms: [], favorites: new Set() }; }
+};
+let known = [], { rooms: personal, favorites } = readPrefs();
+let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
+const savePrefs = () => {
+  try { localStorage.setItem(KEY, JSON.stringify({rooms:personal, favorites:[...favorites]})); }
+  catch { $('addMessage').textContent = 'Browser storage unavailable.'; }
+};
+const rooms = () => {
+  const merged = new Map(known.map(room => [room.id, room]));
+  personal.forEach(room => merged.set(room.id, {...merged.get(room.id), ...room}));
+  return [...merged.values()].sort((a,b) => (Number(favorites.has(b.id))-Number(favorites.has(a.id))) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
+};
+function setStatus(label, level='') {
+  $('connectionText').textContent = label;
+  $('connectionDot').className = 'dot' + (level ? ' ' + level : '');
+}
+function stateOptions() {
+  const chosen = $('stateFilter').value;
+  $('stateFilter').replaceChildren(new Option('All states', ''));
+  [...new Set(rooms().map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  $('stateFilter').value = chosen;
+}
+function renderRooms() {
+  stateOptions();
+  const terms = $('roomSearch').value.toLowerCase().split(/\s+/).filter(Boolean);
+  const state = $('stateFilter').value;
+  const matches = rooms().filter(room => {
+    const text = [room.id,room.name,room.city,room.state].join(' ').toLowerCase();
+    return (!state || room.state === state) && (!favoritesOnly || favorites.has(room.id)) && terms.every(word => text.includes(word));
+  });
+  $('roomCount').textContent = matches.length + ' of ' + rooms().length + ' rooms';
+  const list = $('roomList');
+  list.replaceChildren();
+  for (const room of matches.slice(0,200)) {
+    const row = el('div','room-row' + (selected?.id === room.id ? ' current' : ''));
+    const choose = el('button','room-choice');
+    choose.type = 'button';
+    choose.append(el('span','room-title',room.name),el('span','room-sub',[room.city,room.state,'#'+room.id].filter(Boolean).join(' · ')));
+    choose.addEventListener('click',()=>selectRoom(room.id));
+    const star = el('button','star' + (favorites.has(room.id) ? ' active' : ''),favorites.has(room.id) ? '★' : '☆');
+    star.type = 'button'; star.title = favorites.has(room.id) ? 'Remove favorite' : 'Add favorite';
+    star.setAttribute('aria-label',star.title);
+    star.addEventListener('click',()=>{favorites.has(room.id) ? favorites.delete(room.id) : favorites.add(room.id);savePrefs();renderRooms();});
+    row.append(choose,star);list.append(row);
+  }
+  if (!matches.length) list.append(el('div','empty','No matching rooms. Try a broader search or add a known room.'));
+  if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
+}
+function closeSocket() {
+  clearTimeout(retry); retry = null;
+  if (ws) {
+    const old = ws; ws = null;
+    old.onclose = null; old.onerror = null; old.onmessage = null;
+    try { old.close(); } catch {}
+  }
+}
+function selectRoom(id) {
+  const room = rooms().find(r=>r.id === id);
+  if (!room) return;
+  selected = room; stopped = false; machineData.clear(); lastDataAt = 0;
+  $('selectedRoom').textContent = [room.name,room.city,room.state,'#'+room.id].filter(Boolean).join(' · ');
+  $('reconnect').disabled = false;
+  $('lastUpdate').textContent = 'No updates received.';
+  const url = new URL(location.href);url.searchParams.set('room',room.id);history.replaceState(null,'',url);
+  renderRooms();renderMachines();connect();
+}
+function connect() {
+  closeSocket();
+  if (!selected || stopped) return;
+  setStatus('Connecting…','waiting');
+  const socket = new WebSocket(ENDPOINT);
+  ws = socket;
+  socket.onopen = () => {
+    if (ws !== socket) return;
+    setStatus('Connected · awaiting data','waiting');
+    socket.send(JSON.stringify({app:'ca-ios',ver:'3.18.0',topics:['room:'+selected.id],roomId:selected.id,eventType:'SUBSCRIBE'}));
+  };
+  socket.onmessage = event => {
+    if (ws !== socket) return;
+    let msg;
+    try {msg = JSON.parse(event.data);} catch {return;}
+    if (msg.eventType !== 'MACHINE_STATUS' || !msg.data) return;
+    const machine = msg.data;
+    const id = clean(machine.id || msg.machineId);
+    if (!id) return;
+    machineData.set(id, {...machine,id,receivedAt:Date.now()});
+    lastDataAt = Date.now();
+    setStatus('Live data','live');renderMachines();
+    $('lastUpdate').textContent = 'Last machine update: ' + new Date(lastDataAt).toLocaleTimeString();
+  };
+  socket.onclose = () => {
+    if (ws !== socket) return;
+    ws = null;
+    setStatus('Disconnected · retrying');
+    if (!stopped && selected) retry = setTimeout(connect,5000);
+  };
+  socket.onerror = () => socket.close();
+}
+const machineType = m => clean(m.controlId).startsWith('335054') ? 'dryer' : 'washer';
+const labelStatus = status => ({AVAILABLE:'Available',IN_USE:'In use',COMPLETE:'Complete'})[status] || 'Unknown';
+function machineCard(machine) {
+  const status = clean(machine.statusId);
+  const card = el('article','machine');
+  const head = el('div','machine-header');
+  head.append(el('span','machine-id', (machineType(machine)==='dryer' ? 'Dryer ' : 'Washer ') + '#' + machine.id.slice(-2)),
+    el('span','pill ' + status.toLowerCase().replace('_','-'),labelStatus(status)));
+  const clock = el('div','clock',status==='IN_USE' ? formatTime(machine.remainingSeconds) : status==='COMPLETE' ? formatTime((Date.now()-dateUTC(machine.createdAt))/1000) : status==='AVAILABLE' ? 'Ready' : '—');
+  if (status === 'IN_USE') {clock.dataset.remaining = String(machine.remainingSeconds || 0);clock.dataset.received = String(machine.receivedAt);}
+  if (status === 'COMPLETE') clock.dataset.completed = String(dateUTC(machine.createdAt));
+  const info = [clean(machine.selectedCycle?.name).replaceAll('_',' '),machine.isDoorOpen ? 'Door open' : ''].filter(Boolean).join(' · ');
+  const detail = el('div','secondary-text',info || (status==='IN_USE' ? 'Remaining' : status==='COMPLETE' ? 'Since completion' : ''));
+  card.append(head,clock,detail);return card;
+}
+function renderMachines() {
+  const all = [...machineData.values()];
+  const active = $('machineFilter').value, query = $('machineSearch').value.toLowerCase().trim();
+  const counts = kind => all.filter(m => m.statusId === kind).length;
+  for (const [id,kind] of [['statAvailable','AVAILABLE'],['statInUse','IN_USE'],['statDone','COMPLETE']])
+    $(id).textContent = all.length ? String(counts(kind)) : '—';
+  const list = $('machineList');list.replaceChildren();
+  if (!selected) {list.append(el('div','empty','Select a room to see its machines.'));return;}
+  if (!all.length) {list.append(el('div','empty','Waiting for machine updates. An open connection does not prove this room ID is valid.'));return;}
+  const priority = {COMPLETE:0,IN_USE:1,AVAILABLE:2};
+  const matches = all.filter(m => {
+    const matched = !active || (active==='washer'||active==='dryer' ? machineType(m)===active : m.statusId===active);
+    return matched && [m.id,m.controlId,m.selectedCycle?.name,m.statusId].join(' ').toLowerCase().includes(query);
+  }).sort((a,b)=>(priority[a.statusId]??3)-(priority[b.statusId]??3) || (a.remainingSeconds||0)-(b.remainingSeconds||0));
+  if (!matches.length) {list.append(el('div','empty','No machines match these filters.'));return;}
+  matches.forEach(m=>list.append(machineCard(m)));
+}
+function tick() {
+  document.querySelectorAll('.clock[data-remaining]').forEach(node => {
+    const secs = Number(node.dataset.remaining) - (Date.now()-Number(node.dataset.received))/1000;
+    node.textContent = formatTime(secs);
+  });
+  document.querySelectorAll('.clock[data-completed]').forEach(node => {
+    const timestamp = Number(node.dataset.completed);
+    node.textContent = Number.isFinite(timestamp) ? formatTime((Date.now()-timestamp)/1000) : '—';
+  });
+  if (lastDataAt && Date.now()-lastDataAt>120000 && ws?.readyState===WebSocket.OPEN) setStatus('Connected · data stale','waiting');
+}
+$('roomSearch').addEventListener('input',renderRooms);
+$('stateFilter').addEventListener('change',renderRooms);
+$('favoritesOnly').addEventListener('click',()=>{
+  favoritesOnly = !favoritesOnly;
+  $('favoritesOnly').setAttribute('aria-pressed',String(favoritesOnly));
+  $('favoritesOnly').textContent = favoritesOnly ? '★ Favorites' : '☆ Favorites';
+  renderRooms();
+});
+$('machineSearch').addEventListener('input',renderMachines);
+$('machineFilter').addEventListener('change',renderMachines);
+$('reconnect').addEventListener('click',()=>{stopped=false;machineData.clear();lastDataAt=0;renderMachines();connect();});
+$('addRoomForm').addEventListener('submit',event=>{
+  event.preventDefault();
+  const values = Object.fromEntries(new FormData(event.currentTarget));
+  const room = sanitizeRoom(values);
+  if (!room) return;
+  personal = personal.filter(r=>r.id!==room.id);
+  personal.push(room);savePrefs();event.currentTarget.reset();
+  $('addMessage').textContent = 'Saved';
+  $('roomSearch').value = '';$('stateFilter').value = '';
+  renderRooms();selectRoom(room.id);
+});
+$('exportRooms').addEventListener('click',()=>{
+  const payload = JSON.stringify({rooms:personal,favorites:[...favorites]},null,2);
+  const url = URL.createObjectURL(new Blob([payload],{type:'application/json'}));
+  const link = el('a');link.href=url;link.download='laundry-rooms.json';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+$('importRooms').addEventListener('click',()=>$('roomFile').click());
+$('roomFile').addEventListener('change',async event=>{
+  const file = event.target.files?.[0];event.target.value='';
+  if (!file) return;
+  if (file.size > 1000000) {alert('File too large (1 MB maximum).');return;}
+  try {
+    const payload = JSON.parse(await file.text());
+    if (!Array.isArray(payload.rooms)) throw new Error('Expected a rooms array.');
+    const merged = new Map(personal.map(r=>[r.id,r]));
+    payload.rooms.slice(0,500).map(sanitizeRoom).filter(Boolean).forEach(r=>merged.set(r.id,r));
+    personal = [...merged.values()].slice(0,500);
+    if (Array.isArray(payload.favorites)) payload.favorites.filter(validId).forEach(id=>favorites.add(String(id)));
+    savePrefs();renderRooms();
+    alert('Imported ' + payload.rooms.length + ' room entries (up to 500).');
+  } catch (error) {alert('Invalid room file: ' + error.message);}
+});
+window.addEventListener('pagehide',closeSocket);
+window.addEventListener('online',()=>{if(selected && !ws && !stopped) connect();});
+async function init() {
+  try {
+    const response = await fetch('./rooms.json',{cache:'no-store'});
+    if (!response.ok) throw new Error('Directory unavailable');
+    const data = await response.json();
+    known = Array.isArray(data.rooms) ? data.rooms.map(sanitizeRoom).filter(Boolean) : [];
+    $('directoryUpdated').textContent = 'Curated directory · ' + (data.generatedAt ? 'refreshed '+new Date(data.generatedAt).toLocaleDateString() : 'locally cached') + '. No automatic room-ID discovery.';
+  } catch {
+    $('directoryUpdated').textContent = 'Public directory unavailable. Your locally saved rooms still work.';
+  }
+  renderRooms();
+  const requested = new URLSearchParams(location.search).get('room');
+  if (requested && rooms().some(r=>r.id===requested)) selectRoom(requested);
+  else if (rooms().length) $('selectedRoom').textContent = 'Choose a room from the directory.';
+}
+init();setInterval(tick,1000);
+</script>
+</body>
+</html>
