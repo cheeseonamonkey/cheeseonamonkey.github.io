@@ -46,16 +46,19 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
 </header>
 <div class="layout">
 <section class="panel" aria-labelledby="directoryTitle">
-  <h2 id="directoryTitle">Room directory</h2>
-  <label for="roomSearch" class="tiny">Search name, city, state, or room ID</label>
-  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Kimball, CO, 5730" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
+  <h2 id="directoryTitle">Find rooms & stores</h2>
+  <label for="roomSearch" class="tiny">Search known rooms and public locations by city, state, or ID</label>
+  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Houston, Texas, 5730" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
   <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
-  <div id="roomList" class="rooms" aria-label="Search results"></div>
+  <div id="roomList" class="rooms" aria-label="Known live rooms"></div>
+  <div class="meta"><strong class="tiny" style="color:#50606d">Public Speed Queen stores</strong><span class="tiny" id="storeCount">Loading…</span></div>
+  <div id="storeList" class="rooms" aria-label="Public store locations"></div>
+  <p class="hint">Store listings are from Speed Queen's public locator. They are <strong>not verified live room IDs</strong> and cannot connect until an actual room ID is known.</p>
   <details><summary>Add a known room</summary>
     <form id="addRoomForm">
       <div class="fields">
         <input class="input" name="id" required inputmode="numeric" pattern="[0-9]{1,12}" maxlength="12" placeholder="Room ID">
-        <input class="input" name="name" required maxlength="100" placeholder="Location name">
+        <input class="input" name="name" maxlength="100" placeholder="Location name (optional)">
         <input class="input" name="city" maxlength="80" placeholder="City (optional)">
         <input class="input" name="state" maxlength="2" placeholder="State (e.g. UT)">
       </div>
@@ -125,7 +128,7 @@ const readPrefs = () => {
       favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
   } catch { return { rooms: [], favorites: new Set() }; }
 };
-let known = [], { rooms: personal, favorites } = readPrefs();
+let known = [], stores = [], { rooms: personal, favorites } = readPrefs();
 let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
 const savePrefs = () => {
   try { localStorage.setItem(KEY, JSON.stringify({rooms:personal, favorites:[...favorites]})); }
@@ -143,7 +146,7 @@ function setStatus(label, level='') {
 function stateOptions() {
   const chosen = $('stateFilter').value;
   $('stateFilter').replaceChildren(new Option('All states', ''));
-  [...new Set(rooms().map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  [...new Set([...rooms(),...stores].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
   $('stateFilter').value = chosen;
 }
 function renderRooms() {
@@ -169,8 +172,23 @@ function renderRooms() {
     star.addEventListener('click',()=>{favorites.has(room.id) ? favorites.delete(room.id) : favorites.add(room.id);savePrefs();renderRooms();});
     row.append(choose,star);list.append(row);
   }
-  if (!matches.length) list.append(el('div','empty','No matching rooms. Try a broader search or add a known room.'));
+  if (!matches.length) list.append(el('div','empty','No known live rooms match. Add a known room ID below to connect.'));
   if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
+  const places = stores.filter(store => {
+    const text = [store.city,store.state,store.stateName,'Speed Queen Laundry',store.count].join(' ').toLowerCase();
+    return !favoritesOnly && (!state || store.state === state) && terms.every(term => text.includes(term));
+  });
+  $('storeCount').textContent = places.length + ' cities';
+  const storeList = $('storeList');storeList.replaceChildren();
+  for (const store of places) {
+    const link = el('a','room-choice');
+    link.style.cssText = 'display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
+    link.href = store.url;link.target='_blank';link.rel='noopener noreferrer';
+    link.append(el('span','room-title',store.city + ', ' + store.state + ' ↗'),
+      el('span','room-sub',store.count + ' public ' + (store.count===1?'store':'stores') + ' · No live room IDs'));
+    storeList.append(link);
+  }
+  if (!places.length) storeList.append(el('p','tiny','No listed commercial stores match. Campus laundry rooms generally are not in this store locator.'));
 }
 function closeSocket() {
   clearTimeout(retry); retry = null;
@@ -317,9 +335,17 @@ async function init() {
     if (!response.ok) throw new Error('Directory unavailable');
     const data = await response.json();
     known = Array.isArray(data.rooms) ? data.rooms.map(sanitizeRoom).filter(Boolean) : [];
-    $('directoryUpdated').textContent = 'Curated directory · ' + (data.generatedAt ? 'refreshed '+new Date(data.generatedAt).toLocaleDateString() : 'locally cached') + '. No automatic room-ID discovery.';
+    $('directoryUpdated').textContent = 'Live room list · ' + (data.generatedAt ? 'built '+new Date(data.generatedAt).toLocaleDateString() : 'cached') + '. New room IDs require a verified source.';
   } catch {
     $('directoryUpdated').textContent = 'Public directory unavailable. Your locally saved rooms still work.';
+  }
+  try {
+    const response = await fetch('./stores.json',{cache:'no-store'});
+    if (!response.ok) throw new Error('Public store directory unavailable');
+    const parsed = await response.json();
+    stores = Array.isArray(parsed.stores) ? parsed.stores.filter(s => /^[A-Z]{2}$/.test(s.state) && /^https:\/\/stores\.speedqueenlaundry\.com\//.test(s.url)) : [];
+  } catch {
+    $('storeCount').textContent = 'Store directory unavailable';
   }
   renderRooms();
   const requested = new URLSearchParams(location.search).get('room');
