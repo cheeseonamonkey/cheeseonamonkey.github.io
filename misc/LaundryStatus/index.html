@@ -47,13 +47,10 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
 <div class="layout">
 <section class="panel" aria-labelledby="directoryTitle">
   <h2 id="directoryTitle">Room directory</h2>
-  <label for="roomSearch" class="tiny">Search room IDs and public locations by name, city or state</label>
-  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Warwick, 5730, Salt Lake" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
+  <label for="roomSearch" class="tiny">Search numeric room IDs and their documented location names</label>
+  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Warwick, Tocil, 7907" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
   <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
   <div id="roomList" class="rooms" aria-label="Documented room IDs"></div>
-<details id="locationDetails"><summary>Other public locations · <span id="locationCount">loading</span></summary>
-<p class="hint" style="margin:9px 0">Public laundromats and store cities; not confirmed room IDs. Only documented room IDs may display live machine data.</p>
-<div id="locationList" class="rooms"></div></details>
   <details><summary>Add a known room</summary>
     <form id="addRoomForm">
       <div class="fields">
@@ -145,7 +142,7 @@ const readPrefs = () => {
       favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
   } catch { return { rooms: [], favorites: new Set() }; }
 };
-let known = [], facilities = [], storeCities = [], { rooms: personal, favorites } = readPrefs();
+let known = [], { rooms: personal, favorites } = readPrefs();
 let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
 let activity = [], watched = new Set(), eventCount = 0, lastError = '';
 const savePrefs = () => {
@@ -164,7 +161,7 @@ function setStatus(label, level='') {
 function stateOptions() {
   const chosen = $('stateFilter').value;
   $('stateFilter').replaceChildren(new Option('All states', ''));
-  [...new Set([...rooms(),...facilities,...storeCities].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  [...new Set(rooms().map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
   $('stateFilter').value = chosen;
 }
 function renderRooms() {
@@ -192,28 +189,8 @@ function renderRooms() {
     if(room.source){const source=el('a','tiny','↗');source.href=room.source;source.target='_blank';source.rel='noopener noreferrer';source.title='Source for '+room.name;source.setAttribute('aria-label',source.title);row.append(source);}
     list.append(row);
   }
-  if (!matches.length) list.append(el('div','empty','No matching room IDs. Try the public location list below.'));
+  if (!matches.length) list.append(el('div','empty','No matching room IDs. Import an authorized room list to add more.'));
   if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
-  renderLocations(terms,state);
-}
-function renderLocations(terms,state){
-  const sites=[...facilities.map(s=>({...s,label:s.name,url:s.source})),...storeCities.map(s=>({...s,label:'Speed Queen stores · '+s.city}))];
-  const matches=sites.filter(site=>{
-    const text=[site.label,site.city,site.state,site.stateName,site.address,site.region].filter(Boolean).join(' ').toLowerCase();
-    return (!state||site.state===state)&&terms.every(t=>text.includes(t));
-  });
-  $('locationCount').textContent=matches.length+' of '+sites.length;
-  const list=$('locationList');list.replaceChildren();
-  for(const site of matches.slice(0,150)){
-    const link=el('a','room-choice');
-    link.style.cssText='display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
-    link.href=site.url;link.target='_blank';link.rel='noopener noreferrer';
-    link.append(el('span','room-title',site.label+' ↗'),
-      el('span','room-sub',site.address?[site.address,site.city,site.state,'Room ID unknown'].filter(Boolean).join(' · '):site.count+' published stores · Room IDs unknown'));
-    list.append(link);
-  }
-  if(!matches.length)list.append(el('p','hint','No matching public locations.'));
-  if(terms.length&&matches.length)$('locationDetails').open=true;
 }
 function closeSocket() {
   clearTimeout(retry); retry = null;
@@ -458,11 +435,6 @@ async function init() {
   } catch {
     $('directoryUpdated').textContent = 'Public directory unavailable. Your locally saved rooms still work.';
   }
-  try{
-    const [f,s]=await Promise.all([fetch('./facilities.json',{cache:'no-store'}),fetch('./stores.json',{cache:'no-store'})]);
-    if(f.ok){const v=await f.json();facilities=Array.isArray(v.facilities)?v.facilities.filter(x=>/^https:\/\//.test(x.source||'')):[];}
-    if(s.ok){const v=await s.json();storeCities=Array.isArray(v.stores)?v.stores.filter(x=>/^https:\/\//.test(x.url||'')):[];}
-  }catch(e){console.warn('Public location directory unavailable',e);}
   renderRooms();renderDiagnostics();
   const requested = new URLSearchParams(location.search).get('room');
   if (requested && rooms().some(r=>r.id===requested)) selectRoom(requested);
