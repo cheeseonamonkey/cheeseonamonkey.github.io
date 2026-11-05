@@ -26,7 +26,11 @@ for entry in source:
     room = {"id": room_id, "name": name,
             "city": str(entry.get("city", "")).strip()[:80],
             "state": str(entry.get("state", "")).strip().upper()[:2],
+            "country": str(entry.get("country", "")).strip()[:25],
+            "verification": str(entry.get("verification", "custom")),
             "source": str(entry.get("source", ""))}
+    if room["verification"] not in {"documented", "demo", "example", "custom"}:
+        raise ValueError(f"Invalid verification for room {room_id}")
     if room["source"] and not room["source"].startswith("https://"):
         raise ValueError(f"Invalid source URL for room {room_id}")
     rooms.append(room)

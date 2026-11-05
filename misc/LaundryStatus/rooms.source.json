@@ -4,6 +4,332 @@
     "name": "Kimball Hall Laundry",
     "city": "",
     "state": "",
+    "country": "US",
+    "verification": "demo",
     "source": "https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine"
+  },
+  {
+    "id": "7894",
+    "name": "Warwick · Westwood Arden",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9269",
+    "name": "Warwick · Westwood Bericote",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9271",
+    "name": "Warwick · Westwood Compton",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9267",
+    "name": "Warwick · Westwood Dunsmere",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9268",
+    "name": "Warwick · Westwood Emscote",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7896",
+    "name": "Warwick · Westwood Feldon",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9270",
+    "name": "Warwick · Westwood Gosford",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9276",
+    "name": "Warwick · Westwood Hampton",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9275",
+    "name": "Warwick · Westwood Knightcote",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9273",
+    "name": "Warwick · Westwood Loxley",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9274",
+    "name": "Warwick · Arthur Vick 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9272",
+    "name": "Warwick · Arthur Vick 2",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9354",
+    "name": "Warwick · Arthur Vick 3",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7900",
+    "name": "Warwick · Benefactors 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7901",
+    "name": "Warwick · Benefactors 2",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7903",
+    "name": "Warwick · Bluebell 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9373",
+    "name": "Warwick · Bluebell 2",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7904",
+    "name": "Warwick · Bluebell 3",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7905",
+    "name": "Warwick · Bluebell 4",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7908",
+    "name": "Warwick · Claycroft 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7895",
+    "name": "Warwick · Claycroft 2",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9353",
+    "name": "Warwick · Claycroft 3",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9351",
+    "name": "Warwick · Cryfield",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7899",
+    "name": "Warwick · Heronbank East",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "9352",
+    "name": "Warwick · Heronbank West",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7902",
+    "name": "Warwick · International House",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7906",
+    "name": "Warwick · Jack Martin 3",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7897",
+    "name": "Warwick · Lakeside 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7898",
+    "name": "Warwick · Lakeside 4",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "5982",
+    "name": "Warwick · Sherbourne 1",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "5981",
+    "name": "Warwick · Sherbourne 5",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "5983",
+    "name": "Warwick · Sherbourne 7",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "7907",
+    "name": "Warwick · Tocil",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "15288",
+    "name": "Warwick · Rootes",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "326077",
+    "name": "Warwick · The Oaks",
+    "city": "Coventry",
+    "state": "",
+    "country": "UK",
+    "verification": "documented",
+    "source": "https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts"
+  },
+  {
+    "id": "13956",
+    "name": "Hack the Laundry · example",
+    "city": "",
+    "state": "",
+    "country": "",
+    "verification": "example",
+    "source": "https://github.com/whatbeato/hackthelaundry/blob/main/test-api.js"
   }
 ]

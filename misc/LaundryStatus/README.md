@@ -1,19 +1,19 @@
 # Laundry Rooms
 
-Minimal, read-only Alliance Laundry status dashboard. Based on [Zane's original Kimball Hall demo](https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine).
+Read-only Alliance Laundry room dashboard, originally based on [Zane's live laundry dashboard](https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine).
 
-## Adding a publicly documented room
+## Room ID sources
 
-Add a record to `rooms.source.json` with a known WebSocket room ID, name, optional city/state, and public source URL. Do not confuse Speed Queen location/payment PINs with WebSocket room IDs. Avoid publishing private facility information.
+- `5730` — Kimball Hall ID published by Zane (demo).
+- 35 University of Warwick IDs published in [joseph-coppin/laundry-tracker](https://github.com/joseph-coppin/laundry-tracker/blob/main/src/lib/rooms.ts) and [adam-fawaz/warwick-washer-api](https://github.com/adam-fawaz/warwick-washer-api) (documented Alliance API IDs, not currently live-verified).
+- `13956` — an example from [whatbeato/hackthelaundry](https://github.com/whatbeato/hackthelaundry/blob/main/test-api.js) (location unknown, unverified).
 
-The GitHub Pages workflow validates and rebuilds `rooms.json` on deployments and once per month. It **does not** enumerate unknown identifiers or query the Alliance service.
+The 22 laundromat listings and 21 Speed Queen store-city entries are **public physical locations, not known WebSocket room IDs**. No Salt Lake City or Phoenix-area WebSocket room IDs have been verified.
 
-The dashboard supports searching, state filtering, favorites, adding rooms locally, JSON import/export, and read-only live machine data. Personal rooms/favorites are stored only in the browser, not uploaded to GitHub.
+## Updates
 
-## Notes
+Edit `rooms.source.json` with sourced numeric room IDs. Run `python3 build_directory.py` locally; GitHub Pages runs it automatically on each deployment and monthly. The job validates the curated data and does **not** enumerate Alliance's service.
 
-An established WebSocket connection does not prove that a subscription returned useful data. The app reports **Live data** only when `MACHINE_STATUS` arrives. Machine-type classification uses the control-ID heuristic from the original demo and may be inaccurate on other models.
+Personal rooms and favorites are only saved in your browser. Account/payment controls are locked. A documented ID does not guarantee a live WebSocket subscription.
 
-The official [Speed Queen location finder](https://stores.speedqueenlaundry.com/locations) does not expose verified WebSocket room identifiers.
-
-This project is not affiliated with Alliance Laundry Systems.
+Unofficial project; not affiliated with Alliance Laundry Systems. 

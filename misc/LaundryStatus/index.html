@@ -19,7 +19,7 @@ h1{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:650;letter-spacing:-.04em;marg
 .primary{background:#243f53;color:#fff;border:1px solid #243f53}.secondary{background:#fff;color:#394d5c;border:1px solid #d7dfe5}
 .btn{border-radius:8px;padding:9px 12px;white-space:nowrap;font-size:.86rem}.btn:hover{filter:brightness(.96)}
 .search{display:grid;grid-template-columns:minmax(0,1fr) 93px;gap:8px;margin:14px 0 8px}.meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:10px 0 12px}
-.rooms{display:grid;gap:6px;max-height:420px;overflow:auto}.room-row{display:grid;grid-template-columns:1fr 32px;align-items:center;gap:5px;border-radius:8px}.room-row.current{background:#edf3f6}
+.rooms{display:grid;gap:6px;max-height:420px;overflow:auto}.room-row{display:grid;grid-template-columns:minmax(0,1fr) 32px 20px;align-items:center;gap:5px;border-radius:8px}.room-row.current{background:#edf3f6}
 .room-choice{background:none;border:0;padding:9px 10px;text-align:left;color:inherit;border-radius:8px;min-width:0}
 .room-title{display:block;font-weight:600;font-size:.89rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room-sub{display:block;font-size:.73rem;color:#7a8893;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .star{border:0;background:none;color:#a6b1ba;font-size:1.2rem;padding:5px}.star.active{color:#986d1f}
@@ -46,11 +46,14 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
 </header>
 <div class="layout">
 <section class="panel" aria-labelledby="directoryTitle">
-  <h2 id="directoryTitle">Known live rooms</h2>
-  <label for="roomSearch" class="tiny">Search known rooms by ID, name, city or state</label>
-  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. 5730, Kimball, UT" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
+  <h2 id="directoryTitle">Room directory</h2>
+  <label for="roomSearch" class="tiny">Search room IDs and public locations by name, city or state</label>
+  <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Warwick, 5730, Salt Lake" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
   <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
-  <div id="roomList" class="rooms" aria-label="Known live rooms"></div>
+  <div id="roomList" class="rooms" aria-label="Documented room IDs"></div>
+<details id="locationDetails"><summary>Other public locations · <span id="locationCount">loading</span></summary>
+<p class="hint" style="margin:9px 0">Public laundromats and store cities; not confirmed room IDs. Only documented room IDs may display live machine data.</p>
+<div id="locationList" class="rooms"></div></details>
   <details><summary>Add a known room</summary>
     <form id="addRoomForm">
       <div class="fields">
@@ -69,7 +72,7 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
     <button id="importRooms" class="btn secondary" type="button">Import rooms</button>
     <input id="roomFile" type="file" accept="application/json,.json" hidden>
   </div>
-  <p class="hint">Import room IDs from your own authorized Speed Queen room-list export or geo-boundary JSON. Only room IDs and names are saved locally. Payment/location PINs are different identifiers.</p>
+  <p class="hint">Public room IDs are documented, not live-verified. Import your authorized room list; payment/location PINs are different identifiers.</p>
   <p class="tiny" id="directoryUpdated"></p>
 </section>
 <section class="panel" aria-labelledby="machineTitle">
@@ -104,7 +107,7 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
   <p class="tiny" id="lastUpdate" style="margin-top:12px">No updates received.</p>
 </section>
 </div>
-<footer><a href="https://github.com/cheeseonamonkey">cheeseonamonkey</a> · <a href="https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine">Zane / original dashboard</a> · <a href="https://github.com/drakeerv/squeen">drakeerv / squeen</a> · <a href="https://github.com/bwees/speedqueen-hass">bwees / Home Assistant</a><div style="margin-top:4px">Unofficial · Not affiliated with Alliance Laundry</div></footer>
+<footer><a href="https://github.com/cheeseonamonkey">cheeseonamonkey</a> · <a href="https://github.com/zane-programs/reversing-with-claude-code/tree/master/washing-machine">Zane / original dashboard</a> · <a href="https://github.com/drakeerv/squeen">drakeerv / squeen</a> · <a href="https://github.com/bwees/speedqueen-hass">bwees / Home Assistant</a> · <a href="https://github.com/joseph-coppin/laundry-tracker">Warwick / joseph-coppin</a> · <a href="https://github.com/adam-fawaz/warwick-washer-api">adam-fawaz</a><div style="margin-top:4px">Unofficial · Not affiliated with Alliance Laundry</div></footer>
 </main>
 <script>
 'use strict';
@@ -132,6 +135,7 @@ const sanitizeRoom = room => {
   if (!room || !validId(room.id)) return null;
   return { id: String(room.id), name: clean(room.name).slice(0,100) || 'Room ' + room.id,
     city: clean(room.city).slice(0,80), state: clean(room.state).toUpperCase().slice(0,2),
+    country: clean(room.country).slice(0,25), verification: ['documented','demo','example','custom'].includes(room.verification)?room.verification:'custom',
     source: /^https:\/\//.test(room.source || '') ? String(room.source) : '' };
 };
 const readPrefs = () => {
@@ -141,7 +145,7 @@ const readPrefs = () => {
       favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
   } catch { return { rooms: [], favorites: new Set() }; }
 };
-let known = [], { rooms: personal, favorites } = readPrefs();
+let known = [], facilities = [], storeCities = [], { rooms: personal, favorites } = readPrefs();
 let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
 let activity = [], watched = new Set(), eventCount = 0, lastError = '';
 const savePrefs = () => {
@@ -160,7 +164,7 @@ function setStatus(label, level='') {
 function stateOptions() {
   const chosen = $('stateFilter').value;
   $('stateFilter').replaceChildren(new Option('All states', ''));
-  [...new Set(rooms().map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  [...new Set([...rooms(),...facilities,...storeCities].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
   $('stateFilter').value = chosen;
 }
 function renderRooms() {
@@ -168,26 +172,48 @@ function renderRooms() {
   const terms = $('roomSearch').value.toLowerCase().split(/\s+/).filter(Boolean);
   const state = $('stateFilter').value;
   const matches = rooms().filter(room => {
-    const text = [room.id,room.name,room.city,room.state].join(' ').toLowerCase();
+    const text = [room.id,room.name,room.city,room.state,room.country,room.verification].join(' ').toLowerCase();
     return (!state || room.state === state) && (!favoritesOnly || favorites.has(room.id)) && terms.every(word => text.includes(word));
   });
-  $('roomCount').textContent = matches.length + ' of ' + rooms().length + ' rooms';
+  $('roomCount').textContent = matches.length + ' of ' + rooms().length + ' room IDs';
   const list = $('roomList');
   list.replaceChildren();
   for (const room of matches.slice(0,200)) {
     const row = el('div','room-row' + (selected?.id === room.id ? ' current' : ''));
     const choose = el('button','room-choice');
     choose.type = 'button';
-    choose.append(el('span','room-title',room.name),el('span','room-sub',[room.city,room.state,'#'+room.id].filter(Boolean).join(' · ')));
+    choose.append(el('span','room-title',room.name),el('span','room-sub',[room.city,room.state,room.country,'#'+room.id,room.verification==='documented'?'Documented API ID':room.verification==='demo'?'Original demo':room.verification==='example'?'Example ID':'Saved locally'].filter(Boolean).join(' · ')));
     choose.addEventListener('click',()=>selectRoom(room.id));
     const star = el('button','star' + (favorites.has(room.id) ? ' active' : ''),favorites.has(room.id) ? '★' : '☆');
     star.type = 'button'; star.title = favorites.has(room.id) ? 'Remove favorite' : 'Add favorite';
     star.setAttribute('aria-label',star.title);
     star.addEventListener('click',()=>{favorites.has(room.id) ? favorites.delete(room.id) : favorites.add(room.id);savePrefs();renderRooms();});
-    row.append(choose,star);list.append(row);
+    row.append(choose,star);
+    if(room.source){const source=el('a','tiny','↗');source.href=room.source;source.target='_blank';source.rel='noopener noreferrer';source.title='Source for '+room.name;source.setAttribute('aria-label',source.title);row.append(source);}
+    list.append(row);
   }
-  if (!matches.length) list.append(el('div','empty','No known live rooms match. Add a known room ID below to connect.'));
+  if (!matches.length) list.append(el('div','empty','No matching room IDs. Try the public location list below.'));
   if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
+  renderLocations(terms,state);
+}
+function renderLocations(terms,state){
+  const sites=[...facilities.map(s=>({...s,label:s.name,url:s.source})),...storeCities.map(s=>({...s,label:'Speed Queen stores · '+s.city}))];
+  const matches=sites.filter(site=>{
+    const text=[site.label,site.city,site.state,site.stateName,site.address,site.region].filter(Boolean).join(' ').toLowerCase();
+    return (!state||site.state===state)&&terms.every(t=>text.includes(t));
+  });
+  $('locationCount').textContent=matches.length+' of '+sites.length;
+  const list=$('locationList');list.replaceChildren();
+  for(const site of matches.slice(0,150)){
+    const link=el('a','room-choice');
+    link.style.cssText='display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
+    link.href=site.url;link.target='_blank';link.rel='noopener noreferrer';
+    link.append(el('span','room-title',site.label+' ↗'),
+      el('span','room-sub',site.address?[site.address,site.city,site.state,'Room ID unknown'].filter(Boolean).join(' · '):site.count+' published stores · Room IDs unknown'));
+    list.append(link);
+  }
+  if(!matches.length)list.append(el('p','hint','No matching public locations.'));
+  if(terms.length&&matches.length)$('locationDetails').open=true;
 }
 function closeSocket() {
   clearTimeout(retry); retry = null;
@@ -428,10 +454,15 @@ async function init() {
     if (!response.ok) throw new Error('Directory unavailable');
     const data = await response.json();
     known = Array.isArray(data.rooms) ? data.rooms.map(sanitizeRoom).filter(Boolean) : [];
-    $('directoryUpdated').textContent = 'Live room list · ' + (data.generatedAt ? 'built '+new Date(data.generatedAt).toLocaleDateString() : 'cached') + '. New room IDs require a verified source.';
+    $('directoryUpdated').textContent = 'Documented room IDs · ' + (data.generatedAt ? 'built '+new Date(data.generatedAt).toLocaleDateString() : 'cached') + '. Not independently validated for current WebSocket availability.';
   } catch {
     $('directoryUpdated').textContent = 'Public directory unavailable. Your locally saved rooms still work.';
   }
+  try{
+    const [f,s]=await Promise.all([fetch('./facilities.json',{cache:'no-store'}),fetch('./stores.json',{cache:'no-store'})]);
+    if(f.ok){const v=await f.json();facilities=Array.isArray(v.facilities)?v.facilities.filter(x=>/^https:\/\//.test(x.source||'')):[];}
+    if(s.ok){const v=await s.json();storeCities=Array.isArray(v.stores)?v.stores.filter(x=>/^https:\/\//.test(x.url||'')):[];}
+  }catch(e){console.warn('Public location directory unavailable',e);}
   renderRooms();renderDiagnostics();
   const requested = new URLSearchParams(location.search).get('room');
   if (requested && rooms().some(r=>r.id===requested)) selectRoom(requested);
