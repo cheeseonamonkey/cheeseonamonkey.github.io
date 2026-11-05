@@ -1,0 +1,153 @@
+{
+  "source": "https://stores.speedqueenlaundry.com/",
+  "note": "Public store cities; not confirmed Alliance WebSocket rooms",
+  "stores": [
+    {
+      "city": "Long Beach",
+      "state": "CA",
+      "stateName": "California",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ca/long-beach"
+    },
+    {
+      "city": "Santa Ana",
+      "state": "CA",
+      "stateName": "California",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ca/santa-ana"
+    },
+    {
+      "city": "Boca Raton",
+      "state": "FL",
+      "stateName": "Florida",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/fl/boca-raton"
+    },
+    {
+      "city": "Atlanta",
+      "state": "GA",
+      "stateName": "Georgia",
+      "count": 2,
+      "url": "https://stores.speedqueenlaundry.com/ga/atlanta"
+    },
+    {
+      "city": "Dalton",
+      "state": "GA",
+      "stateName": "Georgia",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ga/dalton"
+    },
+    {
+      "city": "Decatur",
+      "state": "GA",
+      "stateName": "Georgia",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ga/decatur"
+    },
+    {
+      "city": "Duluth",
+      "state": "GA",
+      "stateName": "Georgia",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ga/duluth"
+    },
+    {
+      "city": "Stone Mountain",
+      "state": "GA",
+      "stateName": "Georgia",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ga/stone-mountain"
+    },
+    {
+      "city": "Chicago",
+      "state": "IL",
+      "stateName": "Illinois",
+      "count": 4,
+      "url": "https://stores.speedqueenlaundry.com/il/chicago"
+    },
+    {
+      "city": "Louisville",
+      "state": "KY",
+      "stateName": "Kentucky",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/ky/louisville"
+    },
+    {
+      "city": "Baton Rouge",
+      "state": "LA",
+      "stateName": "Louisiana",
+      "count": 2,
+      "url": "https://stores.speedqueenlaundry.com/la/baton-rouge"
+    },
+    {
+      "city": "Greenville",
+      "state": "SC",
+      "stateName": "South Carolina",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/sc/greenville"
+    },
+    {
+      "city": "Baytown",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/baytown"
+    },
+    {
+      "city": "Dallas",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 3,
+      "url": "https://stores.speedqueenlaundry.com/tx/dallas"
+    },
+    {
+      "city": "Farmers Branch",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/farmers-branch"
+    },
+    {
+      "city": "Fort Worth",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/fort-worth"
+    },
+    {
+      "city": "Houston",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 6,
+      "url": "https://stores.speedqueenlaundry.com/tx/houston"
+    },
+    {
+      "city": "Irving",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/irving"
+    },
+    {
+      "city": "Pasadena",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/pasadena"
+    },
+    {
+      "city": "San Antonio",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 2,
+      "url": "https://stores.speedqueenlaundry.com/tx/san-antonio"
+    },
+    {
+      "city": "Stafford",
+      "state": "TX",
+      "stateName": "Texas",
+      "count": 1,
+      "url": "https://stores.speedqueenlaundry.com/tx/stafford"
+    }
+  ]
+}
