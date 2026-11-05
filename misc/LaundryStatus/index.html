@@ -51,6 +51,9 @@ footer{padding:24px 0 4px;color:#9aa6af;text-align:center;font-size:.7rem}footer
   <div class="search"><input id="roomSearch" class="input" type="search" placeholder="e.g. Houston, Texas, 5730" autocomplete="off"><select id="stateFilter" class="input" aria-label="Filter state"><option value="">All states</option></select></div>
   <div class="meta"><span class="tiny" id="roomCount">Loading directory…</span><button id="favoritesOnly" class="btn secondary" type="button" aria-pressed="false">☆ Favorites</button></div>
   <div id="roomList" class="rooms" aria-label="Known live rooms"></div>
+  <div class="meta"><strong class="tiny" style="color:#50606d">Nearby laundromats</strong><span class="tiny" id="facilityCount">Loading…</span></div>
+  <div id="facilityList" class="rooms" aria-label="Public laundromat locations"></div>
+  <p class="hint">Publicly listed facilities; Speed Queen equipment is marked when verified. These are <strong>not live room connections</strong>.</p>
   <div class="meta"><strong class="tiny" style="color:#50606d">Public Speed Queen stores</strong><span class="tiny" id="storeCount">Loading…</span></div>
   <div id="storeList" class="rooms" aria-label="Public store locations"></div>
   <p class="hint">Store listings are from Speed Queen's public locator. They are <strong>not verified live room IDs</strong> and cannot connect until an actual room ID is known.</p>
@@ -128,7 +131,7 @@ const readPrefs = () => {
       favorites: new Set(Array.isArray(parsed.favorites) ? parsed.favorites.map(String) : []) };
   } catch { return { rooms: [], favorites: new Set() }; }
 };
-let known = [], stores = [], { rooms: personal, favorites } = readPrefs();
+let known = [], stores = [], facilities = [], { rooms: personal, favorites } = readPrefs();
 let selected = null, ws = null, retry = null, stopped = false, machineData = new Map(), lastDataAt = 0, favoritesOnly = false;
 const savePrefs = () => {
   try { localStorage.setItem(KEY, JSON.stringify({rooms:personal, favorites:[...favorites]})); }
@@ -146,7 +149,7 @@ function setStatus(label, level='') {
 function stateOptions() {
   const chosen = $('stateFilter').value;
   $('stateFilter').replaceChildren(new Option('All states', ''));
-  [...new Set([...rooms(),...stores].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
+  [...new Set([...rooms(),...stores,...facilities].map(r=>r.state).filter(Boolean))].sort().forEach(s => $('stateFilter').add(new Option(s,s)));
   $('stateFilter').value = chosen;
 }
 function renderRooms() {
@@ -174,6 +177,7 @@ function renderRooms() {
   }
   if (!matches.length) list.append(el('div','empty','No known live rooms match. Add a known room ID below to connect.'));
   if (matches.length > 200) list.append(el('p','tiny','Showing the first 200 matches. Narrow your search.'));
+  renderFacilities(terms,state);
   const places = stores.filter(store => {
     const text = [store.city,store.state,store.stateName,'Speed Queen Laundry',store.count].join(' ').toLowerCase();
     return !favoritesOnly && (!state || store.state === state) && terms.every(term => text.includes(term));
@@ -189,6 +193,27 @@ function renderRooms() {
     storeList.append(link);
   }
   if (!places.length) storeList.append(el('p','tiny','No listed commercial stores match. Campus laundry rooms generally are not in this store locator.'));
+}
+function renderFacilities(terms,state) {
+  const matches = facilities.filter(site => {
+    const haystack = [site.name,site.city,site.state,site.address,site.region,site.equipment].join(' ').toLowerCase();
+    return !favoritesOnly && (!state || site.state === state) && terms.every(term => haystack.includes(term));
+  });
+  $('facilityCount').textContent = matches.length + ' locations';
+  const list = $('facilityList');list.replaceChildren();
+  for (const site of matches.slice(0,100)) {
+    const link = el('a','room-choice');
+    link.style.cssText='display:block;border:1px solid #e7ecef;border-radius:8px;text-decoration:none';
+    link.href=site.source;link.target='_blank';link.rel='noopener noreferrer';
+    const badge=site.equipment==='confirmed' ? 'Speed Queen equipment verified' :
+      site.equipment==='historical' ? 'Historic Speed Queen listing' : 'Equipment not verified';
+    link.append(el('span','room-title',site.name+' ↗'),
+      el('span','room-sub',[site.address,site.city+' '+site.state].filter(Boolean).join(' · ')),
+      el('span','room-sub',badge));
+    list.append(link);
+  }
+  if(!matches.length) list.append(el('p','tiny','No matching known laundromats. Try another city, state, or address.'));
+  if(matches.length>100) list.append(el('p','tiny','Showing 100 matches; narrow the search.'));
 }
 function closeSocket() {
   clearTimeout(retry); retry = null;
@@ -346,6 +371,16 @@ async function init() {
     stores = Array.isArray(parsed.stores) ? parsed.stores.filter(s => /^[A-Z]{2}$/.test(s.state) && /^https:\/\/stores\.speedqueenlaundry\.com\//.test(s.url)) : [];
   } catch {
     $('storeCount').textContent = 'Store directory unavailable';
+  }
+  try {
+    const response = await fetch('./facilities.json',{cache:'no-store'});
+    if (!response.ok) throw new Error('Unavailable');
+    const parsed=await response.json();
+    facilities=Array.isArray(parsed.facilities) ? parsed.facilities.filter(f =>
+      f && typeof f.name==='string' && /^[A-Z]{2}$/.test(f.state) &&
+      /^https:\/\//.test(f.source) && f.name.length<120).slice(0,300) : [];
+  } catch {
+    $('facilityCount').textContent='Location directory unavailable';
   }
   renderRooms();
   const requested = new URLSearchParams(location.search).get('room');
